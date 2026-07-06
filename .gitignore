@@ -1,0 +1,3 @@
+# Ignorar los respaldos de la base de datos generados por la app
+storage/backups/
+*.sql

@@ -1,0 +1,10 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Si intentan acceder a una carpeta o archivo real en la raíz, que acceda normal
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+
+    # Redirecciona absolutamente todo lo demás a la carpeta public/index.php pasando la ruta como variable
+    RewriteRule ^(.*)$ public/index.php?url=$1 [QSA,L]
+</IfModule>

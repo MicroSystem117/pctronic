@@ -1,0 +1,128 @@
+/* ==========================================================================
+   1. CONTROL DE COLORES GLOBALES Y CONTENEDORES OSCUROS
+   ========================================================================== */
+
+/* Forzar blanco en contenedores base, menús y pies de página */
+body, 
+html, 
+.wrapper, 
+main, 
+footer, 
+.footer,
+.card-custom,
+.card {
+    color: #ffffff !important;
+}
+
+/* Forzar blanco absoluto en elementos genéricos y clases mutadas de Bootstrap */
+.text-muted, 
+.text-white-50, 
+.text-light-50,
+p, 
+small {
+    color: #ffffff !important;
+}
+
+/* ==========================================================================
+   2. BARRA LATERAL (SIDEBAR) - NAVEGACIÓN
+   ========================================================================== */
+
+/* Enlaces inactivos en blanco */
+.nav-pills .nav-link {
+    color: #ffffff !important;
+}
+
+/* Enlace activo (Azul con letras blancas) */
+.nav-pills .nav-link.active {
+    color: #ffffff !important;
+    background-color: #0d6efd !important; 
+}
+
+/* Efecto Hover sutil sobre las opciones */
+.nav-pills .nav-link:not(.active):hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+}
+
+/* ==========================================================================
+   3. COMPONENTES DE FORMULARIOS Y VENTANAS MODALES
+   ========================================================================== */
+
+/* Asegurar opacidad y texto claro en la estructura del modal */
+.modal-content,
+.modal-content h5,
+.modal-content .modal-title,
+.modal-content label,
+.modal-content .form-label,
+.modal-content .form-text {
+    color: #ffffff !important;
+}
+
+/* Forzar texto blanco en casillas de entrada, selectores y áreas de texto */
+.modal-content .form-control,
+.modal-content .form-select,
+.modal-content textarea,
+.modal-content input {
+    color: #ffffff !important;
+    background-color: rgba(255, 255, 255, 0.1) !important; /* Da un fondo estilizado a los inputs */
+}
+
+/* Color del texto de sugerencia (Placeholder) */
+.modal-content .form-control::placeholder,
+.modal-content input::placeholder {
+    color: #cbd5e1 !important;
+    opacity: 1 !important;
+}
+
+/* Botón secundario/Cancelar dentro de modales */
+.modal-footer .btn-outline-secondary,
+.modal-footer .btn-secondary,
+.modal-footer .btn-outline-secondary * {
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Invertir el botón "X" de cierre de Bootstrap para que se renderice en blanco */
+.modal-content .btn-close {
+    filter: invert(1) !important;
+}
+
+/* Evitar que los asteriscos de campos obligatorios se vuelvan blancos */
+.text-danger,
+.modal-content .text-danger {
+    color: #ff4d4d !important; /* Rojo vivo para modo oscuro */
+}
+
+/* ==========================================================================
+   4. EXCEPCIONES CRÍTICAS (ZONAS CON FONDO CLARO)
+   ========================================================================== */
+
+/* Mantener el texto oscuro única y exclusivamente en cabeceras de tablas claras */
+.table-light, 
+.table-light th, 
+.table-light td, 
+.bg-light, 
+.bg-white,
+.text-dark {
+    color: #212529 !important;
+}
+
+/* Calendar summary and small tweaks */
+.summary-list .summary-item:hover { background: rgba(255,255,255,0.03); }
+.calendar-table td { vertical-align: top; height:160px; max-height:160px; overflow:hidden; }
+.calendar-cell-content { max-height:110px; overflow-y:auto; padding-right:6px; }
+.calendar-table td .calendar-day-link { display:block; color:inherit }
+
+.list-group-item .badge { font-size: 0.85rem; }
+
+.day-summary-badge { position: absolute; top: 6px; right: 6px; padding: 0.25rem 0.45rem; font-size:0.75rem; line-height:1; }
+.calendar-day-header { position: relative; padding-right: 40px; }
+.calendar-table td.position-relative { position: relative; }
+
+/* Forzar color azul en celdas que tienen pagos */
+.calendar-table td.table-warning {
+    background-color: #0d6efd !important; /* Bootstrap primary */
+    color: #ffffff !important;
+}
+.calendar-table td.table-warning .text-white { color: #ffffff !important; }
+.calendar-table td.table-warning .day-summary-badge { background: rgba(255,255,255,0.95); color: #000; }
