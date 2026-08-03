@@ -46,7 +46,6 @@ $isAdmin = $userRole === 'Administrador';
                 <table class="table table-dark table-hover mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>ID</th>
                             <th>Serial</th>
                             <th>Cliente</th>
                             <th>Vence</th>
@@ -84,8 +83,8 @@ $isAdmin = $userRole === 'Administrador';
                                 <tr data-serial="<?php echo htmlspecialchars($antena['serial'], ENT_QUOTES); ?>"
                                     data-cliente="<?php echo htmlspecialchars($antena['cliente'], ENT_QUOTES); ?>"
                                     data-plan="<?php echo htmlspecialchars($antena['nombre_plan'], ENT_QUOTES); ?>"
-                                    data-status="<?php echo strip_tags($statusLabel); ?>">
-                                    <td><?php echo $antena['id_starlink']; ?></td>
+                                    data-status="<?php echo strip_tags($statusLabel); ?>"
+                                    data-pay="<?php echo htmlspecialchars($antena['pay'] ?? '', ENT_QUOTES); ?>">
                                     <td><code><?php echo $antena['serial']; ?></code></td>
                                     <td><?php echo $antena['cliente']; ?></td>
                                     <td><?php echo isset($antena['pay']) && $antena['pay'] !== null && $antena['pay'] !== '' ? htmlspecialchars(intval($antena['pay'])) : '<span class="text-white-50">N/A</span>'; ?></td>
@@ -94,7 +93,7 @@ $isAdmin = $userRole === 'Administrador';
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="5" class="text-center py-4 text-muted">No hay antenas disponibles.</td>
+                                <td colspan="4" class="text-center py-4 text-muted">No hay antenas disponibles.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -110,7 +109,6 @@ $isAdmin = $userRole === 'Administrador';
                 <table class="table table-dark table-hover mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>ID</th>
                             <th>Antena</th>
                             <th>Cliente</th>
                             <th>Monto</th>
@@ -128,8 +126,8 @@ $isAdmin = $userRole === 'Administrador';
                                     data-cliente="<?php echo htmlspecialchars($payment['cliente'], ENT_QUOTES); ?>"
                                     data-plan="<?php echo htmlspecialchars($payment['nombre_plan'], ENT_QUOTES); ?>"
                                     data-currency="<?php echo htmlspecialchars($payment['currency'], ENT_QUOTES); ?>"
-                                    data-status="Pagado">
-                                    <td><?php echo $payment['id_payment']; ?></td>
+                                    data-status="Pagado"
+                                    data-payment-date="<?php echo htmlspecialchars($payment['payment_date'], ENT_QUOTES); ?>">
                                     <td><code><?php echo $payment['serial']; ?></code></td>
                                     <td><?php echo $payment['cliente']; ?></td>
                                     <td><?php echo number_format($payment['amount'], 2, ',', '.'); ?></td>
@@ -146,7 +144,7 @@ $isAdmin = $userRole === 'Administrador';
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="<?php echo $isAdmin ? 7 : 6; ?>" class="text-center py-4 text-muted">No hay pagos registrados.</td>
+                                <td colspan="<?php echo $isAdmin ? 6 : 5; ?>" class="text-center py-4 text-muted">No hay pagos registrados.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>

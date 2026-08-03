@@ -8,7 +8,13 @@ class PlanModel {
     }
 
     public function getAll() {
-        $stmt = $this->db->prepare("SELECT * FROM plan ORDER BY id_plan ASC");
+        $stmt = $this->db->prepare(
+            "SELECT p.*, COALESCE(COUNT(a.id_starlink), 0) AS antenna_count " .
+            "FROM plan p " .
+            "LEFT JOIN antenas a ON a.plan = p.id_plan " .
+            "GROUP BY p.id_plan, p.plan, p.price " .
+            "ORDER BY p.id_plan ASC"
+        );
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

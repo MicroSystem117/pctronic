@@ -17,10 +17,9 @@ $isAdmin = $userRole === 'Administrador';
 
 <div class="card card-custom p-3">
     <div class="table-responsive">
-        <table class="table table-dark table-hover mb-0">
+        <table class="table table-dark table-hover mb-0 datatable">
     <thead class="table-light">
         <tr>
-            <th>ID</th>
             <th>Cédula</th>
             <th>Cliente</th>
             <th>Teléfono</th>
@@ -32,19 +31,29 @@ $isAdmin = $userRole === 'Administrador';
     <tbody>
         <?php if(!empty($data['clients'])): ?>
             <?php foreach($data['clients'] as $c): ?>
-                <tr>
-                    <td><?php echo $c['id_client']; ?></td>
+                <tr data-name="<?php echo htmlspecialchars($c['name'] . ' ' . $c['surname'], ENT_QUOTES); ?>"
+                    data-ci="<?php echo htmlspecialchars($c['ci'] ?? '', ENT_QUOTES); ?>"
+                    data-phone="<?php echo htmlspecialchars($c['phone'], ENT_QUOTES); ?>">
                     <td><?php echo !empty($c['ci']) ? $c['ci'] : '<span class="text-white-50">N/A</span>'; ?></td>
                     <td><?php echo $c['name'] . ' ' . $c['surname']; ?></td>
                     <td><code><?php echo $c['phone']; ?></code></td>
                     <?php if ($isAdmin): ?>
                         <td>
+                            <button class="btn btn-sm btn-success btn-view-client-starlinks"
+                                    data-client-id="<?php echo $c['id_client']; ?>"
+                                    data-client-name="<?php echo htmlspecialchars($c['name'] . ' ' . $c['surname'], ENT_QUOTES); ?>"
+                                    data-starlinks="<?php echo htmlspecialchars($c['starlinks'] ?? '', ENT_QUOTES); ?>"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalClientStarlinks"
+                                    title="Ver Starlink asociadas">
+                                <i class="bi bi-broadcast"></i>
+                            </button>
                             <button class="btn btn-sm btn-info btn-edit-client" 
                                     data-id="<?php echo $c['id_client']; ?>"
-                                    data-name="<?php echo $c['name']; ?>"
-                                    data-surname="<?php echo $c['surname']; ?>"
-                                    data-ci="<?php echo $c['ci']; ?>"
-                                    data-phone="<?php echo $c['phone']; ?>"
+                                    data-name="<?php echo htmlspecialchars($c['name'], ENT_QUOTES); ?>"
+                                    data-surname="<?php echo htmlspecialchars($c['surname'], ENT_QUOTES); ?>"
+                                    data-ci="<?php echo htmlspecialchars($c['ci'] ?? '', ENT_QUOTES); ?>"
+                                    data-phone="<?php echo htmlspecialchars($c['phone'], ENT_QUOTES); ?>"
                                     data-bs-toggle="modal" 
                                     data-bs-target="#modalClient">
                                 <i class="bi bi-pencil"></i>
@@ -60,7 +69,7 @@ $isAdmin = $userRole === 'Administrador';
             <?php endforeach; ?>
         <?php else: ?>
             <tr>
-                <td colspan="5" class="text-center py-3 text-muted">No hay clientes registrados.</td>
+                <td colspan="<?php echo $isAdmin ? 4 : 3; ?>" class="text-center py-3 text-muted">No hay clientes registrados.</td>
             </tr>
         <?php endif; ?>
     </tbody>
@@ -105,6 +114,23 @@ $isAdmin = $userRole === 'Administrador';
 </div>
 <?php endif; ?>
 
+<div class="modal fade" id="modalClientStarlinks" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title" id="modalClientStarlinksTitle"><i class="bi bi-broadcast me-2 text-primary"></i>Starlink del cliente</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="clientStarlinksList" class="d-flex flex-wrap gap-2"></div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     // Al hacer clic en el botón de registrar (limpiar modal)
@@ -130,6 +156,27 @@ document.addEventListener("DOMContentLoaded", function() {
             document.getElementById('client_phone').value = this.getAttribute('data-phone');
             
             document.querySelector('#modalClient .modal-title').innerHTML = '<i class="bi bi-pencil-square"></i> Editar Datos del Cliente';
+        });
+    });
+
+    document.querySelectorAll('.btn-view-client-starlinks').forEach(button => {
+        button.addEventListener('click', function() {
+            const clientName = this.getAttribute('data-client-name') || 'Cliente';
+            const starlinks = (this.getAttribute('data-starlinks') || '').trim();
+            const listContainer = document.getElementById('clientStarlinksList');
+            const title = document.getElementById('modalClientStarlinksTitle');
+
+            title.innerHTML = '<i class="bi bi-broadcast me-2 text-primary"></i>Starlink de ' + clientName;
+
+            if (!starlinks) {
+                listContainer.innerHTML = '<span class="text-white-50">Este cliente no tiene Starlink asociadas.</span>';
+                return;
+            }
+
+            const items = starlinks.split(',').map(item => item.trim()).filter(Boolean);
+            listContainer.innerHTML = items.map(item => {
+                return '<span class="badge bg-success text-dark px-3 py-2">' + item + '</span>';
+            }).join('');
         });
     });
 

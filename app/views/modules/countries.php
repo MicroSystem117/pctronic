@@ -16,46 +16,40 @@ $isAdmin = $userRole === 'Administrador';
 </div>
 
 <div class="card card-custom p-3">
-    <div class="table-responsive">
-        <table class="table table-dark table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>ID</th>
-                    <th>País</th>
-                    <?php if ($isAdmin): ?>
-                        <th>Acciones</th>
-                    <?php endif; ?>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if(!empty($data['countries'])): ?>
-                    <?php foreach($data['countries'] as $c): ?>
-                        <tr>
-                            <td><?php echo $c['id_country']; ?></td>
-                            <td><?php echo $c['country']; ?></td>
-                            <?php if ($isAdmin): ?>
-                                <td>
-                                    <button class="btn btn-sm btn-info btn-edit-country" 
-                                            data-id="<?php echo $c['id_country']; ?>"
-                                            data-country="<?php echo htmlspecialchars($c['country'], ENT_QUOTES); ?>"
-                                            data-bs-toggle="modal" data-bs-target="#modalCountry">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <a href="index.php?url=countries&action=delete&id=<?php echo $c['id_country']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Eliminar país?');">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                </td>
-                            <?php endif; ?>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="3" class="text-center py-3 text-muted">No hay países registrados.</td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
-    </div>
+    <?php if(!empty($data['countries'])): ?>
+        <div class="row g-3" id="countriesCards">
+            <?php foreach($data['countries'] as $c): ?>
+                <div class="col-md-6 col-xl-4 country-card"
+                     data-country="<?php echo htmlspecialchars($c['country'], ENT_QUOTES); ?>">
+                    <div class="card h-100 card-custom p-4 border-start border-info border-4">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <div>
+                                <div class="text-white-50 small text-uppercase mb-1">País / Región</div>
+                                <h4 class="mb-1"><?php echo htmlspecialchars($c['country']); ?></h4>
+                            </div>
+                            <i class="bi bi-geo-alt-fill fs-3 text-info"></i>
+                        </div>
+
+                        <?php if ($isAdmin): ?>
+                            <div class="mt-4 d-flex gap-2">
+                                <button class="btn btn-sm btn-info btn-edit-country"
+                                        data-id="<?php echo $c['id_country']; ?>"
+                                        data-country="<?php echo htmlspecialchars($c['country'], ENT_QUOTES); ?>"
+                                        data-bs-toggle="modal" data-bs-target="#modalCountry">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <a href="index.php?url=countries&action=delete&id=<?php echo $c['id_country']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Eliminar país?');">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php else: ?>
+        <div class="text-center py-4 text-white-50">No hay países registrados.</div>
+    <?php endif; ?>
 </div>
 
 <?php if ($isAdmin): ?>
@@ -93,13 +87,16 @@ document.addEventListener('DOMContentLoaded', function(){
         });
     });
 
-    // Buscador para países
+    // Buscador local para países en vista tipo tarjetas
     const searchCountries = document.getElementById('search_countries');
     if (searchCountries) {
         searchCountries.addEventListener('input', function(){
             const q = this.value.trim().toLowerCase();
-            const rows = document.querySelectorAll('.card .table tbody tr');
-            rows.forEach(r => r.style.display = q === '' ? '' : (r.textContent.toLowerCase().includes(q) ? '' : 'none'));
+            const cards = document.querySelectorAll('.country-card');
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = q === '' || text.includes(q) ? '' : 'none';
+            });
         });
     }
 });

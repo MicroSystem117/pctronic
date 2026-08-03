@@ -6,6 +6,7 @@
     <title><?php echo isset($page_title) ? $page_title : 'Starlink Control'; ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.11/css/dataTables.bootstrap5.min.css">
     
     <link href="http://localhost/starlink-control/public/css/style.css" rel="stylesheet">
 
@@ -299,6 +300,41 @@ select:focus option {
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.11/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.11/js/dataTables.bootstrap5.min.js"></script>
+<script>
+$(document).ready(function () {
+    $('.datatable').DataTable({
+        paging: true,
+        searching: true,
+        ordering: true,
+        info: true,
+        lengthChange: true,
+        pageLength: 10,
+        responsive: true,
+        columnDefs: [{ targets: -1, orderable: false }],
+        language: {
+            decimal: '',
+            emptyTable: 'No hay datos disponibles en la tabla',
+            info: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
+            infoEmpty: 'Mostrando 0 a 0 de 0 registros',
+            infoFiltered: '(filtrado de _MAX_ registros totales)',
+            lengthMenu: 'Mostrar _MENU_ registros',
+            loadingRecords: 'Cargando...',
+            processing: 'Procesando...',
+            search: 'Buscar:',
+            zeroRecords: 'No se encontraron registros coincidentes',
+            paginate: {
+                first: 'Primero',
+                last: 'Último',
+                next: 'Siguiente',
+                previous: 'Anterior'
+            }
+        }
+    });
+});
+</script>
 </body>
 </html>

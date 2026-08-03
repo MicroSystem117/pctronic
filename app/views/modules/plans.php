@@ -16,49 +16,49 @@ $isAdmin = $userRole === 'Administrador';
 </div>
 
 <div class="card card-custom p-3">
-    <div class="table-responsive">
-        <table class="table table-dark table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                            <th>ID</th>
-                            <th>Plan</th>
-                            <th>Precio</th>
-                            <?php if ($isAdmin): ?>
-                                <th>Acciones</th>
-                            <?php endif; ?>
-                        </tr>
-            </thead>
-            <tbody>
-                <?php if(!empty($data['plans'])): ?>
-                    <?php foreach($data['plans'] as $p): ?>
-                        <tr>
-                            <td><?php echo $p['id_plan']; ?></td>
-                            <td><?php echo $p['plan']; ?></td>
-                            <td><?php echo isset($p['price']) ? '$'.number_format($p['price'], 0, ',', '.') : '-'; ?></td>
-                            <?php if ($isAdmin): ?>
-                                <td>
-                                    <button class="btn btn-sm btn-info btn-edit-plan" 
-                                            data-id="<?php echo $p['id_plan']; ?>"
-                                            data-plan="<?php echo htmlspecialchars($p['plan'], ENT_QUOTES); ?>"
-                                            data-price="<?php echo isset($p['price']) ? $p['price'] : 0; ?>"
-                                            data-bs-toggle="modal" data-bs-target="#modalPlan">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <a href="index.php?url=plans&action=delete&id=<?php echo $p['id_plan']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Eliminar plan?');">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                </td>
-                            <?php endif; ?>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="3" class="text-center py-3 text-muted">No hay planes registrados.</td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
-    </div>
+    <?php if(!empty($data['plans'])): ?>
+        <div class="row g-3" id="plansCards">
+            <?php foreach($data['plans'] as $p): ?>
+                <div class="col-md-6 col-xl-4 plan-card"
+                     data-plan="<?php echo htmlspecialchars($p['plan'], ENT_QUOTES); ?>"
+                     data-price="<?php echo htmlspecialchars((string)($p['price'] ?? 0), ENT_QUOTES); ?>">
+                    <div class="card h-100 card-custom p-4 border-start border-primary border-4">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <div>
+                                <div class="text-white-50 small text-uppercase mb-1">Plan</div>
+                                <h4 class="mb-1"><?php echo htmlspecialchars($p['plan']); ?></h4>
+                            </div>
+                            <span class="badge bg-primary text-dark fs-6">
+                                <?php echo isset($p['price']) ? '$'.number_format($p['price'], 0, ',', '.') : '-'; ?>
+                            </span>
+                        </div>
+
+                        <div class="mt-4 small text-white-50 d-flex justify-content-between align-items-center">
+                            <span>Antenas asociadas</span>
+                            <span class="badge bg-secondary"><?php echo isset($p['antenna_count']) ? (int)$p['antenna_count'] : 0; ?></span>
+                        </div>
+
+                        <?php if ($isAdmin): ?>
+                            <div class="mt-3 d-flex gap-2">
+                                <button class="btn btn-sm btn-info btn-edit-plan"
+                                        data-id="<?php echo $p['id_plan']; ?>"
+                                        data-plan="<?php echo htmlspecialchars($p['plan'], ENT_QUOTES); ?>"
+                                        data-price="<?php echo isset($p['price']) ? $p['price'] : 0; ?>"
+                                        data-bs-toggle="modal" data-bs-target="#modalPlan">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <a href="index.php?url=plans&action=delete&id=<?php echo $p['id_plan']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Eliminar plan?');">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php else: ?>
+        <div class="text-center py-4 text-white-50">No hay planes registrados.</div>
+    <?php endif; ?>
 </div>
 
 <?php if ($isAdmin): ?>
@@ -101,13 +101,16 @@ document.addEventListener('DOMContentLoaded', function(){
         });
     });
 
-    // Buscador local para planes
+    // Buscador local para planes en vista tipo tarjetas
     const searchPlans = document.getElementById('search_plans');
     if (searchPlans) {
         searchPlans.addEventListener('input', function(){
             const q = this.value.trim().toLowerCase();
-            const rows = document.querySelectorAll('.card .table tbody tr');
-            rows.forEach(r => r.style.display = q === '' ? '' : (r.textContent.toLowerCase().includes(q) ? '' : 'none'));
+            const cards = document.querySelectorAll('.plan-card');
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = q === '' || text.includes(q) ? '' : 'none';
+            });
         });
     }
 });

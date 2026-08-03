@@ -29,6 +29,14 @@ class DashboardController extends Controller {
             );
             $antenasByPlan = $stmtAntenasByPlan->fetchAll(PDO::FETCH_ASSOC);
 
+            $activePlanNames = ['Itinerante 100GB', 'Residencial', 'Itinerante Ilimitado'];
+            $activeAntennas = 0;
+            foreach ($antenasByPlan as $plan) {
+                if (in_array($plan['nombre_plan'], $activePlanNames, true)) {
+                    $activeAntennas += intval($plan['total_antenas']);
+                }
+            }
+
             // 4. Contar total de cuentas administrativas registradas
             $stmtAccounts = $db->query("SELECT COUNT(*) AS total FROM accounts");
             $totalAccounts = $stmtAccounts->fetch(PDO::FETCH_ASSOC)['total'];
@@ -111,6 +119,7 @@ class DashboardController extends Controller {
             'total_antenas'   => $totalAntenas,
             'total_accounts'  => $totalAccounts,
             'antenas_by_plan' => $antenasByPlan,
+            'active_antennas' => isset($activeAntennas) ? $activeAntennas : 0,
             'pay_days'        => $payDays,
             'calendar_month'  => date('n'),
             'calendar_year'   => date('Y'),

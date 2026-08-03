@@ -29,10 +29,9 @@ $isExpectador = $userRole === 'Expectador';
 
 <div class="card card-custom p-3">
     <div class="table-responsive">
-        <table class="table table-dark table-hover mb-0">
+        <table class="table table-dark table-hover mb-0 datatable">
             <thead class="table-light">
                 <tr>
-                    <th>ID</th>
                     <th>Serial No.</th>
                     <th>Nickname</th>
                     <th>Kit No.</th>
@@ -57,8 +56,11 @@ $isExpectador = $userRole === 'Expectador';
                             data-kit="<?php echo htmlspecialchars($antena['kit'], ENT_QUOTES); ?>"
                             data-cliente="<?php echo htmlspecialchars($antena['cliente'], ENT_QUOTES); ?>"
                             data-cuenta="<?php echo htmlspecialchars($antena['cuenta_starlink'] ?? '', ENT_QUOTES); ?>"
+                            data-plan="<?php echo htmlspecialchars($antena['nombre_plan'], ENT_QUOTES); ?>"
+                            data-country="<?php echo htmlspecialchars($antena['pais'], ENT_QUOTES); ?>"
+                            data-date="<?php echo htmlspecialchars($antena['date'], ENT_QUOTES); ?>"
+                            data-pay="<?php echo htmlspecialchars($antena['pay'] ?? '', ENT_QUOTES); ?>"
                         >
-                            <td><?php echo $antena['id_starlink']; ?></td>
                             <td><code><?php echo $antena['serial']; ?></code></td>
                             <td><?php echo !empty($antena['nickname']) ? htmlspecialchars($antena['nickname']) : '<span class="text-white-50">-</span>'; ?></td>
                             <td><code><?php echo $antena['kit']; ?></code></td>

@@ -12,7 +12,19 @@ class AccountModel {
      */
     public function getAll() {
         try {
-            $sql = "SELECT id_accounts, owner, acc, email, create_date FROM accounts ORDER BY id_accounts DESC";
+            $sql = "SELECT
+                        a.id_accounts,
+                        a.owner,
+                        a.acc,
+                        a.email,
+                        a.create_date,
+                        COUNT(s.id_starlink) AS starlink_count,
+                        GROUP_CONCAT(DISTINCT s.serial ORDER BY s.id_starlink DESC SEPARATOR ', ') AS starlinks
+                    FROM accounts a
+                    LEFT JOIN antenas s ON s.account_id = a.id_accounts
+                    GROUP BY a.id_accounts, a.owner, a.acc, a.email, a.create_date
+                    ORDER BY a.id_accounts DESC";
+
             $stmt = $this->db->query($sql);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {

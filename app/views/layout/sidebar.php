@@ -31,22 +31,28 @@ $menuItems = [
         'show' => true,
     ],
     [
-        'url' => 'plans',
-        'icon' => 'bi bi-list-ul',
-        'label' => 'Planes',
-        'show' => true,
-    ],
-    [
         'url' => 'countries',
         'icon' => 'bi bi-geo-alt',
         'label' => 'Países',
         'show' => !$isExpectador,
     ],
     [
+        'url' => 'plans',
+        'icon' => 'bi bi-list-ul',
+        'label' => 'Planes',
+        'show' => true,
+    ],
+    [
         'url' => 'clients',
         'icon' => 'bi bi-people',
         'label' => 'Clientes',
         'show' => true,
+    ],
+    [
+        'url' => 'accounts',
+        'icon' => 'bi bi-person-badge',
+        'label' => 'Cuentas',
+        'show' => !$isExpectador,
     ],
     [
         'url' => 'antenas',
@@ -64,12 +70,6 @@ $menuItems = [
         'url' => 'database',
         'icon' => 'bi bi-hdd-network',
         'label' => 'Base de Datos',
-        'show' => !$isExpectador,
-    ],
-    [
-        'url' => 'accounts',
-        'icon' => 'bi bi-person-badge',
-        'label' => 'Cuentas',
         'show' => !$isExpectador,
     ],
 ];

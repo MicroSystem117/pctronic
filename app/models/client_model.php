@@ -12,15 +12,29 @@ class ClientModel {
      */
     public function getAll($ci = null) {
         try {
+            $sql = "SELECT
+                        c.id_client,
+                        c.name,
+                        c.surname,
+                        c.ci,
+                        c.phone,
+                        COUNT(a.id_starlink) AS starlink_count,
+                        GROUP_CONCAT(DISTINCT a.serial ORDER BY a.id_starlink DESC SEPARATOR ', ') AS starlinks
+                    FROM client c
+                    LEFT JOIN antenas a ON a.client = c.id_client";
+
+            $params = [];
+
             if ($ci !== null) {
-                $sql = "SELECT id_client, name, surname, ci, phone FROM client WHERE ci = :ci ORDER BY id_client DESC";
-                $stmt = $this->db->prepare($sql);
-                $stmt->bindParam(':ci', $ci, PDO::PARAM_INT);
-                $stmt->execute();
-            } else {
-                $sql = "SELECT id_client, name, surname, ci, phone FROM client ORDER BY id_client DESC";
-                $stmt = $this->db->query($sql);
+                $sql .= " WHERE c.ci = :ci";
+                $params[':ci'] = $ci;
             }
+
+            $sql .= " GROUP BY c.id_client, c.name, c.surname, c.ci, c.phone ORDER BY c.id_client DESC";
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log("Error en ClientModel::getAll -> " . $e->getMessage());
