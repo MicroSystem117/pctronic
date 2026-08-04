@@ -25,8 +25,12 @@ class DatabaseController extends Controller {
 
             if ($action === 'export_csv') {
                 $csvFile = $this->databaseModel->exportCsv();
-                $status = $csvFile ? 'export_success' : 'export_error';
-                header('Location: index.php?url=database&status=' . $status);
+                if ($csvFile) {
+                    header('Location: index.php?url=database&action=download&file=' . rawurlencode($csvFile));
+                    exit();
+                }
+
+                header('Location: index.php?url=database&status=export_error');
                 exit();
             }
 
@@ -91,7 +95,17 @@ class DatabaseController extends Controller {
         }
 
         header('Content-Description: File Transfer');
-        header('Content-Type: application/sql');
+
+        $extension = strtolower(pathinfo($safeName, PATHINFO_EXTENSION));
+        if ($extension === 'zip') {
+            $contentType = 'application/zip';
+        } elseif ($extension === 'csv') {
+            $contentType = 'text/csv; charset=utf-8';
+        } else {
+            $contentType = 'application/sql';
+        }
+
+        header('Content-Type: ' . $contentType);
         header('Content-Disposition: attachment; filename="' . $safeName . '"');
         header('Content-Length: ' . filesize($filePath));
         readfile($filePath);

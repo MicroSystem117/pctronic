@@ -19,7 +19,7 @@ class DatabaseModel {
 
     public function listBackups() {
         $backups = [];
-        $files = glob($this->backupDir . '/*.{sql,zip}', GLOB_BRACE);
+        $files = glob($this->backupDir . '/*.{sql,zip,csv}', GLOB_BRACE);
 
         if ($files !== false) {
             foreach ($files as $filePath) {
@@ -86,7 +86,7 @@ class DatabaseModel {
 
     public function exportCsv() {
         if (!class_exists('ZipArchive')) {
-            return false;
+            return $this->exportCsvFallback();
         }
 
         $db = Database::connect();
@@ -103,14 +103,14 @@ class DatabaseModel {
             }
 
             if (!empty($rows)) {
-                fputcsv($fp, array_keys($rows[0]));
+                fputcsv($fp, array_keys($rows[0]), ',', '"', '\\');
                 foreach ($rows as $row) {
-                    fputcsv($fp, array_values($row));
+                    fputcsv($fp, array_values($row), ',', '"', '\\');
                 }
             } else {
                 $columns = $db->query("SHOW COLUMNS FROM `{$table}`")->fetchAll(PDO::FETCH_COLUMN);
                 if (!empty($columns)) {
-                    fputcsv($fp, $columns);
+                    fputcsv($fp, $columns, ',', '"', '\\');
                 }
             }
 
@@ -134,6 +134,40 @@ class DatabaseModel {
         $this->deleteDirectory($tmpDir);
 
         return is_file($zipPath) ? $zipName : false;
+    }
+
+    private function exportCsvFallback() {
+        $db = Database::connect();
+        $tables = $db->query('SHOW TABLES')->fetchAll(PDO::FETCH_COLUMN);
+        $fileName = 'export-csv-' . date('Ymd-His') . '.csv';
+        $filePath = $this->backupDir . DIRECTORY_SEPARATOR . $fileName;
+        $fp = fopen($filePath, 'w');
+
+        if ($fp === false) {
+            return false;
+        }
+
+        foreach ($tables as $table) {
+            $rows = $db->query("SELECT * FROM `{$table}`")->fetchAll(PDO::FETCH_ASSOC);
+            fputcsv($fp, ['Tabla', $table], ',', '"', '\\');
+
+            if (!empty($rows)) {
+                fputcsv($fp, array_keys($rows[0]), ',', '"', '\\');
+                foreach ($rows as $row) {
+                    fputcsv($fp, array_values($row), ',', '"', '\\');
+                }
+            } else {
+                $columns = $db->query("SHOW COLUMNS FROM `{$table}`")->fetchAll(PDO::FETCH_COLUMN);
+                if (!empty($columns)) {
+                    fputcsv($fp, $columns, ',', '"', '\\');
+                }
+            }
+
+            fputcsv($fp, [], ',', '"', '\\');
+        }
+
+        fclose($fp);
+        return is_file($filePath) ? $fileName : false;
     }
 
     private function deleteDirectory($dir) {
@@ -193,7 +227,7 @@ class DatabaseModel {
         $safeName = basename($fileName);
         $filePath = $this->backupDir . DIRECTORY_SEPARATOR . $safeName;
         $extension = strtolower(pathinfo($safeName, PATHINFO_EXTENSION));
-        return is_file($filePath) && in_array($extension, ['sql', 'zip'], true);
+        return is_file($filePath) && in_array($extension, ['sql', 'zip', 'csv'], true);
     }
 
     private function escapeValue($value) {
