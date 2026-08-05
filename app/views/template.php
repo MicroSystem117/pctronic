@@ -15,35 +15,51 @@
            ESTRUCTURA DE LA PLANTILLA - MODO OSCURO GLOBAL
            ========================================================================== */
         body {
-            background-color: #0f111a !important;
+            background:
+                url('http://localhost/starlink-control/public/assets/background.jpg') center center / cover no-repeat fixed !important;
             color: #ffffff !important;
         }
         
         .sidebar {
-            background-color: #161b22 !important;
-            min-height: 100vh;
-            border-right: 1px solid #30363d;
-            transition: width 0.2s ease, padding 0.2s ease;
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 300px;
+            max-width: 85vw;
+            z-index: 1050;
+            transform: translateX(-105%);
+            transition: transform 0.25s ease;
+            background: transparent !important;
+        }
+
+        .sidebar.sidebar-open {
+            transform: translateX(0);
+        }
+
+        .sidebar .sidebar-panel {
+            height: 100vh;
+            border-radius: 0 18px 18px 0;
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(2px);
+            z-index: 1040;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .sidebar-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
         }
 
         .main-content {
             min-height: 100vh;
-        }
-
-        .sidebar.collapsed-sidebar {
-            width: 80px !important;
-            max-width: 80px !important;
-            flex: 0 0 80px !important;
-        }
-
-        .sidebar.sidebar-hidden {
-            display: none !important;
-        }
-
-        .main-content.full-width-content {
-            width: 100% !important;
-            max-width: 100% !important;
-            flex: 0 0 100% !important;
         }
 
         .sidebar-panel.collapsed {
@@ -54,6 +70,29 @@
             justify-content: center;
         }
 
+        .sidebar-logo {
+            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.35));
+        }
+
+        .auth-brand {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: min(100%, 420px);
+            min-height: 150px;
+            padding: 1rem;
+            border-radius: 18px;
+            background: rgba(8, 12, 20, 0.32);
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+        }
+
+        .auth-brand img {
+            max-width: 100%;
+            max-height: 110px;
+            object-fit: contain;
+            filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.4));
+        }
+
         .sidebar-panel.collapsed .sidebar-toggle {
             margin-left: auto;
             margin-right: auto;
@@ -62,6 +101,77 @@
         .card-custom {
             background-color: #161b22 !important;
             border: 1px solid #30363d !important;
+        }
+
+        .auth-card {
+            background: linear-gradient(180deg, rgba(22, 27, 34, 0.96), rgba(12, 15, 22, 0.96)) !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            border-radius: 22px !important;
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45) !important;
+            backdrop-filter: blur(10px);
+        }
+
+        .auth-card .card-body {
+            padding: 1.75rem !important;
+            border-radius: 22px;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)),
+                rgba(10, 12, 18, 0.82);
+        }
+
+        .auth-card .form-control,
+        .auth-card .input-group .btn,
+        .auth-card .nav-tabs .nav-link {
+            border-radius: 14px;
+        }
+
+        .auth-card .form-control {
+            background: rgba(8, 12, 18, 0.85) !important;
+            border: 1px solid rgba(255, 255, 255, 0.14) !important;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .auth-card .form-control:focus {
+            border-color: rgba(13, 110, 253, 0.85) !important;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
+        }
+
+        .auth-card .input-group .btn {
+            border-left: 0;
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+        }
+
+        .auth-card .nav-tabs {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .auth-card .nav-tabs .nav-link {
+            color: #d8e0ec;
+            background: transparent;
+            border: 1px solid transparent;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .auth-card .nav-tabs .nav-link:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .auth-card .nav-tabs .nav-link.active {
+            color: #ffffff;
+            background: linear-gradient(180deg, #0d6efd, #0a57d5);
+            border-color: #0d6efd #0d6efd transparent;
+            box-shadow: 0 6px 16px rgba(13, 110, 253, 0.35);
+        }
+
+        .auth-card .btn-primary,
+        .auth-card .btn-success {
+            border-radius: 14px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.25);
         }
 
         /* ==========================================================================
@@ -216,12 +326,13 @@ select:focus option {
 <div class="container-fluid">
     <div class="row g-0">
         <?php if (empty($hideLayout)): ?>
-            <div class="col-12 col-md-3 col-lg-2 p-0 sidebar d-none d-md-block" id="desktopSidebar">
+            <div class="sidebar d-none d-md-block" id="desktopSidebar">
                 <?php include "layout/sidebar.php"; ?>
             </div>
+            <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
         <?php endif; ?>
 
-        <div id="mainContent" class="<?php echo empty($hideLayout) ? 'col-12 col-md-9 col-lg-10' : 'col-12'; ?> p-3 p-md-4 d-flex flex-column main-content">
+        <div id="mainContent" class="col-12 p-3 p-md-4 d-flex flex-column main-content">
                 <?php if (empty($hideLayout)): ?>
                     <?php include "layout/header.php"; ?>
                 <?php endif; ?>
@@ -306,32 +417,89 @@ select:focus option {
 <script src="https://cdn.datatables.net/1.13.11/js/dataTables.bootstrap5.min.js"></script>
 <script>
 $(document).ready(function () {
-    $('.datatable').DataTable({
-        paging: true,
-        searching: true,
-        ordering: true,
-        info: true,
-        lengthChange: true,
-        pageLength: 10,
-        responsive: true,
-        columnDefs: [{ targets: -1, orderable: false }],
-        language: {
-            decimal: '',
-            emptyTable: 'No hay datos disponibles en la tabla',
-            info: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
-            infoEmpty: 'Mostrando 0 a 0 de 0 registros',
-            infoFiltered: '(filtrado de _MAX_ registros totales)',
-            lengthMenu: 'Mostrar _MENU_ registros',
-            loadingRecords: 'Cargando...',
-            processing: 'Procesando...',
-            search: 'Buscar:',
-            zeroRecords: 'No se encontraron registros coincidentes',
-            paginate: {
-                first: 'Primero',
-                last: 'Último',
-                next: 'Siguiente',
-                previous: 'Anterior'
+    $('.datatable').each(function () {
+        const table = $(this).DataTable({
+            paging: true,
+            searching: true,
+            ordering: true,
+            info: true,
+            lengthChange: true,
+            pageLength: 10,
+            responsive: true,
+            columnDefs: [{ targets: -1, orderable: false }],
+            language: {
+                decimal: '',
+                emptyTable: 'No hay datos disponibles en la tabla',
+                info: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
+                infoEmpty: 'Mostrando 0 a 0 de 0 registros',
+                infoFiltered: '(filtrado de _MAX_ registros totales)',
+                lengthMenu: 'Mostrar _MENU_ registros',
+                loadingRecords: 'Cargando...',
+                processing: 'Procesando...',
+                search: 'Buscar:',
+                zeroRecords: 'No se encontraron registros coincidentes',
+                paginate: {
+                    first: 'Primero',
+                    last: 'Último',
+                    next: 'Siguiente',
+                    previous: 'Anterior'
+                }
             }
+        });
+
+        const searchAccountsInput = document.getElementById('search_accounts');
+        if (searchAccountsInput) {
+            searchAccountsInput.addEventListener('input', function () {
+                table.search(this.value.trim()).draw();
+            });
+        }
+
+        const searchClientsInput = document.getElementById('search_clients');
+        if (searchClientsInput) {
+            searchClientsInput.addEventListener('input', function () {
+                table.search(this.value.trim()).draw();
+            });
+        }
+
+        const searchAntenasInput = document.getElementById('search_antenas');
+        const searchAntenasType = document.getElementById('search_antenas_type');
+        if (searchAntenasInput && searchAntenasType) {
+            const columnMap = {
+                all: null,
+                serial: 0,
+                nickname: 1,
+                kit: 2,
+                cliente: 3,
+                cuenta: 6
+            };
+
+            const applyAntenaFilter = function () {
+                const query = searchAntenasInput.value.trim();
+                const type = searchAntenasType.value;
+                table.columns().search('');
+
+                if (!query) {
+                    table.search('').draw();
+                    return;
+                }
+
+                if (type === 'all') {
+                    table.search(query).draw();
+                    return;
+                }
+
+                const columnIndex = columnMap[type];
+                if (columnIndex !== null && columnIndex !== undefined) {
+                    table.column(columnIndex).search(query);
+                } else {
+                    table.search(query);
+                }
+
+                table.draw();
+            };
+
+            searchAntenasInput.addEventListener('input', applyAntenaFilter);
+            searchAntenasType.addEventListener('change', applyAntenaFilter);
         }
     });
 });

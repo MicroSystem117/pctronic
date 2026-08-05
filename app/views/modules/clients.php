@@ -180,16 +180,5 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 
-    // Buscador local para filas de la tabla
-    const searchClients = document.getElementById('search_clients');
-    if (searchClients) {
-        searchClients.addEventListener('input', function() {
-            const q = this.value.trim().toLowerCase();
-            const rows = document.querySelectorAll('.card .table tbody tr');
-            rows.forEach(r => {
-                r.style.display = q === '' ? '' : (r.textContent.toLowerCase().includes(q) ? '' : 'none');
-            });
-        });
-    }
 });
 </script>

@@ -10,10 +10,9 @@ $questions = isset($questions) && is_array($questions) ? $questions : [];
     <div class="auth-card card card-custom shadow-lg" style="max-width: 520px; width: 100%;">
         <div class="card-body px-4 py-5">
             <div class="text-center mb-4">
-                <div class="auth-logo rounded-circle bg-primary d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                    <i class="bi bi-star-fill text-white fs-2"></i>
+                <div class="auth-brand mb-3">
+                    <img src="http://localhost/starlink-control/public/assets/Logo.png" alt="PCtronic" class="img-fluid">
                 </div>
-                <h3 class="text-white mb-1">Starlink Control</h3>
                 <p class="text-white-50 mb-0">Responde tus preguntas de seguridad</p>
             </div>
 

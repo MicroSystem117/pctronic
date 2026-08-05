@@ -265,50 +265,5 @@ document.addEventListener('DOMContentLoaded', function(){
         });
     });
 
-    // Buscador para antenas
-    var searchAnt = document.getElementById('search_antenas');
-    if (searchAnt) {
-        var searchType = document.getElementById('search_antenas_type');
-
-        function getSearchValue(row, type) {
-            switch (type) {
-                case 'serial':
-                    return row.dataset.serial || '';
-                case 'nickname':
-                    return row.dataset.nickname || '';
-                case 'kit':
-                    return row.dataset.kit || '';
-                case 'cliente':
-                    return row.dataset.cliente || '';
-                case 'cuenta':
-                    return row.dataset.cuenta || '';
-                case 'all':
-                default:
-                    return row.textContent || '';
-            }
-        }
-
-        function filterRows() {
-            var q = searchAnt.value.trim().toLowerCase();
-            var type = searchType ? searchType.value : 'all';
-            var rows = document.querySelectorAll('.card .table tbody tr');
-
-            for (var i = 0; i < rows.length; i++) {
-                var row = rows[i];
-                if (q === '') {
-                    row.style.display = '';
-                    continue;
-                }
-
-                var text = getSearchValue(row, type).toLowerCase();
-                row.style.display = text.indexOf(q) !== -1 ? '' : 'none';
-            }
-        }
-
-        searchAnt.addEventListener('input', filterRows);
-        if (searchType) {
-            searchType.addEventListener('change', filterRows);
-        }
-    }
 });
 </script>

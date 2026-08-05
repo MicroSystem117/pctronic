@@ -25,12 +25,6 @@ $menuItems = [
         'show' => true,
     ],
     [
-        'url' => 'auth/manage_security',
-        'icon' => 'bi bi-shield-lock',
-        'label' => 'Seguridad',
-        'show' => true,
-    ],
-    [
         'url' => 'countries',
         'icon' => 'bi bi-geo-alt',
         'label' => 'Países',
@@ -77,8 +71,7 @@ $menuItems = [
 <div class="d-flex flex-column p-3 text-white sidebar-panel" id="sidebarPanel">
     <div class="d-flex align-items-center justify-content-between mb-3">
         <a href="index.php?url=dashboard" class="d-flex align-items-center me-md-auto text-white text-decoration-none sidebar-brand">
-            <i class="bi bi-rocket-takeoff-fill me-2 fs-4 text-primary"></i>
-            <span class="fs-5 fw-bold sidebar-label">Starlink Control</span>
+            <img src="http://localhost/starlink-control/public/assets/Logo.png" alt="PCtronic" class="img-fluid sidebar-logo" style="max-height: 52px; width: auto;">
         </a>
         <button class="btn btn-sm btn-outline-light sidebar-toggle" type="button" onclick="toggleSidebar()" aria-label="Plegar menú">
             <i class="bi bi-list"></i>
@@ -103,76 +96,61 @@ $menuItems = [
                     </a>
                 </li>
             <?php endforeach; ?>
-            <li>
-                <a href="index.php?url=logout" class="nav-link text-danger mb-2">
-                    <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
-                </a>
-            </li>
         <?php endif; ?>
     </ul>
 </div>
 
 <script>
 function toggleSidebar() {
-    const panel = document.getElementById('sidebarPanel');
     const desktopSidebar = document.getElementById('desktopSidebar');
-    const mainContent = document.getElementById('mainContent');
-    const isCollapsed = panel.classList.toggle('collapsed');
+    const overlay = document.getElementById('sidebarOverlay');
+    const panel = document.getElementById('sidebarPanel');
+    const headerButton = document.getElementById('desktopSidebarToggleButton');
+    const isOpen = desktopSidebar ? desktopSidebar.classList.toggle('sidebar-open') : false;
 
-    if (desktopSidebar) {
-        desktopSidebar.classList.toggle('sidebar-hidden', isCollapsed);
+    if (overlay) {
+        overlay.classList.toggle('show', isOpen);
     }
 
-    if (mainContent) {
-        mainContent.classList.toggle('full-width-content', isCollapsed);
+    if (panel) {
+        panel.classList.toggle('collapsed', !isOpen);
     }
 
-    const label = panel ? panel.querySelector('.sidebar-label') : null;
-    if (label) {
-        label.style.display = isCollapsed ? 'none' : '';
+    if (headerButton) {
+        const icon = headerButton.querySelector('i');
+        if (icon) {
+            icon.className = isOpen ? 'bi bi-layout-sidebar-inset-reverse' : 'bi bi-layout-sidebar-inset';
+        }
     }
 
     const nav = panel ? panel.querySelector('.sidebar-nav') : null;
     if (nav) {
-        nav.style.display = isCollapsed ? 'none' : '';
+        nav.style.display = isOpen ? '' : 'none';
     }
 
-    const button = panel ? panel.querySelector('.sidebar-toggle i') : null;
-    if (button) {
-        button.className = isCollapsed ? 'bi bi-layout-sidebar-inset-reverse' : 'bi bi-list';
+    const brand = panel ? panel.querySelector('.sidebar-brand') : null;
+    if (brand) {
+        brand.style.justifyContent = isOpen ? 'flex-start' : 'center';
     }
 }
 
-function toggleDesktopSidebar() {
-    const desktopSidebar = document.getElementById('desktopSidebar');
-    const mainContent = document.getElementById('mainContent');
-    const panel = document.getElementById('sidebarPanel');
-    const headerButton = document.getElementById('desktopSidebarToggleButton');
-    const isHidden = desktopSidebar ? desktopSidebar.classList.toggle('sidebar-hidden') : false;
-
-    if (mainContent) {
-        mainContent.classList.toggle('full-width-content', isHidden);
+document.addEventListener('DOMContentLoaded', function () {
+    const overlay = document.getElementById('sidebarOverlay');
+    if (overlay) {
+        overlay.addEventListener('click', function () {
+            const desktopSidebar = document.getElementById('desktopSidebar');
+            if (desktopSidebar && desktopSidebar.classList.contains('sidebar-open')) {
+                desktopSidebar.classList.remove('sidebar-open');
+                overlay.classList.remove('show');
+                const headerButton = document.getElementById('desktopSidebarToggleButton');
+                if (headerButton) {
+                    const icon = headerButton.querySelector('i');
+                    if (icon) {
+                        icon.className = 'bi bi-layout-sidebar-inset';
+                    }
+                }
+            }
+        });
     }
-    if (panel) {
-        panel.classList.toggle('collapsed', isHidden);
-        const label = panel.querySelector('.sidebar-label');
-        if (label) {
-            label.style.display = isHidden ? 'none' : '';
-        }
-        const nav = panel.querySelector('.sidebar-nav');
-        if (nav) {
-            nav.style.display = isHidden ? 'none' : '';
-        }
-        const button = panel.querySelector('.sidebar-toggle i');
-        if (button) {
-            button.className = isHidden ? 'bi bi-layout-sidebar-inset-reverse' : 'bi bi-list';
-        }
-    }
-    if (headerButton) {
-        const icon = headerButton.querySelector('i');
-        if (icon) {
-            icon.className = isHidden ? 'bi bi-layout-sidebar-inset-reverse' : 'bi bi-layout-sidebar-inset';
-        }
-    }
-}
+});
 </script>

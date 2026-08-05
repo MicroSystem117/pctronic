@@ -176,14 +176,5 @@ document.addEventListener('DOMContentLoaded', function(){
         });
     });
 
-    // Buscador para cuentas
-    const searchAccountsInput = document.getElementById('search_accounts');
-    if (searchAccountsInput) {
-        searchAccountsInput.addEventListener('input', function(){
-            const q = this.value.trim().toLowerCase();
-            const rows = document.querySelectorAll('.card .table tbody tr');
-            rows.forEach(r => r.style.display = q === '' ? '' : (r.textContent.toLowerCase().includes(q) ? '' : 'none'));
-        });
-    }
 });
 </script>
