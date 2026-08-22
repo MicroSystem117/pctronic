@@ -66,7 +66,7 @@
     <h5 class="mb-3">Archivos generados</h5>
     <?php if (!empty($backups)): ?>
         <div class="table-responsive">
-            <table class="table table-dark table-hover align-middle mb-0">
+            <table class="table table-dark table-hover align-middle mb-0 pdf-exportable" data-pdf-title="Archivos de respaldo">
                 <thead class="table-light">
                     <tr>
                         <th>Archivo</th>

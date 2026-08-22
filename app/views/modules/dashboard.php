@@ -88,7 +88,7 @@ $hasSecQuestions = isset($data['has_sec_questions']) ? $data['has_sec_questions'
 
 <div class="row mt-4">
     <div class="col-12">
-        <div class="card card-custom p-3">
+        <div class="card card-custom p-3 calendar-modal-host">
             <h5><i class="bi bi-calendar3"></i> Calendario de Días de Pago</h5>
             <hr class="border-secondary">
             <?php
@@ -134,7 +134,7 @@ $hasSecQuestions = isset($data['has_sec_questions']) ? $data['has_sec_questions'
             <div class="row">
                 <div class="col-12">
                     <div class="table-responsive">
-                        <table class="table table-dark table-bordered mb-0 calendar-table">
+                        <table class="table table-dark table-bordered mb-0 calendar-table pdf-exportable" data-pdf-title="Calendario de pagos">
                             <thead class="table-light text-dark">
                                 <tr>
                                     <th>Dom</th>
@@ -199,7 +199,7 @@ $hasSecQuestions = isset($data['has_sec_questions']) ? $data['has_sec_questions'
                     <div class="modal-content bg-dark text-white">
                         <div class="modal-header">
                             <h5 class="modal-title" id="dayModalTitle">Detalles</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close btn-close-white" id="dayModalClose" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body" id="dayModalBody"></div>
                     </div>
@@ -265,8 +265,25 @@ $hasSecQuestions = isset($data['has_sec_questions']) ? $data['has_sec_questions'
                             title.textContent = 'Día ' + day + ' — ' + (rows.length) + ' pago(s)';
                             body.innerHTML = buildList(rows);
                             var modalEl = document.getElementById('dayModal');
-                            var modal = new bootstrap.Modal(modalEl);
+                            var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
                             modal.show();
+                        });
+                    });
+
+                    document.getElementById('dayModal').addEventListener('hidden.bs.modal', function(){
+                        document.getElementById('dayModalBody').innerHTML = '';
+                    });
+
+                    document.getElementById('dayModalClose').addEventListener('click', function(){
+                        var dayModal = document.getElementById('dayModal');
+                        bootstrap.Modal.getOrCreateInstance(dayModal).hide();
+                        dayModal.classList.remove('show');
+                        dayModal.setAttribute('aria-hidden', 'true');
+                        dayModal.style.display = 'none';
+                        document.body.classList.remove('modal-open');
+                        document.body.style.removeProperty('padding-right');
+                        document.querySelectorAll('.modal-backdrop').forEach(function(backdrop){
+                            backdrop.remove();
                         });
                     });
                 })();

@@ -1,6 +1,6 @@
 <?php
 $userRole = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : '';
-$isAdmin = $userRole === 'Administrador';
+$isAdmin = isset($_SESSION['user_id']);
 ?>
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
@@ -43,7 +43,7 @@ $isAdmin = $userRole === 'Administrador';
         <div class="card card-custom p-3 h-100">
             <h5 class="mb-3">Estado de Pago por Antena</h5>
             <div class="table-responsive">
-                <table class="table table-dark table-hover mb-0">
+                <table class="table table-dark table-hover mb-0 pdf-exportable" data-pdf-title="Estado de pago por antena">
                     <thead class="table-light">
                         <tr>
                             <th>Serial</th>
@@ -106,7 +106,7 @@ $isAdmin = $userRole === 'Administrador';
         <div class="card card-custom p-3 h-100">
             <h5 class="mb-3">Historial de Pagos</h5>
             <div class="table-responsive">
-                <table class="table table-dark table-hover mb-0">
+                <table class="table table-dark table-hover mb-0 pdf-exportable" data-pdf-title="Historial de pagos">
                     <thead class="table-light">
                         <tr>
                             <th>Antena</th>

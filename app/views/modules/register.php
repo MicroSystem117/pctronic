@@ -6,16 +6,16 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Nombre</label>
-                        <input type="text" name="name" class="form-control" required>
+                        <input type="text" name="name" class="form-control" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜüÀ-ÿ' -]+" oninput="this.value = this.value.replace(/[0-9]/g, '')" title="No se permiten números" required>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Apellido</label>
-                        <input type="text" name="surname" class="form-control" required>
+                        <input type="text" name="surname" class="form-control" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜüÀ-ÿ' -]+" oninput="this.value = this.value.replace(/[0-9]/g, '')" title="No se permiten números" required>
                     </div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Cédula de Identidad</label>
-                    <input type="text" name="ci" class="form-control" placeholder="Ej: 12345678" required>
+                    <input type="text" name="ci" class="form-control" placeholder="Ej: 12345678" inputmode="numeric" pattern="[0-9]+" oninput="this.value = this.value.replace(/[^0-9]/g, '')" title="Solo se permiten números" required>
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">

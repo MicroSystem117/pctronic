@@ -109,6 +109,18 @@ class PaymentModel {
         }
     }
 
+    public function antennaBelongsToUser($antennaId, $ci) {
+        $stmt = $this->db->prepare('SELECT a.id_starlink FROM antenas a INNER JOIN client c ON a.client = c.id_client WHERE a.id_starlink = :antenna_id AND c.ci = :ci');
+        $stmt->execute([':antenna_id' => $antennaId, ':ci' => $ci]);
+        return (bool) $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function paymentBelongsToUser($paymentId, $ci) {
+        $stmt = $this->db->prepare('SELECT pay.id_payment FROM payments pay INNER JOIN antenas a ON pay.antenna_id = a.id_starlink INNER JOIN client c ON a.client = c.id_client WHERE pay.id_payment = :payment_id AND c.ci = :ci');
+        $stmt->execute([':payment_id' => $paymentId, ':ci' => $ci]);
+        return (bool) $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
     /**
      * Registrar un nuevo pago para una antena.
      */

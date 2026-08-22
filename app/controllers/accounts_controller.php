@@ -23,6 +23,7 @@ class AccountsController extends Controller {
             $acc   = isset($_POST['acc']) ? trim($_POST['acc']) : '';
             $email = isset($_POST['email']) ? trim($_POST['email']) : '';
             $date  = isset($_POST['create_date']) && !empty($_POST['create_date']) ? $_POST['create_date'] : date('Y-m-d');
+            $countryId = isset($_POST['countries']) && $_POST['countries'] !== '' ? intval($_POST['countries']) : null;
 
             if (!empty($owner) && !empty($acc) && !empty($email)) {
                 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -30,31 +31,53 @@ class AccountsController extends Controller {
                     exit();
                 }
 
-                $stmt = $db->prepare("SELECT id_accounts, acc, email FROM accounts WHERE (acc = :acc OR email = :email)" . ($id > 0 ? " AND id_accounts != :id" : ""));
-                $stmt->bindParam(':acc', $acc, PDO::PARAM_STR);
-                $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+                $currentAccount = null;
                 if ($id > 0) {
-                    $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+                    $stmt = $db->prepare("SELECT acc, email FROM accounts WHERE id_accounts = :id");
+                    $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+                    $stmt->execute();
+                    $currentAccount = $stmt->fetch(PDO::FETCH_ASSOC);
                 }
-                $stmt->execute();
-                $duplicate = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                $accChanged = !$currentAccount || trim($currentAccount['acc']) !== trim($acc);
+                $emailChanged = !$currentAccount || trim($currentAccount['email']) !== trim($email);
+                $duplicate = null;
+
+                if ($accChanged || $emailChanged) {
+                    $conditions = [];
+                    $params = [];
+                    if ($accChanged) {
+                        $conditions[] = 'TRIM(acc) = TRIM(:acc)';
+                        $params[':acc'] = $acc;
+                    }
+                    if ($emailChanged) {
+                        $conditions[] = 'TRIM(email) = TRIM(:email)';
+                        $params[':email'] = $email;
+                    }
+
+                    $sql = "SELECT id_accounts, acc, email FROM accounts WHERE (" . implode(' OR ', $conditions) . ") AND id_accounts <> :id";
+                    $params[':id'] = $id;
+                    $stmt = $db->prepare($sql);
+                    $stmt->execute($params);
+                    $duplicate = $stmt->fetch(PDO::FETCH_ASSOC);
+                }
 
                 if ($duplicate) {
-                    if ($duplicate['acc'] === $acc) {
+                    if (trim($duplicate['acc']) === trim($acc)) {
                         header("Location: index.php?url=accounts&status=account_exists");
                         exit();
                     }
-                    if ($duplicate['email'] === $email) {
+                    if (trim($duplicate['email']) === trim($email)) {
                         header("Location: index.php?url=accounts&status=email_exists");
                         exit();
                     }
                 }
 
                 if ($id > 0) {
-                    $saved = $this->accountModel->update($id, $owner, $acc, $email, $date);
+                    $saved = $this->accountModel->update($id, $owner, $acc, $email, $date, $countryId);
                     $status = $saved ? 'updated' : 'error';
                 } else {
-                    $saved = $this->accountModel->register($owner, $acc, $email, $date);
+                    $saved = $this->accountModel->register($owner, $acc, $email, $date, $countryId);
                     $status = $saved ? 'success' : 'error';
                 }
 
@@ -75,7 +98,8 @@ class AccountsController extends Controller {
 
             $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
             if ($id > 0) {
-                $deleted = $this->accountModel->delete($id);
+                $preserveAntennas = !isset($_GET['preserve_antennas']) || $_GET['preserve_antennas'] === '1';
+                $deleted = $this->accountModel->delete($id, $preserveAntennas);
                 $status = $deleted ? 'deleted' : 'error';
                 header("Location: index.php?url=accounts&status=" . $status);
                 exit();
@@ -87,12 +111,15 @@ class AccountsController extends Controller {
             exit();
         }
 
+        $countries = $db->query("SELECT id_country, country FROM country ORDER BY country ASC")->fetchAll(PDO::FETCH_ASSOC);
+
         // Cargar el listado para la tabla visual
         $accountsList = $this->accountModel->getAll();
 
         $data = [
             'page_title' => 'Cuentas Starlink - Starlink Control',
-            'accounts'   => $accountsList
+            'accounts'   => $accountsList,
+            'countries'  => $countries
         ];
 
         // Renderizar la vista correspondiente

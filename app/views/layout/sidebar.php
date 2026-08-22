@@ -40,7 +40,7 @@ $menuItems = [
         'url' => 'clients',
         'icon' => 'bi bi-people',
         'label' => 'Clientes',
-        'show' => true,
+        'show' => !$isExpectador,
     ],
     [
         'url' => 'accounts',
@@ -64,7 +64,13 @@ $menuItems = [
         'url' => 'database',
         'icon' => 'bi bi-hdd-network',
         'label' => 'Base de Datos',
-        'show' => !$isExpectador,
+        'show' => $userRole === 'Administrador',
+    ],
+    [
+        'url' => 'users',
+        'icon' => 'bi bi-person-gear',
+        'label' => 'Usuarios',
+        'show' => $userRole === 'Administrador' || $userRole === 'Moderador',
     ],
 ];
 ?>

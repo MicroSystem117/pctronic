@@ -17,12 +17,13 @@ $isAdmin = $userRole === 'Administrador';
 
 <div class="card card-custom p-3">
     <div class="table-responsive">
-        <table class="table table-dark table-hover mb-0 datatable">
+        <table class="table table-dark table-hover mb-0 datatable pdf-exportable" data-pdf-title="Cuentas Starlink">
             <thead class="table-light">
                 <tr>
                     <th>Titular / Propietario</th>
                     <th>Número de Cuenta (ACC)</th>
                     <th>Email</th>
+                    <th>País</th>
                     <th>Antenas</th>
                     <th>Fecha de Registro</th>
                     <?php if ($isAdmin): ?>
@@ -36,10 +37,12 @@ $isAdmin = $userRole === 'Administrador';
                         <tr data-owner="<?php echo htmlspecialchars($account['owner'], ENT_QUOTES); ?>"
                             data-acc="<?php echo htmlspecialchars($account['acc'], ENT_QUOTES); ?>"
                             data-email="<?php echo htmlspecialchars($account['email'], ENT_QUOTES); ?>"
+                            data-country="<?php echo htmlspecialchars($account['country_id'] ?? '', ENT_QUOTES); ?>"
                             data-date="<?php echo htmlspecialchars($account['create_date'], ENT_QUOTES); ?>">
                             <td><strong><?php echo $account['owner']; ?></strong></td>
                             <td><code><?php echo $account['acc']; ?></code></td>
                             <td><?php echo htmlspecialchars($account['email']); ?></td>
+                            <td><?php echo htmlspecialchars($account['pais'] ?? 'Sin país'); ?></td>
                             <td><span class="badge bg-info text-dark"><?php echo intval($account['starlink_count'] ?? 0); ?></span></td>
                             <td><?php echo date('d/m/Y', strtotime($account['create_date'])); ?></td>
                     <?php if ($isAdmin): ?>
@@ -62,7 +65,7 @@ $isAdmin = $userRole === 'Administrador';
                                     data-bs-toggle="modal" data-bs-target="#modalAccount">
                                 <i class="bi bi-pencil"></i>
                             </button>
-                            <a href="index.php?url=accounts&action=delete&id=<?php echo $account['id_accounts']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar cuenta?');">
+                            <a href="index.php?url=accounts&action=delete&id=<?php echo $account['id_accounts']; ?>" class="btn btn-sm btn-danger" onclick="return prepareAccountDelete(this);">
                                 <i class="bi bi-trash"></i>
                             </a>
                         </td>
@@ -71,7 +74,7 @@ $isAdmin = $userRole === 'Administrador';
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="<?php echo $isAdmin ? 6 : 5; ?>" class="text-center py-4 text-muted">
+                        <td colspan="<?php echo $isAdmin ? 7 : 6; ?>" class="text-center py-4 text-muted">
                             <i class="bi bi-exclamation-circle d-block mb-2 fs-3"></i> No hay cuentas Starlink registradas en el sistema.
                         </td>
                     </tr>
@@ -111,6 +114,16 @@ $isAdmin = $userRole === 'Administrador';
                     </div>
 
                     <div class="mb-3">
+                        <label class="form-label" for="account_country">País</label>
+                        <select class="form-select" id="account_country" name="countries">
+                            <option value="">Seleccionar país</option>
+                            <?php foreach (($data['countries'] ?? []) as $country): ?>
+                                <option value="<?php echo intval($country['id_country']); ?>"><?php echo htmlspecialchars($country['country']); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
                         <label class="form-label">Fecha de Vinculación</label>
                         <input type="date" class="form-control" id="account_date" name="create_date" value="<?php echo date('Y-m-d'); ?>">
                     </div>
@@ -144,6 +157,37 @@ $isAdmin = $userRole === 'Administrador';
 </div>
 
 <script>
+document.querySelector('[data-bs-target="#modalAccount"]:not(.btn-edit-account)')?.addEventListener('click', function(){
+    document.getElementById('id_accounts').value = '0';
+    document.getElementById('account_owner').value = '';
+    document.getElementById('account_acc').value = '';
+    document.getElementById('account_email').value = '';
+    document.getElementById('account_country').value = '';
+    document.getElementById('account_date').value = '<?php echo date('Y-m-d'); ?>';
+});
+
+document.getElementById('modalAccount')?.addEventListener('show.bs.modal', function(event){
+    const trigger = event.relatedTarget;
+    const accountId = trigger?.classList.contains('btn-edit-account')
+        ? trigger.getAttribute('data-id')
+        : '0';
+    document.getElementById('id_accounts').value = accountId || '0';
+});
+
+function prepareAccountDelete(link) {
+    if (!confirm('¿Eliminar esta cuenta?')) {
+        return false;
+    }
+
+    const preserveAntennas = confirm('¿Desea conservar las antenas asociadas?\n\nAceptar: conservar antenas y desvincularlas.\nCancelar: eliminar también las antenas.');
+    if (!preserveAntennas && !confirm('Esta opción eliminará definitivamente las antenas asociadas. ¿Desea continuar?')) {
+        return false;
+    }
+
+    link.href += '&preserve_antennas=' + (preserveAntennas ? '1' : '0');
+    return true;
+}
+
 document.addEventListener('DOMContentLoaded', function(){
     document.querySelectorAll('.btn-edit-account').forEach(btn => {
         btn.addEventListener('click', function(){
@@ -151,6 +195,7 @@ document.addEventListener('DOMContentLoaded', function(){
             document.getElementById('account_owner').value = this.getAttribute('data-owner');
             document.getElementById('account_acc').value = this.getAttribute('data-acc');
             document.getElementById('account_email').value = this.getAttribute('data-email');
+            document.getElementById('account_country').value = this.getAttribute('data-country') || '';
             document.getElementById('account_date').value = this.getAttribute('data-date');
         });
     });
@@ -169,7 +214,7 @@ document.addEventListener('DOMContentLoaded', function(){
                 return;
             }
 
-            const items = starlinks.split(',').map(item => item.trim()).filter(Boolean);
+            const items = starlinks.split('||').map(item => item.trim()).filter(Boolean);
             listContainer.innerHTML = items.map(item => {
                 return '<span class="badge bg-success text-dark px-3 py-2">' + item + '</span>';
             }).join('');

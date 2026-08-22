@@ -60,7 +60,7 @@ $alerts = [
                     <form action="index.php?url=login" method="POST">
                         <div class="mb-3">
                             <label class="form-label text-white">Cédula de Identidad</label>
-                            <input type="text" name="ci" class="form-control bg-dark text-white border-secondary" placeholder="Ej: 12345678" required>
+                            <input type="text" name="ci" class="form-control bg-dark text-white border-secondary" placeholder="Ej: 12345678" inputmode="numeric" pattern="[0-9]+" oninput="this.value = this.value.replace(/[^0-9]/g, '')" title="Solo se permiten números" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label text-white">Contraseña</label>
@@ -80,16 +80,16 @@ $alerts = [
                         <div class="row g-3">
                             <div class="col-6">
                                 <label class="form-label text-white">Nombre</label>
-                                <input type="text" name="name" class="form-control bg-dark text-white border-secondary" required>
+                                <input type="text" name="name" class="form-control bg-dark text-white border-secondary" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜüÀ-ÿ' -]+" oninput="this.value = this.value.replace(/[0-9]/g, '')" title="No se permiten números" required>
                             </div>
                             <div class="col-6">
                                 <label class="form-label text-white">Apellido</label>
-                                <input type="text" name="surname" class="form-control bg-dark text-white border-secondary" required>
+                                <input type="text" name="surname" class="form-control bg-dark text-white border-secondary" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜüÀ-ÿ' -]+" oninput="this.value = this.value.replace(/[0-9]/g, '')" title="No se permiten números" required>
                             </div>
                         </div>
                         <div class="mb-3 mt-3">
                             <label class="form-label text-white">Cédula de Identidad</label>
-                            <input type="text" name="ci" class="form-control bg-dark text-white border-secondary" placeholder="Ej: 12345678" required>
+                            <input type="text" name="ci" class="form-control bg-dark text-white border-secondary" placeholder="Ej: 12345678" inputmode="numeric" pattern="[0-9]+" oninput="this.value = this.value.replace(/[^0-9]/g, '')" title="Solo se permiten números" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label text-white">Fecha de Nacimiento</label>

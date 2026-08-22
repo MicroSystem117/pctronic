@@ -1,6 +1,62 @@
 <?php
 
 class UserModel {
+    public function getAll($levelIds = []) {
+        $db = Database::connect();
+        $sql = 'SELECT u.id_user, u.name, u.surname, u.ci, u.birth, u.id_level, l.user_role FROM `user` u LEFT JOIN `level` l ON u.id_level = l.id_level';
+        $params = [];
+        if (!empty($levelIds)) {
+            $placeholders = [];
+            foreach (array_values($levelIds) as $index => $levelId) {
+                $placeholder = ':level' . $index;
+                $placeholders[] = $placeholder;
+                $params[$placeholder] = intval($levelId);
+            }
+            $sql .= ' WHERE u.id_level IN (' . implode(', ', $placeholders) . ')';
+        }
+        $sql .= ' ORDER BY u.id_user DESC';
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getLevels() {
+        $db = Database::connect();
+        $stmt = $db->query('SELECT id_level, user_role FROM `level` ORDER BY id_level ASC');
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function create($name, $surname, $ci, $birth, $password, $idLevel) {
+        return $this->register($name, $surname, $ci, $birth, $password, $idLevel);
+    }
+
+    public function update($id, $name, $surname, $ci, $birth, $idLevel, $password = '') {
+        $db = Database::connect();
+        $fields = 'name = :name, surname = :surname, ci = :ci, birth = :birth, id_level = :id_level';
+        $params = [
+            ':id' => $id,
+            ':name' => $name,
+            ':surname' => $surname,
+            ':ci' => $ci,
+            ':birth' => $birth,
+            ':id_level' => $idLevel
+        ];
+
+        if ($password !== '') {
+            $fields .= ', pass = :pass';
+            $params[':pass'] = password_hash($password, PASSWORD_DEFAULT);
+        }
+
+        $stmt = $db->prepare("UPDATE `user` SET {$fields} WHERE id_user = :id");
+        return $stmt->execute($params);
+    }
+
+    public function deleteUser($id) {
+        $db = Database::connect();
+        $stmt = $db->prepare('DELETE FROM `user` WHERE id_user = :id');
+        return $stmt->execute([':id' => $id]);
+    }
+
     public function register($name, $surname, $ci, $birth, $password, $id_level = 3) {
         $db = Database::connect();
 

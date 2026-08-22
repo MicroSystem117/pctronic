@@ -19,7 +19,7 @@ class ClientModel {
                         c.ci,
                         c.phone,
                         COUNT(a.id_starlink) AS starlink_count,
-                        GROUP_CONCAT(DISTINCT a.serial ORDER BY a.id_starlink DESC SEPARATOR ', ') AS starlinks
+                        GROUP_CONCAT(DISTINCT CONCAT('Cliente: ', c.name, ' ', c.surname, ' | Serial: ', a.serial) ORDER BY a.id_starlink DESC SEPARATOR ' || ') AS starlinks
                     FROM client c
                     LEFT JOIN antenas a ON a.client = c.id_client";
 

@@ -11,7 +11,7 @@ class PaymentsController extends Controller {
         $db = Database::connect();
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!$this->isAdmin()) {
+            if (!isset($_SESSION['user_id'])) {
                 header('Location: index.php?url=payments&status=access_denied');
                 exit();
             }
@@ -22,6 +22,11 @@ class PaymentsController extends Controller {
             $payment_date = isset($_POST['payment_date']) && !empty($_POST['payment_date']) ? $_POST['payment_date'] : date('Y-m-d');
 
             if ($antenna_id > 0 && !empty($amount) && !empty($currency) && in_array($currency, ['USD', 'VES', 'USDT'], true)) {
+                if ($this->isExpectador() && !$this->paymentModel->antennaBelongsToUser($antenna_id, $this->getUserCi())) {
+                    header('Location: index.php?url=payments&status=access_denied');
+                    exit();
+                }
+
                 $saved = $this->paymentModel->register($antenna_id, $amount, $currency, $payment_date);
                 $status = $saved ? 'payment_success' : 'error';
                 header("Location: index.php?url=payments&status=" . $status);
@@ -33,12 +38,17 @@ class PaymentsController extends Controller {
         }
 
         if (isset($_GET['action']) && $_GET['action'] === 'delete') {
-            if (!$this->isAdmin()) {
+            if (!isset($_SESSION['user_id'])) {
                 header('Location: index.php?url=payments&status=access_denied');
                 exit();
             }
 
             $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+            if ($id > 0 && $this->isExpectador() && !$this->paymentModel->paymentBelongsToUser($id, $this->getUserCi())) {
+                header('Location: index.php?url=payments&status=access_denied');
+                exit();
+            }
+
             if ($id > 0) {
                 $deleted = $this->paymentModel->delete($id);
                 $status = $deleted ? 'payment_deleted' : 'error';

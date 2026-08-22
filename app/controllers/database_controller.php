@@ -8,7 +8,7 @@ class DatabaseController extends Controller {
     }
 
     public function index() {
-        if ($this->isExpectador()) {
+        if (!$this->isAdmin()) {
             header('Location: index.php?url=dashboard&status=access_denied');
             exit();
         }

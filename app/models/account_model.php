@@ -18,11 +18,15 @@ class AccountModel {
                         a.acc,
                         a.email,
                         a.create_date,
+                        a.countries AS country_id,
+                        co.country AS pais,
                         COUNT(s.id_starlink) AS starlink_count,
-                        GROUP_CONCAT(DISTINCT s.serial ORDER BY s.id_starlink DESC SEPARATOR ', ') AS starlinks
+                        GROUP_CONCAT(DISTINCT CONCAT('Cliente: ', COALESCE(CONCAT(c.name, ' ', c.surname), 'Sin cliente'), ' | Serial: ', s.serial) ORDER BY s.id_starlink DESC SEPARATOR ' || ') AS starlinks
                     FROM accounts a
                     LEFT JOIN antenas s ON s.account_id = a.id_accounts
-                    GROUP BY a.id_accounts, a.owner, a.acc, a.email, a.create_date
+                    LEFT JOIN client c ON c.id_client = s.client
+                    LEFT JOIN country co ON co.id_country = a.countries
+                    GROUP BY a.id_accounts, a.owner, a.acc, a.email, a.create_date, a.countries, co.country
                     ORDER BY a.id_accounts DESC";
 
             $stmt = $this->db->query($sql);
@@ -36,15 +40,16 @@ class AccountModel {
     /**
      * Registrar una nueva cuenta Starlink en el sistema
      */
-    public function register($owner, $acc, $email, $create_date) {
+    public function register($owner, $acc, $email, $create_date, $countryId = null) {
         try {
-            $sql = "INSERT INTO accounts (owner, acc, email, create_date) VALUES (:owner, :acc, :email, :create_date)";
+            $sql = "INSERT INTO accounts (owner, acc, email, create_date, countries) VALUES (:owner, :acc, :email, :create_date, :countries)";
             $stmt = $this->db->prepare($sql);
 
             $stmt->bindParam(':owner', $owner, PDO::PARAM_STR);
             $stmt->bindParam(':acc', $acc, PDO::PARAM_STR);
             $stmt->bindParam(':email', $email, PDO::PARAM_STR);
             $stmt->bindParam(':create_date', $create_date, PDO::PARAM_STR);
+            $this->bindCountry($stmt, $countryId);
 
             return $stmt->execute();
         } catch (PDOException $e) {
@@ -56,15 +61,16 @@ class AccountModel {
     /**
      * Actualizar una cuenta existente
      */
-    public function update($id, $owner, $acc, $email, $create_date) {
+    public function update($id, $owner, $acc, $email, $create_date, $countryId = null) {
         try {
-            $sql = "UPDATE accounts SET owner = :owner, acc = :acc, email = :email, create_date = :create_date WHERE id_accounts = :id";
+            $sql = "UPDATE accounts SET owner = :owner, acc = :acc, email = :email, create_date = :create_date, countries = :countries WHERE id_accounts = :id";
             $stmt = $this->db->prepare($sql);
             $stmt->bindParam(':id', $id, PDO::PARAM_INT);
             $stmt->bindParam(':owner', $owner, PDO::PARAM_STR);
             $stmt->bindParam(':acc', $acc, PDO::PARAM_STR);
             $stmt->bindParam(':email', $email, PDO::PARAM_STR);
             $stmt->bindParam(':create_date', $create_date, PDO::PARAM_STR);
+            $this->bindCountry($stmt, $countryId);
             return $stmt->execute();
         } catch (PDOException $e) {
             error_log("Error en AccountModel::update -> " . $e->getMessage());
@@ -72,16 +78,44 @@ class AccountModel {
         }
     }
 
+    private function bindCountry($stmt, $countryId) {
+        if ($countryId === null || $countryId <= 0) {
+            $stmt->bindValue(':countries', null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindValue(':countries', $countryId, PDO::PARAM_INT);
+        }
+    }
+
     /**
      * Eliminar una cuenta por ID
      */
-    public function delete($id) {
+    public function delete($id, $preserveAntennas = true) {
+        $db = $this->db;
         try {
+            $db->beginTransaction();
+
+            if (!$preserveAntennas) {
+                $stmt = $db->prepare("DELETE FROM antenas WHERE account_id = :id");
+                $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+                $stmt->execute();
+            }
+
             $sql = "DELETE FROM accounts WHERE id_accounts = :id";
-            $stmt = $this->db->prepare($sql);
+            $stmt = $db->prepare($sql);
             $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-            return $stmt->execute();
+            $deleted = $stmt->execute();
+
+            if ($deleted) {
+                $db->commit();
+            } else {
+                $db->rollBack();
+            }
+
+            return $deleted;
         } catch (PDOException $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
             error_log("Error en AccountModel::delete -> " . $e->getMessage());
             return false;
         }

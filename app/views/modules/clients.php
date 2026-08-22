@@ -17,7 +17,7 @@ $isAdmin = $userRole === 'Administrador';
 
 <div class="card card-custom p-3">
     <div class="table-responsive">
-        <table class="table table-dark table-hover mb-0 datatable">
+        <table class="table table-dark table-hover mb-0 datatable pdf-exportable" data-pdf-title="Clientes">
     <thead class="table-light">
         <tr>
             <th>Cédula</th>
@@ -90,15 +90,15 @@ $isAdmin = $userRole === 'Administrador';
 
 <div class="mb-3">
     <label class="form-label">Nombre <span class="text-danger">*</span></label>
-    <input type="text" class="form-control" id="client_name" name="name" required>
+    <input type="text" class="form-control" id="client_name" name="name" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜüÀ-ÿ' -]+" oninput="this.value = this.value.replace(/[0-9]/g, '')" title="No se permiten números" required>
 </div>
 <div class="mb-3">
     <label class="form-label">Apellido <span class="text-danger">*</span></label>
-    <input type="text" class="form-control" id="client_surname" name="surname" required>
+    <input type="text" class="form-control" id="client_surname" name="surname" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜüÀ-ÿ' -]+" oninput="this.value = this.value.replace(/[0-9]/g, '')" title="No se permiten números" required>
 </div>
 <div class="mb-3">
     <label class="form-label">Cédula (Opcional)</label>
-    <input type="number" class="form-control" id="client_ci" name="ci">
+    <input type="text" class="form-control" id="client_ci" name="ci" inputmode="numeric" pattern="[0-9]+" oninput="this.value = this.value.replace(/[^0-9]/g, '')" title="Solo se permiten números">
 </div>
 <div class="mb-3">
     <label class="form-label">Teléfono <span class="text-danger">*</span></label>
@@ -173,7 +173,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 return;
             }
 
-            const items = starlinks.split(',').map(item => item.trim()).filter(Boolean);
+            const items = starlinks.split('||').map(item => item.trim()).filter(Boolean);
             listContainer.innerHTML = items.map(item => {
                 return '<span class="badge bg-success text-dark px-3 py-2">' + item + '</span>';
             }).join('');

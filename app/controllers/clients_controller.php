@@ -9,6 +9,11 @@ class ClientsController extends Controller {
     }
 
     public function index() {
+        if ($this->isExpectador()) {
+            header('Location: index.php?url=dashboard&status=access_denied');
+            exit();
+        }
+
         // --- 1. ACCIÓN: ELIMINAR CLIENTE ---
         if (isset($_GET['action']) && $_GET['action'] === 'delete') {
             if (!$this->isAdmin()) {

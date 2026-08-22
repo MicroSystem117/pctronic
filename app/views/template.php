@@ -8,7 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.11/css/dataTables.bootstrap5.min.css">
     
-    <link href="http://localhost/starlink-control/public/css/style.css" rel="stylesheet">
+    <link href="http://localhost/starlink-control/public/css/style.css?v=20260819-4" rel="stylesheet">
 
     <style>
         /* ==========================================================================
@@ -333,9 +333,6 @@ select:focus option {
         <?php endif; ?>
 
         <div id="mainContent" class="col-12 p-3 p-md-4 d-flex flex-column main-content">
-                <?php if (empty($hideLayout)): ?>
-                    <?php include "layout/header.php"; ?>
-                <?php endif; ?>
             <?php
                 $status = isset($_GET['status']) ? $_GET['status'] : null;
                 $alerts = [
@@ -347,6 +344,12 @@ select:focus option {
                     'invalid_email' => ['type' => 'warning', 'message' => 'El email no es válido.'],
                     'account_exists' => ['type' => 'warning', 'message' => 'Esta cuenta ya existe.'],
                     'email_exists' => ['type' => 'warning', 'message' => 'Este email ya está registrado en otra cuenta.'],
+                    'user_created' => ['type' => 'success', 'message' => 'Usuario creado correctamente.'],
+                    'user_updated' => ['type' => 'success', 'message' => 'Usuario actualizado correctamente.'],
+                    'user_deleted' => ['type' => 'success', 'message' => 'Usuario eliminado correctamente.'],
+                    'user_delete_denied' => ['type' => 'warning', 'message' => 'No puedes eliminar el usuario de la sesión actual.'],
+                    'user_ci_exists' => ['type' => 'warning', 'message' => 'La cédula ya está registrada en otro usuario.'],
+                    'user_empty' => ['type' => 'warning', 'message' => 'Completa los campos obligatorios del usuario.'],
                     'antenna_exists' => ['type' => 'warning', 'message' => 'Esta antena ya existe (serial duplicado).'],
                     'payment_success' => ['type' => 'success', 'message' => 'Pago registrado correctamente.'],
                     'payment_deleted' => ['type' => 'success', 'message' => 'Pago eliminado correctamente.'],
@@ -384,6 +387,10 @@ select:focus option {
                 <?php endif; ?>
             <?php endif; ?>
 
+            <?php if (empty($hideLayout)): ?>
+                <?php include "layout/header.php"; ?>
+            <?php endif; ?>
+
             <main class="flex-grow-1">
                 <?php 
                     if (isset($content) && file_exists($content)) {
@@ -415,7 +422,87 @@ select:focus option {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.11/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.11/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 <script>
+function exportTableToPdf(table) {
+    if (!window.jspdf || typeof window.jspdf.jsPDF !== 'function') {
+        alert('No se pudo cargar el módulo de exportación PDF.');
+        return;
+    }
+
+    const pdf = new window.jspdf.jsPDF({ orientation: 'landscape' });
+    const title = table.dataset.pdfTitle || 'Reporte';
+    const exportTable = table.cloneNode(true);
+    const headerCells = Array.from(exportTable.querySelectorAll('thead th'));
+    const excludedIndexes = headerCells.reduce((indexes, cell, index) => {
+        if (cell.textContent.trim().toLowerCase() === 'acciones') {
+            indexes.push(index);
+        }
+        return indexes;
+    }, []);
+
+    exportTable.querySelectorAll('tr').forEach(row => {
+        Array.from(row.children).reverse().forEach((cell, reverseIndex) => {
+            const index = row.children.length - 1 - reverseIndex;
+            if (excludedIndexes.includes(index)) {
+                cell.remove();
+            }
+        });
+    });
+
+    pdf.setFontSize(16);
+    pdf.text(title, 14, 15);
+    pdf.setFontSize(9);
+    pdf.text('Generado: ' + new Date().toLocaleString('es-VE'), 14, 22);
+    pdf.autoTable({
+        html: exportTable,
+        startY: 28,
+        theme: 'grid',
+        styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
+        headStyles: { fillColor: [13, 110, 253], textColor: [255, 255, 255] },
+        alternateRowStyles: { fillColor: [242, 246, 252] }
+    });
+    const filename = title.toLowerCase().replace(/[^a-z0-9]+/gi, '-') + '.pdf';
+    const pdfUrl = URL.createObjectURL(pdf.output('blob'));
+    const previewFrame = document.getElementById('pdfPreviewFrame');
+    const downloadLink = document.getElementById('pdfDownloadLink');
+    const previewTitle = document.getElementById('pdfPreviewTitle');
+
+    if (window.pdfPreviewUrl) {
+        URL.revokeObjectURL(window.pdfPreviewUrl);
+    }
+
+    window.pdfPreviewUrl = pdfUrl;
+    previewFrame.src = pdfUrl;
+    downloadLink.href = pdfUrl;
+    downloadLink.download = filename;
+    previewTitle.textContent = 'Vista previa: ' + title;
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('pdfPreviewModal')).show();
+}
+
+const pdfPreviewModal = document.createElement('div');
+pdfPreviewModal.className = 'modal fade';
+pdfPreviewModal.id = 'pdfPreviewModal';
+pdfPreviewModal.tabIndex = -1;
+pdfPreviewModal.innerHTML = '<div class="modal-dialog modal-xl modal-dialog-centered"><div class="modal-content bg-dark text-white border-secondary" style="height: 90vh"><div class="modal-header border-secondary"><h5 class="modal-title" id="pdfPreviewTitle">Vista previa PDF</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button></div><div class="modal-body p-0"><iframe id="pdfPreviewFrame" title="Vista previa del PDF" style="width: 100%; height: 100%; border: 0; background: #525659"></iframe></div><div class="modal-footer border-secondary"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button><a id="pdfDownloadLink" class="btn btn-primary" download><i class="bi bi-download me-1"></i> Descargar PDF</a></div></div></div>';
+document.body.appendChild(pdfPreviewModal);
+
+document.querySelectorAll('.pdf-exportable').forEach(function (table) {
+    const wrapper = table.closest('.table-responsive') || table.parentElement;
+    if (!wrapper || wrapper.querySelector('.pdf-export-button')) {
+        return;
+    }
+
+    const toolbar = document.createElement('div');
+    toolbar.className = 'd-flex justify-content-end mb-2';
+    toolbar.innerHTML = '<button type="button" class="btn btn-sm btn-outline-light pdf-export-button"><i class="bi bi-file-earmark-pdf me-1"></i> Exportar PDF</button>';
+    wrapper.parentNode.insertBefore(toolbar, wrapper);
+    toolbar.querySelector('button').addEventListener('click', function () {
+        exportTableToPdf(table);
+    });
+});
+
 $(document).ready(function () {
     $('.datatable').each(function () {
         const table = $(this).DataTable({
@@ -425,7 +512,9 @@ $(document).ready(function () {
             info: true,
             lengthChange: true,
             pageLength: 10,
-            responsive: true,
+            responsive: false,
+            scrollX: true,
+            autoWidth: false,
             columnDefs: [{ targets: -1, orderable: false }],
             language: {
                 decimal: '',
