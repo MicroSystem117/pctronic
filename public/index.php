@@ -6,6 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once "../config/database.php";
 require_once "../core/controller.php";
 require_once "../core/router.php";
+require_once "../core/url.php";
 
 spl_autoload_register(function ($className) {
     // Si la clase es 'ClientModel', la convierte a 'client_model'

@@ -8,7 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.11/css/dataTables.bootstrap5.min.css">
     
-    <link href="http://localhost/starlink-control/public/css/style.css?v=20260819-4" rel="stylesheet">
+    <link href="<?php echo htmlspecialchars(app_url('css/style.css?v=20260819-4'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
 
     <style>
         /* ==========================================================================
@@ -16,7 +16,7 @@
            ========================================================================== */
         body {
             background:
-                url('http://localhost/starlink-control/public/assets/background.jpg') center center / cover no-repeat fixed !important;
+                url('<?php echo htmlspecialchars(app_url('assets/background.jpg'), ENT_QUOTES, 'UTF-8'); ?>') center center / cover no-repeat fixed !important;
             color: #ffffff !important;
         }
         

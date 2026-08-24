@@ -11,7 +11,7 @@ $questions = isset($questions) && is_array($questions) ? $questions : [];
         <div class="card-body px-4 py-5">
             <div class="text-center mb-4">
                 <div class="auth-brand mb-3">
-                    <img src="http://localhost/starlink-control/public/assets/Logo.png" alt="PCtronic" class="img-fluid">
+                    <img src="<?php echo htmlspecialchars(app_url('assets/Logo.png'), ENT_QUOTES, 'UTF-8'); ?>" alt="PCtronic" class="img-fluid">
                 </div>
                 <p class="text-white-50 mb-0">Responde tus preguntas de seguridad</p>
             </div>

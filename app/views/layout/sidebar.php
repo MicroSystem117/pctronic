@@ -77,7 +77,7 @@ $menuItems = [
 <div class="d-flex flex-column p-3 text-white sidebar-panel" id="sidebarPanel">
     <div class="d-flex align-items-center justify-content-between mb-3">
         <a href="index.php?url=dashboard" class="d-flex align-items-center me-md-auto text-white text-decoration-none sidebar-brand">
-            <img src="http://localhost/starlink-control/public/assets/Logo.png" alt="PCtronic" class="img-fluid sidebar-logo" style="max-height: 52px; width: auto;">
+            <img src="<?php echo htmlspecialchars(app_url('assets/Logo.png'), ENT_QUOTES, 'UTF-8'); ?>" alt="PCtronic" class="img-fluid sidebar-logo" style="max-height: 52px; width: auto;">
         </a>
         <button class="btn btn-sm btn-outline-light sidebar-toggle" type="button" onclick="toggleSidebar()" aria-label="Plegar menú">
             <i class="bi bi-list"></i>
