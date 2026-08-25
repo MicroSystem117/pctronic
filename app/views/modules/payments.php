@@ -1,13 +1,15 @@
 <?php
 $userRole = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : '';
-$isAdmin = isset($_SESSION['user_id']);
+$isLoggedIn = isset($_SESSION['user_id']);
+$canReview = $userRole === 'Administrador' || $userRole === 'Moderador';
+$canDelete = $canReview;
 ?>
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h3 class="text-white"><i class="bi bi-currency-dollar me-2 text-primary"></i>Pagos Registrados</h3>
         <p class="text-white-50 mb-0">Registra los pagos de los clientes, selecciona la forma de pago y visualiza el estado de cada antena.</p>
     </div>
-    <?php if ($isAdmin): ?>
+    <?php if ($isLoggedIn): ?>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalPayment">
             <i class="bi bi-plus-circle-fill me-2"></i>Registrar Pago
         </button>
@@ -114,7 +116,8 @@ $isAdmin = isset($_SESSION['user_id']);
                             <th>Monto</th>
                             <th>Moneda</th>
                             <th>Fecha Pago</th>
-                            <?php if ($isAdmin): ?>
+                            <th>Estado</th>
+                            <?php if ($canDelete || $canReview): ?>
                                 <th>Acciones</th>
                             <?php endif; ?>
                         </tr>
@@ -126,25 +129,36 @@ $isAdmin = isset($_SESSION['user_id']);
                                     data-cliente="<?php echo htmlspecialchars($payment['cliente'], ENT_QUOTES); ?>"
                                     data-plan="<?php echo htmlspecialchars($payment['nombre_plan'], ENT_QUOTES); ?>"
                                     data-currency="<?php echo htmlspecialchars($payment['currency'], ENT_QUOTES); ?>"
-                                    data-status="Pagado"
+                                    data-status="<?php echo htmlspecialchars($payment['status'] ?? 'Pendiente', ENT_QUOTES); ?>"
                                     data-payment-date="<?php echo htmlspecialchars($payment['payment_date'], ENT_QUOTES); ?>">
                                     <td><code><?php echo $payment['serial']; ?></code></td>
                                     <td><?php echo $payment['cliente']; ?></td>
                                     <td><?php echo number_format($payment['amount'], 2, ',', '.'); ?></td>
                                     <td><?php echo htmlspecialchars($payment['currency']); ?></td>
                                     <td><?php echo date('d/m/Y', strtotime($payment['payment_date'])); ?></td>
-                                    <?php if ($isAdmin): ?>
+                                    <td>
+                                        <?php
+                                            $paymentStatus = $payment['status'] ?? 'Pendiente';
+                                            $statusClass = $paymentStatus === 'Aprobado' ? 'bg-success text-dark' : ($paymentStatus === 'Rechazado' ? 'bg-danger text-white' : 'bg-warning text-dark');
+                                        ?>
+                                        <span class="badge <?php echo $statusClass; ?>"><?php echo htmlspecialchars($paymentStatus); ?></span>
+                                    </td>
+                                    <?php if ($canDelete || $canReview): ?>
                                         <td>
-                                            <a href="index.php?url=payments&action=delete&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar este pago?');">
-                                                <i class="bi bi-trash"></i>
-                                            </a>
+                                            <?php if ($canReview && ($payment['status'] ?? '') === 'Pendiente'): ?>
+                                                <a href="index.php?url=payments&action=approve&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-success" title="Aprobar pago"><i class="bi bi-check-lg"></i></a>
+                                                <a href="index.php?url=payments&action=reject&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-warning" title="Rechazar pago"><i class="bi bi-x-lg"></i></a>
+                                            <?php endif; ?>
+                                            <?php if ($canDelete): ?>
+                                                <a href="index.php?url=payments&action=delete&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar este pago?');" title="Eliminar pago"><i class="bi bi-trash"></i></a>
+                                            <?php endif; ?>
                                         </td>
                                     <?php endif; ?>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="<?php echo $isAdmin ? 6 : 5; ?>" class="text-center py-4 text-muted">No hay pagos registrados.</td>
+                                <td colspan="<?php echo ($canDelete || $canReview) ? 7 : 6; ?>" class="text-center py-4 text-muted">No hay pagos registrados.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -154,7 +168,7 @@ $isAdmin = isset($_SESSION['user_id']);
     </div>
 </div>
 
-<?php if ($isAdmin): ?>
+<?php if ($isLoggedIn): ?>
 <div class="modal fade" id="modalPayment" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content card-custom text-white">

@@ -352,6 +352,8 @@ select:focus option {
                     'user_empty' => ['type' => 'warning', 'message' => 'Completa los campos obligatorios del usuario.'],
                     'antenna_exists' => ['type' => 'warning', 'message' => 'Esta antena ya existe (serial duplicado).'],
                     'payment_success' => ['type' => 'success', 'message' => 'Pago registrado correctamente.'],
+                    'payment_pending' => ['type' => 'info', 'message' => 'Pago cargado y enviado a revisión.'],
+                    'payment_reviewed' => ['type' => 'success', 'message' => 'Estado del pago actualizado correctamente.'],
                     'payment_deleted' => ['type' => 'success', 'message' => 'Pago eliminado correctamente.'],
                     'backup_success' => ['type' => 'success', 'message' => 'Respaldo creado correctamente.'],
                     'backup_error' => ['type' => 'danger', 'message' => 'No se pudo crear el respaldo.'],

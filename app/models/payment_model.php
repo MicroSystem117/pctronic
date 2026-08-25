@@ -19,6 +19,8 @@ class PaymentModel {
                         pay.amount,
                         pay.currency,
                         pay.created_at,
+                        pay.status,
+                        pay.reviewed_at,
                         a.serial,
                         a.nickname,
                         CONCAT(c.name, ' ', c.surname) AS cliente,
@@ -76,18 +78,20 @@ class PaymentModel {
                         CONCAT(acc.owner, ' • ', acc.acc) AS cuenta_starlink,
                         lp.last_payment_date,
                         lp.last_amount,
-                        lp.last_currency
+                        lp.last_currency,
+                        lp.last_status
                     FROM antenas a
                     LEFT JOIN client c ON a.client = c.id_client
                     INNER JOIN plan p ON a.plan = p.id_plan
                     INNER JOIN country co ON a.country = co.id_country
                     LEFT JOIN accounts acc ON a.account_id = acc.id_accounts
                     LEFT JOIN (
-                        SELECT p1.antenna_id, p1.payment_date AS last_payment_date, p1.amount AS last_amount, p1.currency AS last_currency
+                        SELECT p1.antenna_id, p1.payment_date AS last_payment_date, p1.amount AS last_amount, p1.currency AS last_currency, p1.status AS last_status
                         FROM payments p1
                         INNER JOIN (
                             SELECT antenna_id, MAX(payment_date) AS max_date
                             FROM payments
+                            WHERE status = 'Aprobado'
                             GROUP BY antenna_id
                         ) p2 ON p1.antenna_id = p2.antenna_id AND p1.payment_date = p2.max_date
                     ) lp ON a.id_starlink = lp.antenna_id";
@@ -124,7 +128,7 @@ class PaymentModel {
     /**
      * Registrar un nuevo pago para una antena.
      */
-    public function register($antenna_id, $amount, $currency, $payment_date) {
+    public function register($antenna_id, $amount, $currency, $payment_date, $submittedBy, $status) {
         try {
             $stmt = $this->db->prepare("SELECT client FROM antenas WHERE id_starlink = :id");
             $stmt->bindParam(':id', $antenna_id, PDO::PARAM_INT);
@@ -137,8 +141,8 @@ class PaymentModel {
 
             $client_id = $antenna['client'] ?? null;
 
-            $sql = "INSERT INTO payments (antenna_id, client_id, amount, currency, payment_date) 
-                    VALUES (:antenna_id, :client_id, :amount, :currency, :payment_date)";
+            $sql = "INSERT INTO payments (antenna_id, client_id, amount, currency, payment_date, submitted_by, status)
+                    VALUES (:antenna_id, :client_id, :amount, :currency, :payment_date, :submitted_by, :status)";
             $stmt = $this->db->prepare($sql);
             $stmt->bindParam(':antenna_id', $antenna_id, PDO::PARAM_INT);
 
@@ -151,10 +155,26 @@ class PaymentModel {
             $stmt->bindParam(':amount', $amount);
             $stmt->bindParam(':currency', $currency, PDO::PARAM_STR);
             $stmt->bindParam(':payment_date', $payment_date, PDO::PARAM_STR);
+            $stmt->bindParam(':submitted_by', $submittedBy, PDO::PARAM_INT);
+            $stmt->bindParam(':status', $status, PDO::PARAM_STR);
 
             return $stmt->execute();
         } catch (PDOException $e) {
             error_log("Error en PaymentModel::register -> " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function review($id, $status, $reviewedBy) {
+        try {
+            $stmt = $this->db->prepare("UPDATE payments SET status = :status, reviewed_by = :reviewed_by, reviewed_at = NOW() WHERE id_payment = :id AND status = 'Pendiente'");
+            return $stmt->execute([
+                ':id' => $id,
+                ':status' => $status,
+                ':reviewed_by' => $reviewedBy
+            ]);
+        } catch (PDOException $e) {
+            error_log("Error en PaymentModel::review -> " . $e->getMessage());
             return false;
         }
     }

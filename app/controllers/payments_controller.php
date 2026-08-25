@@ -8,8 +8,6 @@ class PaymentsController extends Controller {
     }
 
     public function index() {
-        $db = Database::connect();
-
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!isset($_SESSION['user_id'])) {
                 header('Location: index.php?url=payments&status=access_denied');
@@ -27,8 +25,15 @@ class PaymentsController extends Controller {
                     exit();
                 }
 
-                $saved = $this->paymentModel->register($antenna_id, $amount, $currency, $payment_date);
-                $status = $saved ? 'payment_success' : 'error';
+                $saved = $this->paymentModel->register(
+                    $antenna_id,
+                    $amount,
+                    $currency,
+                    $payment_date,
+                    intval($_SESSION['user_id']),
+                    $this->isExpectador() ? 'Pendiente' : 'Aprobado'
+                );
+                $status = $saved ? ($this->isExpectador() ? 'payment_pending' : 'payment_success') : 'error';
                 header("Location: index.php?url=payments&status=" . $status);
                 exit();
             }
@@ -43,18 +48,31 @@ class PaymentsController extends Controller {
                 exit();
             }
 
-            $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-            if ($id > 0 && $this->isExpectador() && !$this->paymentModel->paymentBelongsToUser($id, $this->getUserCi())) {
+            if (!$this->isAdmin() && !$this->isModerator()) {
                 header('Location: index.php?url=payments&status=access_denied');
                 exit();
             }
 
+            $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
             if ($id > 0) {
                 $deleted = $this->paymentModel->delete($id);
                 $status = $deleted ? 'payment_deleted' : 'error';
                 header("Location: index.php?url=payments&status=" . $status);
                 exit();
             }
+        }
+
+        if (isset($_GET['action']) && in_array($_GET['action'], ['approve', 'reject'], true)) {
+            if (!isset($_SESSION['user_id']) || (!$this->isAdmin() && !$this->isModerator())) {
+                header('Location: index.php?url=payments&status=access_denied');
+                exit();
+            }
+
+            $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+            $status = $_GET['action'] === 'approve' ? 'Aprobado' : 'Rechazado';
+            $updated = $id > 0 && $this->paymentModel->review($id, $status, intval($_SESSION['user_id']));
+            header('Location: index.php?url=payments&status=' . ($updated ? 'payment_reviewed' : 'error'));
+            exit();
         }
 
         // Soporte de filtros por fecha (GET)
