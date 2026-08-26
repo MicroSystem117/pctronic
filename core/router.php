@@ -52,6 +52,10 @@ class Router {
             if (class_exists($controllerClass)) {
                 $controllerObject = new $controllerClass();
 
+                if ($rawName !== 'logout' && isset($_SESSION['user_id']) && method_exists($controllerObject, 'validateActiveSession')) {
+                    $controllerObject->validateActiveSession();
+                }
+
                 if (method_exists($controllerObject, $methodName)) {
                     call_user_func_array([$controllerObject, $methodName], $params);
                 } else {

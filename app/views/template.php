@@ -340,6 +340,8 @@ select:focus option {
                     'updated' => ['type' => 'success', 'message' => 'Actualización realizada correctamente.'],
                     'deleted' => ['type' => 'success', 'message' => 'Eliminado exitosamente.'],
                     'empty' => ['type' => 'warning', 'message' => 'Faltan datos obligatorios. Completa los campos requeridos.'],
+                    'access_denied' => ['type' => 'danger', 'message' => 'Acceso denegado. No tienes permisos para realizar esta acción.'],
+                    'account_country_required' => ['type' => 'warning', 'message' => 'La cuenta administrativa seleccionada no tiene un país de origen configurado.'],
                     'invalid_pay' => ['type' => 'warning', 'message' => 'Día de pago inválido. Debe ser un número entre 1 y 31.'],
                     'invalid_email' => ['type' => 'warning', 'message' => 'El email no es válido.'],
                     'account_exists' => ['type' => 'warning', 'message' => 'Esta cuenta ya existe.'],
@@ -354,6 +356,7 @@ select:focus option {
                     'payment_success' => ['type' => 'success', 'message' => 'Pago registrado correctamente.'],
                     'payment_pending' => ['type' => 'info', 'message' => 'Pago cargado y enviado a revisión.'],
                     'payment_reviewed' => ['type' => 'success', 'message' => 'Estado del pago actualizado correctamente.'],
+                    'payment_receipt_invalid' => ['type' => 'warning', 'message' => 'El comprobante no es válido. Usa una imagen o PDF de máximo 5 MB.'],
                     'payment_deleted' => ['type' => 'success', 'message' => 'Pago eliminado correctamente.'],
                     'backup_success' => ['type' => 'success', 'message' => 'Respaldo creado correctamente.'],
                     'backup_error' => ['type' => 'danger', 'message' => 'No se pudo crear el respaldo.'],
@@ -380,14 +383,14 @@ select:focus option {
                 ];
             ?>
 
-            <?php if (empty($hideLayout)): ?>
-                <?php if ($status && isset($alerts[$status])): ?>
+            <div id="globalAlertContainer">
+                <?php if (empty($hideLayout) && $status && isset($alerts[$status])): ?>
                     <div class="alert alert-<?php echo $alerts[$status]['type']; ?> alert-dismissible fade show" role="alert">
                         <?php echo $alerts[$status]['message']; ?>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Cerrar"></button>
                     </div>
                 <?php endif; ?>
-            <?php endif; ?>
+            </div>
 
             <?php if (empty($hideLayout)): ?>
                 <?php include "layout/header.php"; ?>
@@ -490,6 +493,7 @@ pdfPreviewModal.tabIndex = -1;
 pdfPreviewModal.innerHTML = '<div class="modal-dialog modal-xl modal-dialog-centered"><div class="modal-content bg-dark text-white border-secondary" style="height: 90vh"><div class="modal-header border-secondary"><h5 class="modal-title" id="pdfPreviewTitle">Vista previa PDF</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button></div><div class="modal-body p-0"><iframe id="pdfPreviewFrame" title="Vista previa del PDF" style="width: 100%; height: 100%; border: 0; background: #525659"></iframe></div><div class="modal-footer border-secondary"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button><a id="pdfDownloadLink" class="btn btn-primary" download><i class="bi bi-download me-1"></i> Descargar PDF</a></div></div></div>';
 document.body.appendChild(pdfPreviewModal);
 
+function initializePdfExportables() {
 document.querySelectorAll('.pdf-exportable').forEach(function (table) {
     const wrapper = table.closest('.table-responsive') || table.parentElement;
     if (!wrapper || wrapper.querySelector('.pdf-export-button')) {
@@ -504,8 +508,9 @@ document.querySelectorAll('.pdf-exportable').forEach(function (table) {
         exportTableToPdf(table);
     });
 });
+}
 
-$(document).ready(function () {
+function initializeDataTables() {
     $('.datatable').each(function () {
         const table = $(this).DataTable({
             paging: true,
@@ -593,6 +598,92 @@ $(document).ready(function () {
             searchAntenasType.addEventListener('change', applyAntenaFilter);
         }
     });
+}
+
+$(document).ready(function () {
+    initializePdfExportables();
+    initializeDataTables();
+});
+
+function replaceMainContent(documentResponse, responseUrl) {
+    const nextMain = documentResponse.querySelector('main');
+    const currentMain = document.querySelector('main');
+    if (!nextMain || !currentMain) {
+        window.location.href = responseUrl;
+        return;
+    }
+
+    document.querySelectorAll('.modal.show').forEach(modal => {
+        const modalInstance = bootstrap.Modal.getInstance(modal);
+        if (modalInstance) modalInstance.hide();
+    });
+    document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.removeProperty('padding-right');
+
+    const currentAlerts = document.getElementById('globalAlertContainer');
+    const nextAlerts = documentResponse.getElementById('globalAlertContainer');
+    if (currentAlerts && nextAlerts) {
+        currentAlerts.innerHTML = nextAlerts.innerHTML;
+    }
+
+    currentMain.innerHTML = nextMain.innerHTML;
+    document.title = documentResponse.title;
+    window.history.pushState({}, '', responseUrl);
+
+    currentMain.querySelectorAll('script').forEach(oldScript => {
+        const newScript = document.createElement('script');
+        Array.from(oldScript.attributes).forEach(attribute => newScript.setAttribute(attribute.name, attribute.value));
+        newScript.textContent = oldScript.textContent;
+        oldScript.replaceWith(newScript);
+    });
+
+    initializePdfExportables();
+    initializeDataTables();
+}
+
+function loadContentWithoutReload(url, options = {}) {
+    const requestOptions = Object.assign({
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    }, options);
+
+    return fetch(url, requestOptions).then(response => {
+        if (!response.ok) throw new Error('No se pudo actualizar el contenido.');
+        if (response.url.includes('url=login')) {
+            window.location.href = response.url;
+            return null;
+        }
+        return response.text().then(html => ({ html, url: response.url }));
+    }).then(result => {
+        if (!result) return;
+        const parsedDocument = new DOMParser().parseFromString(result.html, 'text/html');
+        replaceMainContent(parsedDocument, result.url);
+    });
+}
+
+document.addEventListener('submit', function (event) {
+    if (event.defaultPrevented || event.target.dataset.ajaxDisabled === 'true') return;
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || form.method.toLowerCase() !== 'post') return;
+    if (form.action.includes('url=login') || form.action.includes('url=register') || form.action.includes('url=auth')) return;
+
+    event.preventDefault();
+    const submitButton = form.querySelector('button[type="submit"]');
+    if (submitButton) submitButton.disabled = true;
+    loadContentWithoutReload(form.action, { method: 'POST', body: new FormData(form) })
+        .catch(error => alert(error.message))
+        .finally(() => { if (submitButton) submitButton.disabled = false; });
+});
+
+document.addEventListener('click', function (event) {
+    if (event.defaultPrevented) return;
+    const link = event.target.closest('a[href]');
+    if (!link || link.target === '_blank' || link.hasAttribute('download') || link.dataset.bsToggle || link.href.includes('#')) return;
+    if (!link.href.includes('index.php?url=') || !link.href.includes('action=')) return;
+    if (link.classList.contains('payment-action') || link.classList.contains('payment-delete-action')) return;
+
+    event.preventDefault();
+    loadContentWithoutReload(link.href).catch(error => alert(error.message));
 });
 </script>
 </body>

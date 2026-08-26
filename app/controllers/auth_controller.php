@@ -16,6 +16,39 @@ class AuthController extends Controller {
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (isset($_POST['security_check']) && $_POST['security_check'] === '1') {
+                $pendingUserId = isset($_SESSION['pending_second_session_user']) ? intval($_SESSION['pending_second_session_user']) : 0;
+                $pendingAt = isset($_SESSION['pending_second_session_at']) ? intval($_SESSION['pending_second_session_at']) : 0;
+                $answers = [
+                    trim($_POST['answer1'] ?? ''),
+                    trim($_POST['answer2'] ?? ''),
+                    trim($_POST['answer3'] ?? '')
+                ];
+
+                if (!$pendingUserId || time() - $pendingAt > 300 || in_array('', $answers, true)) {
+                    unset($_SESSION['pending_second_session_user'], $_SESSION['pending_second_session_at']);
+                    header('Location: index.php?url=login&status=session_questions_invalid');
+                    exit();
+                }
+
+                $securityData = $this->secQuestionModel->getByUserId($pendingUserId);
+                $validAnswers = $securityData &&
+                    strcasecmp($answers[0], $securityData['answer1']) === 0 &&
+                    strcasecmp($answers[1], $securityData['answer2']) === 0 &&
+                    strcasecmp($answers[2], $securityData['answer3']) === 0;
+
+                if (!$validAnswers) {
+                    header('Location: index.php?url=login&status=session_questions_wrong');
+                    exit();
+                }
+
+                $user = $this->userModel->findById($pendingUserId);
+                unset($_SESSION['pending_second_session_user'], $_SESSION['pending_second_session_at']);
+                $this->startUserSession($user);
+                header('Location: index.php?url=dashboard&status=login_success');
+                exit();
+            }
+
             $ci = isset($_POST['ci']) ? trim($_POST['ci']) : '';
             $password = isset($_POST['password']) ? $_POST['password'] : '';
 
@@ -30,10 +63,19 @@ class AuthController extends Controller {
                 exit();
             }
 
-            $_SESSION['user_id'] = $user['id_user'];
-            $_SESSION['user'] = trim($user['name'] . ' ' . $user['surname']);
-            $_SESSION['user_ci'] = $user['ci'];
-            $_SESSION['user_role'] = $user['user_role'];
+            $sessionId = session_id();
+            if ($this->userModel->hasActiveSession($user['id_user'], $sessionId)) {
+                if (!$this->secQuestionModel->hasSecurityQuestions($user['id_user'])) {
+                    header('Location: index.php?url=login&status=session_questions_unavailable');
+                    exit();
+                }
+                $_SESSION['pending_second_session_user'] = $user['id_user'];
+                $_SESSION['pending_second_session_at'] = time();
+                header('Location: index.php?url=login&status=session_questions');
+                exit();
+            }
+
+            $this->startUserSession($user);
 
             header('Location: index.php?url=dashboard&status=login_success');
             exit();
@@ -42,10 +84,22 @@ class AuthController extends Controller {
         $data = [
             'page_title' => 'Iniciar Sesión - Starlink Control',
             'hideLayout' => true,
-            'activeTab' => 'login'
+            'activeTab' => 'login',
+            'questions' => isset($_SESSION['pending_second_session_user']) && (isset($_GET['status']) && $_GET['status'] === 'session_questions')
+                ? $this->secQuestionModel->getByUserId($_SESSION['pending_second_session_user'])
+                : []
         ];
 
         $this->render('modules/auth', $data);
+    }
+
+    private function startUserSession($user) {
+        session_regenerate_id(true);
+        $_SESSION['user_id'] = $user['id_user'];
+        $_SESSION['user'] = trim($user['name'] . ' ' . $user['surname']);
+        $_SESSION['user_ci'] = $user['ci'];
+        $_SESSION['user_role'] = $user['user_role'];
+        $this->userModel->createSession($user['id_user'], session_id());
     }
 
     public function register() {
@@ -97,6 +151,9 @@ class AuthController extends Controller {
     }
 
     public function logout() {
+        if (isset($_SESSION['user_id'])) {
+            $this->userModel->deactivateSession(session_id());
+        }
         session_unset();
         session_destroy();
         header('Location: index.php?url=login&status=logout_success');

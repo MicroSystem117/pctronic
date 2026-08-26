@@ -6,12 +6,19 @@ class DashboardController extends Controller {
         $db = Database::connect();
 
         $userId = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
+        $isExpectador = $this->isExpectador();
+        $totalClients = 0;
+        $totalAntenas = 0;
+        $totalAccounts = 0;
+        $antenasByPlan = [];
+        $activeAntennas = 0;
 
         // Soporte de mes/año desde querystring para navegación
         $month = isset($_GET['month']) ? intval($_GET['month']) : intval(date('n'));
         $year  = isset($_GET['year']) ? intval($_GET['year']) : intval(date('Y'));
 
         try {
+            if (!$isExpectador) {
             // 1. Contar total de clientes registrados
             $stmtClients = $db->query("SELECT COUNT(*) AS total FROM client");
             $totalClients = $stmtClients->fetch(PDO::FETCH_ASSOC)['total'];
@@ -40,6 +47,7 @@ class DashboardController extends Controller {
             // 4. Contar total de cuentas administrativas registradas
             $stmtAccounts = $db->query("SELECT COUNT(*) AS total FROM accounts");
             $totalAccounts = $stmtAccounts->fetch(PDO::FETCH_ASSOC)['total'];
+            }
 
             // 5. Verificar si el usuario tiene preguntas de seguridad
             $hasSecQuestions = false;

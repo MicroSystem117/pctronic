@@ -107,4 +107,35 @@ class UserModel {
         $stmt->execute([':id' => $id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+
+    public function hasActiveSession($userId, $sessionId) {
+        $db = Database::connect();
+        $stmt = $db->prepare('SELECT id_session FROM user_sessions WHERE user_id = :user_id AND session_id <> :session_id AND active = 1 LIMIT 1');
+        $stmt->execute([':user_id' => $userId, ':session_id' => $sessionId]);
+        return (bool) $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function createSession($userId, $sessionId, $justification = null) {
+        $db = Database::connect();
+        $stmt = $db->prepare('INSERT INTO user_sessions (user_id, session_id, justification, ip_address, user_agent) VALUES (:user_id, :session_id, :justification, :ip_address, :user_agent)');
+        return $stmt->execute([
+            ':user_id' => $userId,
+            ':session_id' => $sessionId,
+            ':justification' => $justification,
+            ':ip_address' => $_SERVER['REMOTE_ADDR'] ?? null,
+            ':user_agent' => substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 500)
+        ]);
+    }
+
+    public function touchSession($sessionId) {
+        $db = Database::connect();
+        $stmt = $db->prepare('UPDATE user_sessions SET last_seen = CURRENT_TIMESTAMP WHERE session_id = :session_id AND active = 1');
+        return $stmt->execute([':session_id' => $sessionId]);
+    }
+
+    public function deactivateSession($sessionId) {
+        $db = Database::connect();
+        $stmt = $db->prepare('UPDATE user_sessions SET active = 0, ended_at = CURRENT_TIMESTAMP WHERE session_id = :session_id AND active = 1');
+        return $stmt->execute([':session_id' => $sessionId]);
+    }
 }

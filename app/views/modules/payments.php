@@ -108,7 +108,7 @@ $canDelete = $canReview;
         <div class="card card-custom p-3 h-100">
             <h5 class="mb-3">Historial de Pagos</h5>
             <div class="table-responsive">
-                <table class="table table-dark table-hover mb-0 pdf-exportable" data-pdf-title="Historial de pagos">
+                <table class="table table-dark table-hover mb-0 pdf-exportable payment-history-table" data-pdf-title="Historial de pagos">
                     <thead class="table-light">
                         <tr>
                             <th>Antena</th>
@@ -117,6 +117,7 @@ $canDelete = $canReview;
                             <th>Moneda</th>
                             <th>Fecha Pago</th>
                             <th>Estado</th>
+                            <th>Comprobante</th>
                             <?php if ($canDelete || $canReview): ?>
                                 <th>Acciones</th>
                             <?php endif; ?>
@@ -125,7 +126,8 @@ $canDelete = $canReview;
                     <tbody>
                         <?php if (!empty($data['payments'])): ?>
                             <?php foreach ($data['payments'] as $payment): ?>
-                                <tr data-serial="<?php echo htmlspecialchars($payment['serial'], ENT_QUOTES); ?>"
+                                <tr data-payment-id="<?php echo (int) $payment['id_payment']; ?>"
+                                    data-serial="<?php echo htmlspecialchars($payment['serial'], ENT_QUOTES); ?>"
                                     data-cliente="<?php echo htmlspecialchars($payment['cliente'], ENT_QUOTES); ?>"
                                     data-plan="<?php echo htmlspecialchars($payment['nombre_plan'], ENT_QUOTES); ?>"
                                     data-currency="<?php echo htmlspecialchars($payment['currency'], ENT_QUOTES); ?>"
@@ -143,14 +145,31 @@ $canDelete = $canReview;
                                         ?>
                                         <span class="badge <?php echo $statusClass; ?>"><?php echo htmlspecialchars($paymentStatus); ?></span>
                                     </td>
+                                    <td>
+                                        <?php if (!empty($payment['receipt_path'])): ?>
+                                            <a href="<?php echo htmlspecialchars($payment['receipt_path'], ENT_QUOTES); ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-info" title="Ver comprobante"><i class="bi bi-paperclip"></i></a>
+                                        <?php else: ?>
+                                            <span class="text-white-50">-</span>
+                                        <?php endif; ?>
+                                    </td>
                                     <?php if ($canDelete || $canReview): ?>
                                         <td>
                                             <?php if ($canReview && ($payment['status'] ?? '') === 'Pendiente'): ?>
-                                                <a href="index.php?url=payments&action=approve&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-success" title="Aprobar pago"><i class="bi bi-check-lg"></i></a>
-                                                <a href="index.php?url=payments&action=reject&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-warning" title="Rechazar pago"><i class="bi bi-x-lg"></i></a>
+                                                <button type="button" class="btn btn-sm btn-outline-info payment-review-button"
+                                                        data-bs-toggle="modal" data-bs-target="#modalReviewPayment"
+                                                    data-id="<?php echo $payment['id_payment']; ?>"
+                                                        data-serial="<?php echo htmlspecialchars($payment['serial'], ENT_QUOTES); ?>"
+                                                        data-client="<?php echo htmlspecialchars($payment['cliente'], ENT_QUOTES); ?>"
+                                                        data-amount="<?php echo htmlspecialchars(number_format($payment['amount'], 2, ',', '.'), ENT_QUOTES); ?>"
+                                                        data-currency="<?php echo htmlspecialchars($payment['currency'], ENT_QUOTES); ?>"
+                                                        data-date="<?php echo htmlspecialchars(date('d/m/Y', strtotime($payment['payment_date'])), ENT_QUOTES); ?>"
+                                                        data-receipt="<?php echo htmlspecialchars($payment['receipt_path'] ?? '', ENT_QUOTES); ?>"
+                                                        title="Revisar pago"><i class="bi bi-search me-1"></i>Revisar</button>
+                                                <a href="index.php?url=payments&action=approve&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-success payment-action" title="Aprobar pago"><i class="bi bi-check-lg"></i></a>
+                                                <a href="index.php?url=payments&action=reject&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-warning payment-action" title="Rechazar pago"><i class="bi bi-x-lg"></i></a>
                                             <?php endif; ?>
                                             <?php if ($canDelete): ?>
-                                                <a href="index.php?url=payments&action=delete&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar este pago?');" title="Eliminar pago"><i class="bi bi-trash"></i></a>
+                                                <a href="index.php?url=payments&action=delete&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-danger payment-delete-action" title="Eliminar pago"><i class="bi bi-trash"></i></a>
                                             <?php endif; ?>
                                         </td>
                                     <?php endif; ?>
@@ -158,7 +177,7 @@ $canDelete = $canReview;
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="<?php echo ($canDelete || $canReview) ? 7 : 6; ?>" class="text-center py-4 text-muted">No hay pagos registrados.</td>
+                                <td colspan="<?php echo ($canDelete || $canReview) ? 8 : 7; ?>" class="text-center py-4 text-muted">No hay pagos registrados.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -168,6 +187,36 @@ $canDelete = $canReview;
     </div>
 </div>
 
+<?php if ($canReview): ?>
+<div class="modal fade" id="modalReviewPayment" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content card-custom text-white">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title"><i class="bi bi-search me-2"></i>Revisar pago</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <dl class="row mb-3">
+                    <dt class="col-sm-4">Antena</dt><dd class="col-sm-8" id="review_payment_serial"></dd>
+                    <dt class="col-sm-4">Cliente</dt><dd class="col-sm-8" id="review_payment_client"></dd>
+                    <dt class="col-sm-4">Monto</dt><dd class="col-sm-8" id="review_payment_amount"></dd>
+                    <dt class="col-sm-4">Fecha</dt><dd class="col-sm-8" id="review_payment_date"></dd>
+                </dl>
+                <div id="review_payment_receipt_container" class="d-none">
+                    <h6>Comprobante</h6>
+                    <iframe id="review_payment_receipt" class="w-100 border border-secondary rounded" style="height: 420px;" title="Comprobante del pago"></iframe>
+                </div>
+                <p id="review_payment_no_receipt" class="text-white-50 mb-0">Este pago no tiene comprobante adjunto.</p>
+            </div>
+            <div class="modal-footer border-secondary">
+                <a id="review_payment_reject" class="btn btn-warning" href="#"><i class="bi bi-x-lg me-1"></i>Rechazar</a>
+                <a id="review_payment_approve" class="btn btn-success" href="#"><i class="bi bi-check-lg me-1"></i>Aprobar</a>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
 <?php if ($isLoggedIn): ?>
 <div class="modal fade" id="modalPayment" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -176,26 +225,37 @@ $canDelete = $canReview;
                 <h5 class="modal-title"><i class="bi bi-wallet2 me-2"></i> Registrar Pago</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-            <form action="index.php?url=payments" method="POST">
+            <form id="payment_form" action="index.php?url=payments" method="POST" enctype="multipart/form-data">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Antena</label>
-                        <select class="form-select" id="payment_antenna" name="antenna_id" required>
-                            <option value="">-- Seleccionar antena --</option>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <label class="form-label">Antenas <span class="text-danger">*</span></label>
+                            <button type="button" class="btn btn-sm btn-outline-light" id="payment_select_all">
+                                <i class="bi bi-check2-square me-1"></i>Seleccionar todas
+                            </button>
+                        </div>
+                        <div class="border border-secondary rounded p-2" id="payment_antennas">
                             <?php foreach ($data['antennas'] as $antena): ?>
-                                <option value="<?php echo $antena['id_starlink']; ?>"
-                                        data-client="<?php echo htmlspecialchars($antena['cliente'], ENT_QUOTES); ?>"
-                                        data-payday="<?php echo htmlspecialchars($antena['pay'] ?? '', ENT_QUOTES); ?>"
-                                        data-serial="<?php echo htmlspecialchars($antena['serial'], ENT_QUOTES); ?>">
-                                    <?php echo $antena['serial']; ?> — <?php echo $antena['cliente']; ?>
-                                </option>
+                                <div class="form-check payment-antenna-option">
+                                    <input class="form-check-input payment-antenna"
+                                           type="checkbox"
+                                           name="antenna_ids[]"
+                                           value="<?php echo $antena['id_starlink']; ?>"
+                                           data-client="<?php echo htmlspecialchars($antena['cliente'], ENT_QUOTES); ?>"
+                                           data-payday="<?php echo htmlspecialchars($antena['pay'] ?? '', ENT_QUOTES); ?>"
+                                           data-price="<?php echo htmlspecialchars($antena['plan_price'] ?? '0', ENT_QUOTES); ?>"
+                                           id="payment_antenna_<?php echo $antena['id_starlink']; ?>">
+                                    <label class="form-check-label" for="payment_antenna_<?php echo $antena['id_starlink']; ?>">
+                                        <?php echo htmlspecialchars($antena['serial']); ?> — <?php echo htmlspecialchars($antena['cliente']); ?>
+                                    </label>
+                                </div>
                             <?php endforeach; ?>
-                        </select>
+                        </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Monto <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" class="form-control" name="amount" placeholder="Ej: 120.00" required>
+                            <label class="form-label">Monto por antena <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" min="0" class="form-control" id="payment_amount" name="amount" placeholder="Se calcula según el plan" readonly required>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Moneda <span class="text-danger">*</span></label>
@@ -214,12 +274,17 @@ $canDelete = $canReview;
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Cliente</label>
-                            <input type="text" class="form-control" id="payment_client" disabled>
+                            <input type="text" class="form-control" id="payment_client" value="Selecciona una o varias antenas" disabled>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Día de cobro configurado</label>
-                        <input type="text" class="form-control" id="payment_payday" disabled>
+                        <label class="form-label">Días de cobro configurados</label>
+                        <input type="text" class="form-control" id="payment_payday" value="Selecciona una o varias antenas" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="payment_receipt">Comprobante de pago</label>
+                        <input type="file" class="form-control" id="payment_receipt" name="payment_receipt" accept="image/jpeg,image/png,image/webp,application/pdf">
+                        <small class="text-white-50">Opcional. Imágenes o PDF, máximo 5 MB.</small>
                     </div>
                 </div>
                 <div class="modal-footer border-secondary">
@@ -255,25 +320,274 @@ document.addEventListener('DOMContentLoaded', function() {
         searchType.addEventListener('change', filterRows);
     }
 
-    const paymentAntenna = document.getElementById('payment_antenna');
+    const paymentAntennas = document.getElementById('payment_antennas');
+    const paymentCheckboxes = document.querySelectorAll('.payment-antenna');
+    const paymentAmount = document.getElementById('payment_amount');
     const paymentClient = document.getElementById('payment_client');
     const paymentPayday = document.getElementById('payment_payday');
+    const paymentSelectAll = document.getElementById('payment_select_all');
+    const reviewButtons = document.querySelectorAll('.payment-review-button');
+    const reviewReceiptContainer = document.getElementById('review_payment_receipt_container');
+    const reviewReceipt = document.getElementById('review_payment_receipt');
+    const reviewNoReceipt = document.getElementById('review_payment_no_receipt');
+    const paymentForm = document.getElementById('payment_form');
 
-    if (paymentAntenna) {
-        paymentAntenna.addEventListener('change', function() {
-            const selected = this.selectedOptions[0];
-            paymentClient.value = selected.dataset.client || '';
-            paymentPayday.value = selected.dataset.payday ? 'Día ' + selected.dataset.payday : 'No configurado';
+    function showPaymentMessage(message, type) {
+        document.querySelectorAll('.alert').forEach(existingMessage => {
+            if (existingMessage.textContent.includes(message)) existingMessage.remove();
         });
+        const messageBox = document.createElement('div');
+        messageBox.className = 'alert alert-' + type + ' alert-dismissible fade show payment-live-message';
+        messageBox.dataset.message = message;
+        messageBox.setAttribute('role', 'alert');
+        messageBox.innerHTML = message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>';
+        (document.querySelector('main') || document.body).prepend(messageBox);
+    }
+
+    function updatePaymentRow(row, status) {
+        const badge = row.querySelector('.badge');
+        if (badge) {
+            badge.textContent = status;
+            badge.className = 'badge ' + (status === 'Aprobado' ? 'bg-success text-dark' : 'bg-danger text-white');
+        }
+        row.dataset.status = status;
+        row.querySelectorAll('.payment-action, .payment-review-button').forEach(action => action.remove());
+    }
+
+    function escapePaymentValue(value) {
+        return String(value ?? '').replace(/[&<>'"]/g, character => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;'
+        })[character]);
+    }
+
+    function createPaymentRow(payment) {
+        const statusClass = payment.status === 'Aprobado' ? 'bg-success text-dark' : (payment.status === 'Rechazado' ? 'bg-danger text-white' : 'bg-warning text-dark');
+        const receipt = payment.receipt
+            ? '<a href="' + escapePaymentValue(payment.receipt) + '" target="_blank" rel="noopener" class="btn btn-sm btn-outline-info" title="Ver comprobante"><i class="bi bi-paperclip"></i></a>'
+            : '<span class="text-white-50">-</span>';
+                const actions = <?php echo $canReview ? 'true' : 'false'; ?>
+                        ? (payment.status === 'Pendiente'
+                                ? '<button type="button" class="btn btn-sm btn-outline-info payment-review-button" data-bs-toggle="modal" data-bs-target="#modalReviewPayment" data-id="' + payment.id + '" data-serial="' + escapePaymentValue(payment.serial) + '" data-client="' + escapePaymentValue(payment.client) + '" data-amount="' + escapePaymentValue(Number(payment.amount).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })) + '" data-currency="' + escapePaymentValue(payment.currency) + '" data-date="' + escapePaymentValue(payment.date) + '" data-receipt="' + escapePaymentValue(payment.receipt) + '" title="Revisar pago"><i class="bi bi-search me-1"></i>Revisar</button>' +
+                                    '<a href="index.php?url=payments&action=approve&id=' + payment.id + '" class="btn btn-sm btn-success payment-action" title="Aprobar pago"><i class="bi bi-check-lg"></i></a>' +
+                                    '<a href="index.php?url=payments&action=reject&id=' + payment.id + '" class="btn btn-sm btn-warning payment-action" title="Rechazar pago"><i class="bi bi-x-lg"></i></a>'
+                                : '') +
+                            '<a href="index.php?url=payments&action=delete&id=' + payment.id + '" class="btn btn-sm btn-danger payment-delete-action" title="Eliminar pago"><i class="bi bi-trash"></i></a>'
+                        : '';
+        const row = document.createElement('tr');
+        row.dataset.paymentId = payment.id;
+        row.dataset.status = payment.status;
+        row.innerHTML = '<td><code>' + escapePaymentValue(payment.serial) + '</code></td>' +
+            '<td>' + escapePaymentValue(payment.client) + '</td>' +
+            '<td>' + Number(payment.amount).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</td>' +
+            '<td>' + escapePaymentValue(payment.currency) + '</td>' +
+            '<td>' + escapePaymentValue(payment.date) + '</td>' +
+            '<td><span class="badge ' + statusClass + '">' + escapePaymentValue(payment.status) + '</span></td>' +
+            '<td>' + receipt + '</td>' +
+            (actions ? '<td>' + actions + '</td>' : '');
+        return row;
+    }
+
+    let paymentSyncInProgress = false;
+
+    function synchronizePayments() {
+        if (document.hidden || paymentSyncInProgress) return;
+        paymentSyncInProgress = true;
+        fetch('index.php?url=payments&action=sync', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(response => response.json())
+            .then(payments => {
+                const currentPayments = new Map(payments.map(payment => [String(payment.id), payment]));
+                const historyBody = document.querySelector('.payment-history-table tbody');
+                document.querySelectorAll('tr[data-payment-id]').forEach(row => {
+                    const payment = currentPayments.get(row.dataset.paymentId);
+                    if (!payment) {
+                        row.remove();
+                    } else if (row.dataset.status !== payment.status) {
+                        updatePaymentRow(row, payment.status);
+                    }
+                });
+                if (historyBody) {
+                    payments.forEach(payment => {
+                        if (!document.querySelector('tr[data-payment-id="' + payment.id + '"]')) {
+                            historyBody.prepend(createPaymentRow(payment));
+                        }
+                    });
+                    historyBody.querySelectorAll('.payment-action').forEach(action => {
+                        if (!action.dataset.bound) {
+                            action.dataset.bound = 'true';
+                            action.addEventListener('click', function(event) {
+                                event.preventDefault();
+                                const row = this.closest('tr');
+                                processPaymentAction(this, row, result => updatePaymentRow(row, result.status));
+                            });
+                        }
+                    });
+                    historyBody.querySelectorAll('.payment-delete-action').forEach(action => {
+                        if (!action.dataset.bound) {
+                            action.dataset.bound = 'true';
+                            action.addEventListener('click', function(event) {
+                                event.preventDefault();
+                                if (!window.confirm('¿Eliminar este pago?')) return;
+                                const row = this.closest('tr');
+                                processPaymentAction(this, row, () => row.remove());
+                            });
+                        }
+                    });
+                    historyBody.querySelectorAll('.payment-review-button').forEach(bindReviewButton);
+                }
+            })
+                .catch(() => {})
+                .finally(() => { paymentSyncInProgress = false; });
+    }
+
+            window.setInterval(synchronizePayments, 2000);
+            document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) synchronizePayments();
+            });
+
+    function processPaymentAction(action, row, onSuccess) {
+        action.classList.add('disabled');
+        fetch(action.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(response => response.json())
+            .then(result => {
+                if (!result.success) throw new Error();
+                onSuccess(result);
+            })
+            .catch(() => {
+                action.classList.remove('disabled');
+                showPaymentMessage('No se pudo actualizar el pago.', 'danger');
+            });
+    }
+
+    if (paymentForm) {
+        paymentForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const submitButton = this.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            fetch(this.action, {
+                method: 'POST',
+                body: new FormData(this),
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(response => response.json())
+                .then(result => {
+                    if (!result.success) throw new Error();
+                    bootstrap.Modal.getInstance(document.getElementById('modalPayment')).hide();
+                    this.reset();
+                    paymentCheckboxes.forEach(checkbox => checkbox.closest('.payment-antenna-option').classList.remove('payment-antenna-selected'));
+                    paymentAmount.value = '';
+                    window.history.replaceState({}, document.title, 'index.php?url=payments');
+                    synchronizePayments();
+                    showPaymentMessage(result.status === 'payment_pending' ? 'Pago cargado y enviado a revisión.' : 'Pago registrado correctamente.', 'success');
+                })
+                .catch(() => showPaymentMessage('No se pudo registrar el pago.', 'danger'))
+                .finally(() => { submitButton.disabled = false; });
+        });
+    }
+
+    document.querySelectorAll('.payment-action').forEach(action => {
+        action.addEventListener('click', function(event) {
+            event.preventDefault();
+            const row = this.closest('tr');
+            processPaymentAction(this, row, result => {
+                updatePaymentRow(row, result.status);
+                showPaymentMessage('Estado del pago actualizado correctamente.', 'success');
+            });
+        });
+    });
+
+    document.querySelectorAll('.payment-delete-action').forEach(action => {
+        action.addEventListener('click', function(event) {
+            event.preventDefault();
+            if (!window.confirm('¿Eliminar este pago?')) return;
+            const row = this.closest('tr');
+            processPaymentAction(this, row, () => {
+                row.remove();
+                showPaymentMessage('Pago eliminado correctamente.', 'success');
+            });
+        });
+    });
+
+    if (paymentAntennas) {
+        function updatePaymentSummary() {
+            const selected = Array.from(paymentCheckboxes).filter(checkbox => checkbox.checked);
+            paymentCheckboxes.forEach(checkbox => {
+                checkbox.closest('.payment-antenna-option').classList.toggle('payment-antenna-selected', checkbox.checked);
+            });
+            const total = selected.reduce((sum, option) => sum + (parseFloat(option.dataset.price) || 0), 0);
+            const clients = [...new Set(selected.map(option => option.dataset.client || 'Cliente no identificado'))];
+            paymentAmount.value = selected.length ? total.toFixed(2) : '';
+            paymentClient.value = selected.length
+                ? clients.join(', ')
+                : 'Selecciona una o varias antenas';
+            paymentPayday.value = selected.length
+                ? selected.map(option => option.dataset.payday ? 'Día ' + option.dataset.payday : 'No configurado').join(', ')
+                : 'Selecciona una o varias antenas';
+            }
+
+            paymentCheckboxes.forEach(checkbox => checkbox.addEventListener('change', updatePaymentSummary));
+
+        if (paymentSelectAll) {
+            paymentSelectAll.addEventListener('click', function() {
+                const selectAll = Array.from(paymentCheckboxes).some(checkbox => !checkbox.checked);
+                paymentCheckboxes.forEach(checkbox => checkbox.checked = selectAll);
+                updatePaymentSummary();
+                this.innerHTML = selectAll
+                    ? '<i class="bi bi-dash-square me-1"></i>Quitar selección'
+                    : '<i class="bi bi-check2-square me-1"></i>Seleccionar todas';
+            });
+        }
 
         const modal = document.getElementById('modalPayment');
         if (modal) {
             modal.addEventListener('show.bs.modal', function () {
-                paymentAntenna.value = '';
-                paymentClient.value = '';
-                paymentPayday.value = '';
+                paymentCheckboxes.forEach(checkbox => checkbox.checked = false);
+                paymentCheckboxes.forEach(checkbox => checkbox.closest('.payment-antenna-option').classList.remove('payment-antenna-selected'));
+                paymentClient.value = 'Selecciona una o varias antenas';
+                paymentPayday.value = 'Selecciona una o varias antenas';
+                paymentAmount.value = '';
+                if (paymentSelectAll) {
+                    paymentSelectAll.innerHTML = '<i class="bi bi-check2-square me-1"></i>Seleccionar todas';
+                }
             });
         }
     }
+
+    function bindReviewButton(button) {
+        if (button.dataset.bound) return;
+        button.dataset.bound = 'true';
+        button.addEventListener('click', function() {
+            document.getElementById('review_payment_serial').textContent = this.dataset.serial;
+            document.getElementById('review_payment_client').textContent = this.dataset.client;
+            document.getElementById('review_payment_amount').textContent = this.dataset.amount + ' ' + this.dataset.currency;
+            document.getElementById('review_payment_date').textContent = this.dataset.date;
+
+            if (this.dataset.receipt) {
+                reviewReceipt.src = this.dataset.receipt;
+                reviewReceiptContainer.classList.remove('d-none');
+                reviewNoReceipt.classList.add('d-none');
+            } else {
+                reviewReceipt.removeAttribute('src');
+                reviewReceiptContainer.classList.add('d-none');
+                reviewNoReceipt.classList.remove('d-none');
+            }
+
+            document.getElementById('review_payment_reject').href = 'index.php?url=payments&action=reject&id=' + this.dataset.id;
+            document.getElementById('review_payment_approve').href = 'index.php?url=payments&action=approve&id=' + this.dataset.id;
+
+            [document.getElementById('review_payment_reject'), document.getElementById('review_payment_approve')].forEach(action => {
+                action.onclick = function(event) {
+                    event.preventDefault();
+                    const row = button.closest('tr');
+                    processPaymentAction(this, row, result => {
+                        updatePaymentRow(row, result.status);
+                        bootstrap.Modal.getInstance(document.getElementById('modalReviewPayment')).hide();
+                        showPaymentMessage('Estado del pago actualizado correctamente.', 'success');
+                    });
+                };
+            });
+        });
+    }
+
+    reviewButtons.forEach(bindReviewButton);
 });
 </script>

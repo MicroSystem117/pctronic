@@ -17,6 +17,7 @@ $hasSecQuestions = isset($data['has_sec_questions']) ? $data['has_sec_questions'
     </div>
 <?php endif; ?>
 
+<?php if (!$isExpectador): ?>
 <div class="row g-4 mb-5">
     <div class="col-md-4">
         <div class="card card-custom p-4 h-100 border-start border-primary border-4">
@@ -86,10 +87,12 @@ $hasSecQuestions = isset($data['has_sec_questions']) ? $data['has_sec_questions'
     </div>
 </div>
 
+<?php endif; ?>
+
 <div class="row mt-4">
     <div class="col-12">
         <div class="card card-custom p-3 calendar-modal-host">
-            <h5><i class="bi bi-calendar3"></i> Calendario de Días de Pago</h5>
+            <h5><i class="bi bi-calendar3"></i> Calendario de Días de Pago<?php echo $isExpectador ? ' de mis antenas' : ''; ?></h5>
             <hr class="border-secondary">
             <?php
                 $month = isset($data['calendar_month']) ? intval($data['calendar_month']) : intval(date('n'));
@@ -247,7 +250,10 @@ $hasSecQuestions = isset($data['has_sec_questions']) ? $data['has_sec_questions'
                             if (status) {
                                 html += '<div class="small mt-1"><span class="' + statusClass + '">' + status + '</span></div>';
                             }
-                            html += '<div class="small text-white-50 mt-1">' + (r.cuenta_starlink || '') + '</div></div>';
+                            <?php if (!$isExpectador): ?>
+                                html += '<div class="small text-white-50 mt-1">' + (r.cuenta_starlink || '') + '</div>';
+                            <?php endif; ?>
+                            html += '</div>';
                             html += '</div>';
                         });
                         html += '</div>';
@@ -310,7 +316,9 @@ $hasSecQuestions = isset($data['has_sec_questions']) ? $data['has_sec_questions'
                 <?php if ($isAdmin): ?>
                     <a href="index.php?url=antenas" class="btn btn-primary btn-sm"><i class="bi bi-plus-circle"></i> Registrar Nuevo Equipo</a>
                 <?php endif; ?>
-                <a href="index.php?url=accounts" class="btn btn-outline-light btn-sm"><i class="bi bi-person-badge"></i> Ver Cuentas Admin</a>
+                <?php if (!$isExpectador): ?>
+                    <a href="index.php?url=accounts" class="btn btn-outline-light btn-sm"><i class="bi bi-person-badge"></i> Ver Cuentas Admin</a>
+                <?php endif; ?>
             </div>
         </div>
     </div>

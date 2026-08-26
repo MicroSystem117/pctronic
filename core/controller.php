@@ -43,4 +43,23 @@ class Controller {
             exit();
         }
     }
+
+    public function validateActiveSession() {
+        if (!isset($_SESSION['user_id'])) {
+            return true;
+        }
+
+        $db = Database::connect();
+        $stmt = $db->prepare('SELECT id_session FROM user_sessions WHERE user_id = :user_id AND session_id = :session_id AND active = 1 LIMIT 1');
+        $stmt->execute([':user_id' => $_SESSION['user_id'], ':session_id' => session_id()]);
+        if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
+            session_unset();
+            header('Location: index.php?url=login&status=session_revoked');
+            exit();
+        }
+
+        $stmt = $db->prepare('UPDATE user_sessions SET last_seen = CURRENT_TIMESTAMP WHERE user_id = :user_id AND session_id = :session_id');
+        $stmt->execute([':user_id' => $_SESSION['user_id'], ':session_id' => session_id()]);
+        return true;
+    }
 }   

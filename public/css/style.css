@@ -655,6 +655,22 @@ select {
     border: 1px solid rgba(255, 255, 255, 0.16) !important;
 }
 
+#payment_antennas .payment-antenna-option {
+    padding: 0.55rem 0.65rem 0.55rem 2rem;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+#payment_antennas .payment-antenna-option:hover,
+#payment_antennas .payment-antenna-option.payment-antenna-selected {
+    background: rgba(13, 110, 253, 0.28);
+}
+
+#payment_antennas .payment-antenna:checked {
+    background-color: #0d6efd !important;
+    border-color: #8ec5ff !important;
+}
+
 .form-control::placeholder,
 .form-select::placeholder,
 textarea::placeholder {

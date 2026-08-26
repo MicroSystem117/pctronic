@@ -27,9 +27,20 @@ class AntenaController extends Controller {
             $date       = isset($_POST['date']) ? $_POST['date'] : date('Y-m-d');
             $pay        = isset($_POST['pay']) && $_POST['pay'] !== '' ? intval($_POST['pay']) : null;
             $plan_id    = isset($_POST['plan']) ? intval($_POST['plan']) : 0;
-            $country_id = isset($_POST['country']) ? intval($_POST['country']) : 0;
+            $country_id = 0;
+            if ($account_id !== null && $account_id > 0) {
+                $countryStmt = $db->prepare('SELECT countries FROM accounts WHERE id_accounts = :id');
+                $countryStmt->execute([':id' => $account_id]);
+                $account = $countryStmt->fetch(PDO::FETCH_ASSOC);
+                $country_id = $account ? intval($account['countries']) : 0;
+            }
 
-            if ($client_id > 0 && !empty($serial) && !empty($kit) && $plan_id > 0 && $country_id > 0) {
+            if ($account_id === null || $account_id <= 0 || $country_id <= 0) {
+                header('Location: index.php?url=antenas&status=account_country_required');
+                exit();
+            }
+
+            if ($client_id > 0 && $account_id !== null && $account_id > 0 && !empty($serial) && !empty($kit) && $plan_id > 0 && $country_id > 0) {
                 // Validar día de pago si viene definido
                 if ($pay !== null && ($pay < 1 || $pay > 31)) {
                     header("Location: index.php?url=antenas&status=invalid_pay");
@@ -84,8 +95,7 @@ class AntenaController extends Controller {
         // 2. Cargar listas auxiliares dinámicas para los SELECT del formulario modal
         $clientes = $db->query("SELECT id_client, CONCAT(name, ' ', surname) AS nombre FROM client ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
         $planes   = $db->query("SELECT id_plan, plan FROM plan ORDER BY id_plan ASC")->fetchAll(PDO::FETCH_ASSOC);
-        $paises   = $db->query("SELECT id_country, country FROM country ORDER BY country ASC")->fetchAll(PDO::FETCH_ASSOC);
-        $cuentas  = $db->query("SELECT id_accounts, CONCAT(owner, ' • ', acc) AS info_cuenta FROM accounts ORDER BY owner ASC")->fetchAll(PDO::FETCH_ASSOC);
+        $cuentas  = $db->query("SELECT a.id_accounts, CONCAT(a.owner, ' • ', a.acc) AS info_cuenta, a.countries AS country_id, c.country AS country_name FROM accounts a LEFT JOIN country c ON c.id_country = a.countries ORDER BY a.owner ASC")->fetchAll(PDO::FETCH_ASSOC);
 
         // 3. Obtener el listado principal de antenas
         $antenasList = $this->antenaModel->getAll($this->getUserRole(), $this->getUserCi());
@@ -95,7 +105,6 @@ class AntenaController extends Controller {
             'antenas'    => $antenasList,
             'clientes'   => $clientes,
             'planes'     => $planes,
-            'paises'     => $paises,
             'cuentas'    => $cuentas
         ];
 

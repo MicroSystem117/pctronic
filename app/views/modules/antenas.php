@@ -177,11 +177,15 @@ $isExpectador = $userRole === 'Expectador';
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Cuenta Starlink Administrativa</label>
-                            <select class="form-select" id="antena_account" name="account_id">
-                                <option value="">-- Sin cuenta (Opcional) --</option>
+                            <label class="form-label">Cuenta Starlink Administrativa <span class="text-danger">*</span></label>
+                            <select class="form-select" id="antena_account" name="account_id" required>
+                                <option value="">-- Seleccionar cuenta --</option>
                                 <?php foreach($data['cuentas'] as $acc): ?>
-                                    <option value="<?php echo $acc['id_accounts']; ?>"><?php echo $acc['info_cuenta']; ?></option>
+                                    <option value="<?php echo $acc['id_accounts']; ?>"
+                                            data-country-id="<?php echo htmlspecialchars($acc['country_id'] ?? '', ENT_QUOTES); ?>"
+                                            data-country-name="<?php echo htmlspecialchars($acc['country_name'] ?? 'Sin país configurado', ENT_QUOTES); ?>">
+                                        <?php echo htmlspecialchars($acc['info_cuenta']); ?>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -198,13 +202,8 @@ $isExpectador = $userRole === 'Expectador';
                             </select>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label class="form-label">País / Región <span class="text-danger">*</span></label>
-                            <select class="form-select" id="antena_country" name="country" required>
-                                <option value="">-- Seleccionar --</option>
-                                <?php foreach($data['paises'] as $co): ?>
-                                    <option value="<?php echo $co['id_country']; ?>"><?php echo $co['country']; ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                            <label class="form-label">País de origen</label>
+                            <input type="text" class="form-control" id="antena_country" value="Selecciona una cuenta" readonly>
                         </div>
                         <div class="col-md-4 mb-3">
                             <label class="form-label">Fecha de Alta <span class="text-danger">*</span></label>
@@ -229,8 +228,8 @@ $isExpectador = $userRole === 'Expectador';
 <?php endif; ?>
 
 <script>
-document.addEventListener('DOMContentLoaded', function(){
-            document.querySelectorAll('.btn-edit-antena').forEach(btn => {
+function initializeAntenaForm() {
+    document.querySelectorAll('.btn-edit-antena').forEach(btn => {
         btn.addEventListener('click', function(){
             document.getElementById('id_starlink').value = this.getAttribute('data-id');
             document.getElementById('antena_serial').value = this.getAttribute('data-serial');
@@ -250,20 +249,31 @@ document.addEventListener('DOMContentLoaded', function(){
 
             const accountSelect = document.getElementById('antena_account');
             accountSelect.value = accountId || '';
+            const selectedAccount = accountSelect.selectedOptions[0];
+            document.getElementById('antena_country').value = selectedAccount ? (selectedAccount.getAttribute('data-country-name') || 'Sin país configurado') : 'Selecciona una cuenta';
 
             const planSelect = document.getElementById('antena_plan');
             if (planId) {
                 planSelect.value = planId;
             }
 
-            const countrySelect = document.getElementById('antena_country');
-            if (countryId) {
-                countrySelect.value = countryId;
-            }
-
             document.getElementById('antena_pay').value = this.getAttribute('data-pay') || '';
         });
     });
 
-});
+    const accountSelect = document.getElementById('antena_account');
+    if (accountSelect) {
+        accountSelect.addEventListener('change', function() {
+            const selected = this.selectedOptions[0];
+            document.getElementById('antena_country').value = selected ? (selected.getAttribute('data-country-name') || 'Sin país configurado') : 'Selecciona una cuenta';
+        });
+    }
+
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeAntenaForm, { once: true });
+} else {
+    initializeAntenaForm();
+}
 </script>

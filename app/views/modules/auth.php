@@ -1,9 +1,15 @@
 <?php
 $activeTab = isset($activeTab) ? $activeTab : 'login';
 $status = isset($_GET['status']) ? $_GET['status'] : null;
+$requiresSessionQuestions = $status === 'session_questions';
 $alerts = [
     'login_empty' => ['type' => 'warning', 'message' => 'Completa los datos de inicio de sesión.'],
     'login_failed' => ['type' => 'danger', 'message' => 'Usuario o contraseña incorrectos.'],
+    'session_questions' => ['type' => 'info', 'message' => 'Detectamos otra sesión activa. Responde tus preguntas de seguridad para continuar.'],
+    'session_questions_wrong' => ['type' => 'danger', 'message' => 'Las respuestas de seguridad no son correctas.'],
+    'session_questions_invalid' => ['type' => 'warning', 'message' => 'La verificación de seguridad expiró o está incompleta.'],
+    'session_questions_unavailable' => ['type' => 'danger', 'message' => 'No tienes preguntas de seguridad configuradas para autorizar otra sesión.'],
+    'session_revoked' => ['type' => 'danger', 'message' => 'Esta sesión fue cerrada porque se abrió otra sesión para el mismo usuario.'],
     'register_success' => ['type' => 'success', 'message' => 'Registro completado. Ya puedes iniciar sesión.'],
     'register_error' => ['type' => 'danger', 'message' => 'No se pudo completar el registro.'],
     'register_empty' => ['type' => 'warning', 'message' => 'Completa todos los campos del registro.'],
@@ -58,18 +64,29 @@ $alerts = [
             <div class="tab-content">
                 <div class="tab-pane fade <?php echo $activeTab === 'login' ? 'show active' : ''; ?>" id="login" role="tabpanel" aria-labelledby="login-tab">
                     <form action="index.php?url=login" method="POST">
-                        <div class="mb-3">
-                            <label class="form-label text-white">Cédula de Identidad</label>
-                            <input type="text" name="ci" class="form-control bg-dark text-white border-secondary" placeholder="Ej: 12345678" inputmode="numeric" pattern="[0-9]+" oninput="this.value = this.value.replace(/[^0-9]/g, '')" title="Solo se permiten números" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label text-white">Contraseña</label>
-                            <div class="input-group">
-                                <input id="loginPassword" type="password" name="password" class="form-control bg-dark text-white border-secondary" placeholder="Ingresa tu contraseña" required>
-                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('loginPassword')"><i class="bi bi-eye"></i></button>
+                        <?php if ($requiresSessionQuestions): ?>
+                            <input type="hidden" name="security_check" value="1">
+                            <?php for ($questionNumber = 1; $questionNumber <= 3; $questionNumber++): ?>
+                                <div class="mb-3">
+                                    <label class="form-label text-white"><?php echo htmlspecialchars($questions['question' . $questionNumber] ?? 'Pregunta de seguridad', ENT_QUOTES); ?></label>
+                                    <input type="text" name="answer<?php echo $questionNumber; ?>" class="form-control bg-dark text-white border-secondary" required>
+                                </div>
+                            <?php endfor; ?>
+                            <button type="submit" class="btn btn-primary w-100">Verificar y continuar</button>
+                        <?php else: ?>
+                            <div class="mb-3">
+                                <label class="form-label text-white">Cédula de Identidad</label>
+                                <input type="text" name="ci" class="form-control bg-dark text-white border-secondary" placeholder="Ej: 12345678" inputmode="numeric" pattern="[0-9]+" oninput="this.value = this.value.replace(/[^0-9]/g, '')" title="Solo se permiten números" required>
                             </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
+                            <div class="mb-3">
+                                <label class="form-label text-white">Contraseña</label>
+                                <div class="input-group">
+                                    <input id="loginPassword" type="password" name="password" class="form-control bg-dark text-white border-secondary" placeholder="Ingresa tu contraseña" required>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('loginPassword')"><i class="bi bi-eye"></i></button>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
+                        <?php endif; ?>
                         <div class="text-center mt-3">
                             <a href="index.php?url=auth/forgot_password" class="text-white-50 small"><i class="bi bi-key"></i> Olvidé mi contraseña</a>
                         </div>
