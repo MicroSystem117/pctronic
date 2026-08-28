@@ -4,7 +4,8 @@ $isLoggedIn = isset($_SESSION['user_id']);
 $canReview = $userRole === 'Administrador' || $userRole === 'Moderador';
 $canDelete = $canReview;
 ?>
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="payments-page">
+<div class="payments-heading d-flex justify-content-between align-items-center mb-4">
     <div>
         <h3 class="text-white"><i class="bi bi-currency-dollar me-2 text-primary"></i>Pagos Registrados</h3>
         <p class="text-white-50 mb-0">Registra los pagos de los clientes, selecciona la forma de pago y visualiza el estado de cada antena.</p>
@@ -16,7 +17,7 @@ $canDelete = $canReview;
     <?php endif; ?>
 </div>
 
-<div class="mb-3 d-flex justify-content-end gap-2 flex-wrap">
+<div class="payments-filters mb-3 d-flex justify-content-end gap-2 flex-wrap">
     <div class="input-group input-group-sm w-auto">
         <label class="input-group-text bg-secondary text-white border-secondary" for="search_payments_type">Buscar por</label>
         <select id="search_payments_type" class="form-select form-select-sm">
@@ -28,8 +29,8 @@ $canDelete = $canReview;
             <option value="status">Estado</option>
         </select>
     </div>
-    <input id="search_payments" class="form-control form-control-sm w-25" placeholder="Buscar...">
-    <form class="d-flex align-items-center" method="GET" action="index.php?url=payments">
+    <input id="search_payments" class="form-control form-control-sm payments-search-input" placeholder="Buscar...">
+    <form class="payments-date-filters d-flex align-items-center" method="GET" action="index.php?url=payments">
         <input type="hidden" name="url" value="payments">
         <label class="form-label me-2 text-white-50 small">Desde</label>
         <input type="date" name="from" class="form-control form-control-sm me-2" value="<?php echo isset($_GET['from']) ? htmlspecialchars($_GET['from']) : ''; ?>">
@@ -40,9 +41,9 @@ $canDelete = $canReview;
     </form>
 </div>
 
-<div class="row">
+<div class="payments-panels row">
     <div class="col-lg-6 mb-4">
-        <div class="card card-custom p-3 h-100">
+        <div class="card card-custom payments-panel p-3 h-100">
             <h5 class="mb-3">Estado de Pago por Antena</h5>
             <div class="table-responsive">
                 <table class="table table-dark table-hover mb-0 pdf-exportable" data-pdf-title="Estado de pago por antena">
@@ -105,7 +106,7 @@ $canDelete = $canReview;
     </div>
 
     <div class="col-lg-6 mb-4">
-        <div class="card card-custom p-3 h-100">
+        <div class="card card-custom payments-panel p-3 h-100">
             <h5 class="mb-3">Historial de Pagos</h5>
             <div class="table-responsive">
                 <table class="table table-dark table-hover mb-0 pdf-exportable payment-history-table" data-pdf-title="Historial de pagos">
@@ -189,7 +190,7 @@ $canDelete = $canReview;
 
 <?php if ($canReview): ?>
 <div class="modal fade" id="modalReviewPayment" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-lg payments-review-dialog">
         <div class="modal-content card-custom text-white">
             <div class="modal-header border-secondary">
                 <h5 class="modal-title"><i class="bi bi-search me-2"></i>Revisar pago</h5>
@@ -219,7 +220,7 @@ $canDelete = $canReview;
 
 <?php if ($isLoggedIn): ?>
 <div class="modal fade" id="modalPayment" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-lg payments-form-dialog">
         <div class="modal-content card-custom text-white">
             <div class="modal-header border-secondary">
                 <h5 class="modal-title"><i class="bi bi-wallet2 me-2"></i> Registrar Pago</h5>
@@ -297,6 +298,7 @@ $canDelete = $canReview;
     </div>
 </div>
 <?php endif; ?>
+</div>
 
 <script>
 document.addEventListener('app:content-ready', function() {

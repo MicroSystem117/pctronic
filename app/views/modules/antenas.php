@@ -3,7 +3,8 @@ $userRole = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : '';
 $isAdmin = $userRole === 'Administrador';
 $isExpectador = $userRole === 'Expectador';
 ?>
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="antenas-page">
+<div class="antenas-heading d-flex justify-content-between align-items-center mb-4">
     <h2><i class="bi bi-broadcast"></i> Antenas Starlink Registradas</h2>
     <?php if ($isAdmin): ?>
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAntena">
@@ -12,7 +13,7 @@ $isExpectador = $userRole === 'Expectador';
     <?php endif; ?>
 </div>
 
-<div class="mb-3 d-flex justify-content-end gap-2 flex-wrap">
+<div class="antenas-filters mb-3 d-flex justify-content-end gap-2 flex-wrap">
     <div class="input-group input-group-sm w-auto">
         <label class="input-group-text bg-secondary text-white border-secondary" for="search_antenas_type">Buscar por</label>
         <select id="search_antenas_type" class="form-select form-select-sm">
@@ -24,10 +25,10 @@ $isExpectador = $userRole === 'Expectador';
             <option value="nickname">Nickname</option>
         </select>
     </div>
-    <input id="search_antenas" class="form-control form-control-sm w-25" placeholder="Buscar...">
+    <input id="search_antenas" class="form-control form-control-sm antenas-search-input" placeholder="Buscar...">
 </div>
 
-<div class="card card-custom p-3">
+<div class="card card-custom antenas-card p-3">
     <div class="table-responsive">
         <table class="table table-dark table-hover mb-0 datatable pdf-exportable" data-pdf-title="Antenas Starlink">
             <thead class="table-light">
@@ -61,17 +62,17 @@ $isExpectador = $userRole === 'Expectador';
                             data-date="<?php echo htmlspecialchars($antena['date'], ENT_QUOTES); ?>"
                             data-pay="<?php echo htmlspecialchars($antena['pay'] ?? '', ENT_QUOTES); ?>"
                         >
-                            <td><code><?php echo $antena['serial']; ?></code></td>
-                            <td><?php echo !empty($antena['nickname']) ? htmlspecialchars($antena['nickname']) : '<span class="text-white-50">-</span>'; ?></td>
-                            <td><code><?php echo $antena['kit']; ?></code></td>
-                            <td><?php echo $antena['cliente']; ?></td>
-                            <td><span class="badge bg-info text-dark"><?php echo $antena['nombre_plan']; ?></span></td>
-                            <td><?php echo $antena['pais']; ?></td>
-                            <td>
+                                <td data-label="Serial"><code><?php echo $antena['serial']; ?></code></td>
+                            <td data-label="Nickname"><?php echo !empty($antena['nickname']) ? htmlspecialchars($antena['nickname']) : '<span class="text-white-50">-</span>'; ?></td>
+                            <td data-label="Kit"><code><?php echo $antena['kit']; ?></code></td>
+                            <td data-label="Cliente"><?php echo $antena['cliente']; ?></td>
+                            <td data-label="Plan"><span class="badge bg-info text-dark"><?php echo $antena['nombre_plan']; ?></span></td>
+                            <td data-label="País"><?php echo $antena['pais']; ?></td>
+                            <td data-label="Cuenta Starlink">
                                 <?php echo !empty($antena['cuenta_starlink']) ? $antena['cuenta_starlink'] : '<span class="text-white-50">Sin Cuenta Vinc.</span>'; ?>
                             </td>
-                            <td><?php echo isset($antena['pay']) && $antena['pay'] !== null && $antena['pay'] !== '' ? htmlspecialchars(intval($antena['pay'])) : '<span class="text-white-50">-</span>'; ?></td>
-                            <td>
+                            <td data-label="Día de pago"><?php echo isset($antena['pay']) && $antena['pay'] !== null && $antena['pay'] !== '' ? htmlspecialchars(intval($antena['pay'])) : '<span class="text-white-50">-</span>'; ?></td>
+                            <td data-label="Estado de pago">
                                 <?php
                                     $paymentStatus = '<span class="text-white-50">-</span>';
                                     if (isset($antena['pay']) && $antena['pay'] !== null && $antena['pay'] !== '') {
@@ -99,9 +100,9 @@ $isExpectador = $userRole === 'Expectador';
                                     echo $paymentStatus;
                                 ?>
                             </td>
-                            <td><?php echo date('d/m/Y', strtotime($antena['date'])); ?></td>
+                            <td data-label="Fecha de instalación"><?php echo date('d/m/Y', strtotime($antena['date'])); ?></td>
                             <?php if ($isAdmin): ?>
-                                <td>
+                                <td data-label="Acciones">
                                     <button class="btn btn-sm btn-info btn-edit-antena"
                                         data-id="<?php echo $antena['id_starlink']; ?>"
                                         data-serial="<?php echo htmlspecialchars($antena['serial'], ENT_QUOTES); ?>"
@@ -137,7 +138,7 @@ $isExpectador = $userRole === 'Expectador';
 
 <?php if ($isAdmin): ?>
 <div class="modal fade" id="modalAntena" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-lg antenas-form-dialog">
         <div class="modal-content card-custom text-white">
             <div class="modal-header border-secondary">
                 <h5 class="modal-title"><i class="bi bi-plus-circle-fill"></i> Registrar Nueva Antena</h5>
@@ -226,6 +227,7 @@ $isExpectador = $userRole === 'Expectador';
     </div>
 </div>
 <?php endif; ?>
+</div>
 
 <script>
 function initializeAntenaForm() {
