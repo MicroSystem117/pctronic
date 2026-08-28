@@ -188,7 +188,7 @@ function prepareAccountDelete(link) {
     return true;
 }
 
-document.addEventListener('DOMContentLoaded', function(){
+document.addEventListener('app:content-ready', function(){
     document.querySelectorAll('.btn-edit-account').forEach(btn => {
         btn.addEventListener('click', function(){
             document.getElementById('id_accounts').value = this.getAttribute('data-id');

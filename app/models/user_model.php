@@ -110,7 +110,7 @@ class UserModel {
 
     public function hasActiveSession($userId, $sessionId) {
         $db = Database::connect();
-        $stmt = $db->prepare('SELECT id_session FROM user_sessions WHERE user_id = :user_id AND session_id <> :session_id AND active = 1 LIMIT 1');
+        $stmt = $db->prepare('SELECT id_session FROM user_sessions WHERE user_id = :user_id AND session_id <> :session_id AND active = 1 AND last_seen >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 30 MINUTE) LIMIT 1');
         $stmt->execute([':user_id' => $userId, ':session_id' => $sessionId]);
         return (bool) $stmt->fetch(PDO::FETCH_ASSOC);
     }

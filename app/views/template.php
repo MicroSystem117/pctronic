@@ -638,6 +638,7 @@ function replaceMainContent(documentResponse, responseUrl) {
         oldScript.replaceWith(newScript);
     });
 
+    document.dispatchEvent(new Event('app:content-ready'));
     initializePdfExportables();
     initializeDataTables();
 }
@@ -685,6 +686,8 @@ document.addEventListener('click', function (event) {
     event.preventDefault();
     loadContentWithoutReload(link.href).catch(error => alert(error.message));
 });
+
+document.dispatchEvent(new Event('app:content-ready'));
 </script>
 </body>
 </html>

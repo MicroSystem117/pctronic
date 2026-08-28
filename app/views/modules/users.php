@@ -128,7 +128,7 @@ $canEdit = $canManage || $userRole === 'Moderador';
 <?php endif; ?>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('app:content-ready', function () {
     const modal = document.getElementById('modalUser');
     const addButton = document.querySelector('[data-bs-target="#modalUser"]:not(.btn-edit-user)');
     const title = document.getElementById('modalUserTitle');

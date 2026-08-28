@@ -104,7 +104,7 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('app:content-ready', function() {
         var copyButton = document.getElementById('copyBackupFolderPath');
         if (copyButton) {
             copyButton.addEventListener('click', function() {

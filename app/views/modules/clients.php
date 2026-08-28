@@ -132,7 +132,7 @@ $isAdmin = $userRole === 'Administrador';
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("app:content-ready", function() {
     // Al hacer clic en el botón de registrar (limpiar modal)
     const btnAdd = document.querySelector('[data-bs-target="#modalClient"]:not(.btn-edit-client)');
     if(btnAdd) {

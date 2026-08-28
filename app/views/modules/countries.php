@@ -79,7 +79,7 @@ $isAdmin = $userRole === 'Administrador';
 <?php endif; ?>
 
 <script>
-document.addEventListener('DOMContentLoaded', function(){
+document.addEventListener('app:content-ready', function(){
     document.querySelectorAll('.btn-edit-country').forEach(btn => {
         btn.addEventListener('click', function(){
             document.getElementById('id_country').value = this.getAttribute('data-id');

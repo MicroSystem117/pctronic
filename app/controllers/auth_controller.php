@@ -31,6 +31,20 @@ class AuthController extends Controller {
                     exit();
                 }
 
+                $user = $this->userModel->findById($pendingUserId);
+                if (!$user) {
+                    unset($_SESSION['pending_second_session_user'], $_SESSION['pending_second_session_at']);
+                    header('Location: index.php?url=login&status=session_questions_invalid');
+                    exit();
+                }
+
+                if (!$this->userModel->hasActiveSession($pendingUserId, session_id()) || !$this->secQuestionModel->hasSecurityQuestions($pendingUserId)) {
+                    unset($_SESSION['pending_second_session_user'], $_SESSION['pending_second_session_at']);
+                    $this->startUserSession($user);
+                    header('Location: index.php?url=dashboard&status=login_success');
+                    exit();
+                }
+
                 $securityData = $this->secQuestionModel->getByUserId($pendingUserId);
                 $validAnswers = $securityData &&
                     strcasecmp($answers[0], $securityData['answer1']) === 0 &&
@@ -42,7 +56,6 @@ class AuthController extends Controller {
                     exit();
                 }
 
-                $user = $this->userModel->findById($pendingUserId);
                 unset($_SESSION['pending_second_session_user'], $_SESSION['pending_second_session_at']);
                 $this->startUserSession($user);
                 header('Location: index.php?url=dashboard&status=login_success');
@@ -65,14 +78,12 @@ class AuthController extends Controller {
 
             $sessionId = session_id();
             if ($this->userModel->hasActiveSession($user['id_user'], $sessionId)) {
-                if (!$this->secQuestionModel->hasSecurityQuestions($user['id_user'])) {
-                    header('Location: index.php?url=login&status=session_questions_unavailable');
+                if ($this->secQuestionModel->hasSecurityQuestions($user['id_user'])) {
+                    $_SESSION['pending_second_session_user'] = $user['id_user'];
+                    $_SESSION['pending_second_session_at'] = time();
+                    header('Location: index.php?url=login&status=session_questions');
                     exit();
                 }
-                $_SESSION['pending_second_session_user'] = $user['id_user'];
-                $_SESSION['pending_second_session_at'] = time();
-                header('Location: index.php?url=login&status=session_questions');
-                exit();
             }
 
             $this->startUserSession($user);

@@ -234,7 +234,8 @@ $canDelete = $canReview;
                                 <i class="bi bi-check2-square me-1"></i>Seleccionar todas
                             </button>
                         </div>
-                        <div class="border border-secondary rounded p-2" id="payment_antennas">
+                        <input type="search" class="form-control form-control-sm mb-2" id="payment_client_search" placeholder="Buscar antenas por cliente..." autocomplete="off">
+                        <div class="border border-secondary rounded p-2" id="payment_antennas" style="max-height: 260px; overflow-y: auto;">
                             <?php foreach ($data['antennas'] as $antena): ?>
                                 <div class="form-check payment-antenna-option">
                                     <input class="form-check-input payment-antenna"
@@ -298,7 +299,7 @@ $canDelete = $canReview;
 <?php endif; ?>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('app:content-ready', function() {
     const searchInput = document.getElementById('search_payments');
     const searchType = document.getElementById('search_payments_type');
     const rows = document.querySelectorAll('.card .table tbody tr');
@@ -322,6 +323,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const paymentAntennas = document.getElementById('payment_antennas');
     const paymentCheckboxes = document.querySelectorAll('.payment-antenna');
+    const paymentClientSearch = document.getElementById('payment_client_search');
     const paymentAmount = document.getElementById('payment_amount');
     const paymentClient = document.getElementById('payment_client');
     const paymentPayday = document.getElementById('payment_payday');
@@ -528,12 +530,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (paymentSelectAll) {
             paymentSelectAll.addEventListener('click', function() {
-                const selectAll = Array.from(paymentCheckboxes).some(checkbox => !checkbox.checked);
-                paymentCheckboxes.forEach(checkbox => checkbox.checked = selectAll);
+                const visibleCheckboxes = Array.from(paymentCheckboxes).filter(checkbox => {
+                    return checkbox.closest('.payment-antenna-option').style.display !== 'none';
+                });
+                const selectAll = visibleCheckboxes.some(checkbox => !checkbox.checked);
+                visibleCheckboxes.forEach(checkbox => checkbox.checked = selectAll);
                 updatePaymentSummary();
                 this.innerHTML = selectAll
-                    ? '<i class="bi bi-dash-square me-1"></i>Quitar selección'
-                    : '<i class="bi bi-check2-square me-1"></i>Seleccionar todas';
+                    ? '<i class="bi bi-dash-square me-1"></i>Quitar visibles'
+                    : '<i class="bi bi-check2-square me-1"></i>Seleccionar visibles';
+            });
+        }
+
+        if (paymentClientSearch) {
+            paymentClientSearch.addEventListener('input', function() {
+                const query = this.value.trim().toLowerCase();
+                document.querySelectorAll('.payment-antenna-option').forEach(option => {
+                    const client = option.querySelector('.payment-antenna').dataset.client.toLowerCase();
+                    option.style.display = query === '' || client.includes(query) ? '' : 'none';
+                });
             });
         }
 
@@ -542,6 +557,10 @@ document.addEventListener('DOMContentLoaded', function() {
             modal.addEventListener('show.bs.modal', function () {
                 paymentCheckboxes.forEach(checkbox => checkbox.checked = false);
                 paymentCheckboxes.forEach(checkbox => checkbox.closest('.payment-antenna-option').classList.remove('payment-antenna-selected'));
+                if (paymentClientSearch) {
+                    paymentClientSearch.value = '';
+                    paymentCheckboxes.forEach(checkbox => checkbox.closest('.payment-antenna-option').style.display = '');
+                }
                 paymentClient.value = 'Selecciona una o varias antenas';
                 paymentPayday.value = 'Selecciona una o varias antenas';
                 paymentAmount.value = '';

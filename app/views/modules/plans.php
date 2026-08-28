@@ -92,7 +92,7 @@ $isAdmin = $userRole === 'Administrador';
 <?php endif; ?>
 
 <script>
-document.addEventListener('DOMContentLoaded', function(){
+document.addEventListener('app:content-ready', function(){
     document.querySelectorAll('.btn-edit-plan').forEach(btn => {
         btn.addEventListener('click', function(){
             document.getElementById('id_plan').value = this.getAttribute('data-id');
