@@ -34,6 +34,20 @@ class DatabaseController extends Controller {
                 exit();
             }
 
+            if ($action === 'restore_existing') {
+                $fileName = isset($_POST['file_name']) ? basename($_POST['file_name']) : '';
+                if ($fileName && $this->databaseModel->isValidBackupFile($fileName) && strtolower(pathinfo($fileName, PATHINFO_EXTENSION)) === 'sql') {
+                    $targetPath = $this->databaseModel->getBackupFolder() . DIRECTORY_SEPARATOR . $fileName;
+                    $restored = $this->databaseModel->restoreBackup($targetPath);
+                    $status = $restored ? 'restore_success' : 'restore_error';
+                } else {
+                    $status = 'restore_invalid_file';
+                }
+
+                header('Location: index.php?url=database&status=' . $status);
+                exit();
+            }
+
             if ($action === 'restore') {
                 if (isset($_FILES['sql_file']) && $_FILES['sql_file']['error'] === UPLOAD_ERR_OK) {
                     $uploadName = basename($_FILES['sql_file']['name']);
@@ -54,6 +68,20 @@ class DatabaseController extends Controller {
                 header('Location: index.php?url=database&status=' . $status);
                 exit();
             }
+        }
+
+        if (isset($_GET['action']) && $_GET['action'] === 'restore_existing' && isset($_GET['file'])) {
+            $fileName = basename($_GET['file']);
+            if ($fileName && $this->databaseModel->isValidBackupFile($fileName) && strtolower(pathinfo($fileName, PATHINFO_EXTENSION)) === 'sql') {
+                $targetPath = $this->databaseModel->getBackupFolder() . DIRECTORY_SEPARATOR . $fileName;
+                $restored = $this->databaseModel->restoreBackup($targetPath);
+                $status = $restored ? 'restore_success' : 'restore_error';
+            } else {
+                $status = 'restore_invalid_file';
+            }
+
+            header('Location: index.php?url=database&status=' . $status);
+            exit();
         }
 
         if (isset($_GET['action']) && $_GET['action'] === 'download' && isset($_GET['file'])) {

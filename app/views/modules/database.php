@@ -38,20 +38,52 @@
         </div>
     </div>
 
+<?php
+$sqlBackups = array_filter($backups, function($b) {
+    return isset($b['type']) && strtolower($b['type']) === 'sql';
+});
+?>
     <div class="col-md-6">
         <div class="card card-custom p-4 h-100">
             <h5 class="mb-3">Restablecer respaldo</h5>
-            <p class="text-white-50">Carga un archivo SQL válido para restaurar el estado de la base de datos.</p>
-            <form action="index.php?url=database" method="POST" enctype="multipart/form-data">
-                <input type="hidden" name="action" value="restore">
-                <div class="mb-3">
-                    <input type="file" name="sql_file" accept=".sql" class="form-control form-control-sm" required>
-                </div>
-                <button type="submit" class="btn btn-warning">
-                    <i class="bi bi-arrow-counterclockwise"></i> Restaurar Respaldo
-                </button>
-            </form>
-            <div class="mt-4 text-white-50 small">
+            <p class="text-white-50">Restaura la base de datos desde los respaldos generados o subiendo un archivo SQL.</p>
+
+            <?php if (!empty($sqlBackups)): ?>
+                <form action="index.php?url=database" method="POST" class="mb-3" onsubmit="return confirm('¿Restablecer la base de datos con el respaldo seleccionado? Los datos actuales serán reemplazados.');">
+                    <input type="hidden" name="action" value="restore_existing">
+                    <label class="form-label text-white-50 small mb-1">Seleccionar respaldo del servidor:</label>
+                    <div class="input-group mb-3">
+                        <select name="file_name" class="form-select form-select-sm" required>
+                            <option value="">-- Elige un respaldo generado --</option>
+                            <?php foreach ($sqlBackups as $sb): ?>
+                                <option value="<?php echo htmlspecialchars($sb['name']); ?>">
+                                    <?php echo htmlspecialchars($sb['name']); ?> (<?php echo date('d/m/Y H:i', $sb['modified']); ?> - <?php echo number_format($sb['size'] / 1024, 2); ?> KB)
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <button type="submit" class="btn btn-warning btn-sm">
+                            <i class="bi bi-arrow-counterclockwise"></i> Restaurar
+                        </button>
+                    </div>
+                </form>
+            <?php endif; ?>
+
+            <details class="text-white-50 small mb-2" <?php echo empty($sqlBackups) ? 'open' : ''; ?>>
+                <summary class="cursor-pointer text-info mb-2">
+                    <i class="bi bi-upload me-1"></i> O subir un archivo .sql desde tu equipo
+                </summary>
+                <form action="index.php?url=database" method="POST" enctype="multipart/form-data" class="mt-2">
+                    <input type="hidden" name="action" value="restore">
+                    <div class="input-group input-group-sm">
+                        <input type="file" name="sql_file" accept=".sql" class="form-control form-control-sm" required>
+                        <button type="submit" class="btn btn-outline-warning">
+                            Subir y Restaurar
+                        </button>
+                    </div>
+                </form>
+            </details>
+
+            <div class="mt-3 text-white-50 small">
                 <strong>Advertencia:</strong> La restauración reemplaza los datos actuales. Úsala con cuidado.
             </div>
         </div>
@@ -80,6 +112,11 @@
                             <td><?php echo number_format($backup['size'] / 1024, 2); ?> KB</td>
                             <td><?php echo date('d/m/Y H:i:s', $backup['modified']); ?></td>
                             <td>
+                                <?php if (strtolower($backup['type']) === 'sql'): ?>
+                                    <a href="index.php?url=database&action=restore_existing&file=<?php echo rawurlencode($backup['name']); ?>" class="btn btn-sm btn-warning me-2" onclick="return confirm('¿Restaurar la base de datos a este respaldo (<?php echo htmlspecialchars($backup['name'], ENT_QUOTES); ?>)? Esta acción sobrescribirá los datos actuales.');">
+                                        <i class="bi bi-arrow-counterclockwise"></i> Restaurar
+                                    </a>
+                                <?php endif; ?>
                                 <a href="index.php?url=database&action=download&file=<?php echo rawurlencode($backup['name']); ?>" class="btn btn-sm btn-outline-light me-2">
                                     <i class="bi bi-download"></i> Descargar
                                 </a>
