@@ -1,10 +1,15 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Si intentan acceder a una carpeta o archivo real en la raíz, que acceda normal
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_FILENAME} !-f
+    # Si la petición ya incluye la carpeta /public/, no intervenir
+    RewriteCond %{REQUEST_URI} ^.*/public(/.*)?$ [NC]
+    RewriteRule ^ - [L]
 
-    # Redirecciona absolutamente todo lo demás a la carpeta public/index.php pasando la ruta como variable
-    RewriteRule ^(.*)$ public/index.php?url=$1 [QSA,L]
+    # Si intentan acceder a una carpeta o archivo real en la raíz, que acceda normal
+    RewriteCond %{REQUEST_FILENAME} -d [OR]
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+
+    # Redirecciona cualquier otra ruta a la carpeta public/index.php pasando la ruta como variable
+    RewriteRule ^(.*)$ public/index.php?url=$1 [R=302,L,QSA]
 </IfModule>

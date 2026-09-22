@@ -3,3 +3,7 @@ storage/backups/
 *.sql
 !storage/migrations/
 !storage/migrations/*.sql
+
+# Configuraciones locales y variables de entorno
+config/database.local.php
+.env
