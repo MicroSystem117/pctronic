@@ -1,8 +1,16 @@
-# Ignorar los respaldos de la base de datos generados por la app
-storage/backups/
+# Ignorar los respaldos de la base de datos generados por la app pero mantener la carpeta
+storage/backups/*
+!storage/backups/.gitkeep
 *.sql
 !storage/migrations/
 !storage/migrations/*.sql
+
+# Ignorar archivos subidos pero mantener las carpetas
+public/uploads/*
+!public/uploads/.gitkeep
+!public/uploads/payment_receipts/
+public/uploads/payment_receipts/*
+!public/uploads/payment_receipts/.gitkeep
 
 # Configuraciones locales y variables de entorno
 config/database.local.php

@@ -4,12 +4,13 @@ class DatabaseModel {
     private $backupDir;
 
     public function __construct() {
-        $this->backupDir = realpath(__DIR__ . '/../../storage/backups');
-        if (!$this->backupDir) {
-            $this->backupDir = __DIR__ . '/../../storage/backups';
-            if (!is_dir($this->backupDir)) {
-                mkdir($this->backupDir, 0755, true);
-            }
+        $this->backupDir = __DIR__ . '/../../storage/backups';
+        if (!is_dir($this->backupDir)) {
+            @mkdir($this->backupDir, 0775, true);
+        }
+        $real = realpath($this->backupDir);
+        if ($real) {
+            $this->backupDir = $real;
         }
     }
 
