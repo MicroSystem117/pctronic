@@ -25,17 +25,13 @@
                 </form>
             </div>
             <p class="text-white-50 small">La exportación descarga todos los datos en archivos CSV comprimidos en un ZIP.</p>
-            <?php $backupFolderPath = realpath(__DIR__ . '/../../storage/backups'); ?>
-            <?php $backupFolderUrl = 'file://' . str_replace('\\', '/', $backupFolderPath); ?>
+            <?php $backupFolderPath = realpath(__DIR__ . '/../../storage/backups') ?: (__DIR__ . '/../../storage/backups'); ?>
             <div class="mt-4 text-white-50 small">
-                <strong>Ubicación:</strong>
+                <strong>Ubicación en el servidor:</strong>
                 <div><code><?php echo htmlspecialchars($backupFolderPath); ?></code></div>
                 <div class="mt-2">
-                    <a href="<?php echo htmlspecialchars($backupFolderUrl); ?>" target="_blank" class="btn btn-sm btn-outline-light me-2">
-                        <i class="bi bi-folder2-open"></i> Abrir carpeta de respaldos
-                    </a>
                     <button type="button" class="btn btn-sm btn-outline-secondary" id="copyBackupFolderPath">
-                        <i class="bi bi-clipboard"></i> Copiar ruta
+                        <i class="bi bi-clipboard"></i> Copiar ruta del servidor
                     </button>
                 </div>
             </div>
