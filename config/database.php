@@ -48,9 +48,13 @@ class Database {
                 self::$conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
                 
             } catch (PDOException $exception) {
-                // Si la conexión falla, mostramos el detalle para facilitar el diagnóstico
-                die("Error de conexión a la base de datos: " . $exception->getMessage() . 
-                    " [Host: " . self::$host . ", Base de Datos: " . self::$db_name . ", Usuario: " . self::$username . "]");
+                error_log("Database connection error: " . $exception->getMessage() . " [Host: " . self::$host . ", DB: " . self::$db_name . "]");
+                $debug = getenv('APP_DEBUG') === 'true' || file_exists(__DIR__ . '/database.local.php');
+                if ($debug) {
+                    die("Error de conexión a la base de datos: " . htmlspecialchars($exception->getMessage(), ENT_QUOTES, 'UTF-8'));
+                } else {
+                    die("Error al conectar con la base de datos. Por favor contacte al administrador del sistema.");
+                }
             }
         }
         

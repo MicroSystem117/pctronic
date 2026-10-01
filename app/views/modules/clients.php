@@ -12,12 +12,15 @@ $isAdmin = $userRole === 'Administrador';
 </div>
 
 <div class="mb-3 d-flex justify-content-end">
-    <input id="search_clients" class="form-control form-control-sm w-25" placeholder="Buscar clientes...">
+    <input id="search_clients" class="form-control form-control-sm w-100 w-md-25" style="max-width: 280px;" placeholder="Buscar clientes...">
 </div>
 
 <div class="card card-custom p-3">
+    <div class="mobile-table-hint d-md-none">
+        <i class="bi bi-arrow-left-right text-info"></i> Desliza para ver más columnas
+    </div>
     <div class="table-responsive">
-        <table class="table table-dark table-hover mb-0 datatable pdf-exportable" data-pdf-title="Clientes">
+        <table class="table table-dark table-hover mb-0 datatable pdf-exportable table-sticky-col" data-pdf-title="Clientes">
     <thead class="table-light">
         <tr>
             <th>Cédula</th>
@@ -34,11 +37,12 @@ $isAdmin = $userRole === 'Administrador';
                 <tr data-name="<?php echo htmlspecialchars($c['name'] . ' ' . $c['surname'], ENT_QUOTES); ?>"
                     data-ci="<?php echo htmlspecialchars($c['ci'] ?? '', ENT_QUOTES); ?>"
                     data-phone="<?php echo htmlspecialchars($c['phone'], ENT_QUOTES); ?>">
-                    <td><?php echo !empty($c['ci']) ? $c['ci'] : '<span class="text-white-50">N/A</span>'; ?></td>
-                    <td><?php echo $c['name'] . ' ' . $c['surname']; ?></td>
-                    <td><code><?php echo $c['phone']; ?></code></td>
+                    <td><?php echo !empty($c['ci']) ? htmlspecialchars($c['ci']) : '<span class="text-white-50">N/A</span>'; ?></td>
+                    <td><?php echo htmlspecialchars($c['name'] . ' ' . $c['surname']); ?></td>
+                    <td><code><?php echo htmlspecialchars($c['phone']); ?></code></td>
                     <?php if ($isAdmin): ?>
-                        <td>
+                        <td class="text-nowrap">
+                            <div class="d-inline-flex gap-1">
                             <button class="btn btn-sm btn-success btn-view-client-starlinks"
                                     data-client-id="<?php echo $c['id_client']; ?>"
                                     data-client-name="<?php echo htmlspecialchars($c['name'] . ' ' . $c['surname'], ENT_QUOTES); ?>"
@@ -60,9 +64,11 @@ $isAdmin = $userRole === 'Administrador';
                             </button>
                             <a href="index.php?url=clients&action=delete&id=<?php echo $c['id_client']; ?>" 
                                class="btn btn-sm btn-danger" 
-                               onclick="return confirm('¿Seguro que deseas eliminar a este cliente? Se desvincularán sus antenas.');">
+                               data-confirm-text="¿Seguro que deseas eliminar a este cliente? Se desvincularán sus antenas."
+                               title="Eliminar cliente">
                                 <i class="bi bi-trash"></i>
                             </a>
+                            </div>
                         </td>
                     <?php endif; ?>
                 </tr>

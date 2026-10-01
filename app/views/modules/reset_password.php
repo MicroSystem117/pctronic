@@ -15,13 +15,6 @@ $alerts = [
                 <p class="text-white-50 mb-0">Establece una nueva contraseña</p>
             </div>
 
-            <?php if ($status && isset($alerts[$status])): ?>
-                <div class="alert alert-<?php echo $alerts[$status]['type']; ?> alert-dismissible fade show" role="alert">
-                    <?php echo $alerts[$status]['message']; ?>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-                </div>
-            <?php endif; ?>
-
             <form action="index.php?url=auth/reset_password" method="POST">
                 <div class="mb-3">
                     <label class="form-label text-white">Nueva contraseña</label>

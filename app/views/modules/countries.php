@@ -12,7 +12,7 @@ $isAdmin = $userRole === 'Administrador';
 </div>
 
 <div class="mb-3 d-flex justify-content-end">
-    <input id="search_countries" class="form-control form-control-sm w-25" placeholder="Buscar países...">
+    <input id="search_countries" class="form-control form-control-sm w-100 w-md-25" style="max-width: 280px;" placeholder="Buscar países...">
 </div>
 
 <div class="card card-custom p-3">
@@ -35,10 +35,14 @@ $isAdmin = $userRole === 'Administrador';
                                 <button class="btn btn-sm btn-info btn-edit-country"
                                         data-id="<?php echo $c['id_country']; ?>"
                                         data-country="<?php echo htmlspecialchars($c['country'], ENT_QUOTES); ?>"
-                                        data-bs-toggle="modal" data-bs-target="#modalCountry">
+                                        data-bs-toggle="modal" data-bs-target="#modalCountry"
+                                        title="Editar país">
                                     <i class="bi bi-pencil"></i>
                                 </button>
-                                <a href="index.php?url=countries&action=delete&id=<?php echo $c['id_country']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Eliminar país?');">
+                                <a href="index.php?url=countries&action=delete&id=<?php echo $c['id_country']; ?>" 
+                                   class="btn btn-sm btn-danger" 
+                                   data-confirm-text="¿Deseas eliminar el país <?php echo htmlspecialchars($c['country'], ENT_QUOTES); ?>?"
+                                   title="Eliminar país">
                                     <i class="bi bi-trash"></i>
                                 </a>
                             </div>

@@ -12,7 +12,7 @@ $isAdmin = $userRole === 'Administrador';
 </div>
 
 <div class="mb-3 d-flex justify-content-end">
-    <input id="search_plans" class="form-control form-control-sm w-25" placeholder="Buscar planes...">
+    <input id="search_plans" class="form-control form-control-sm w-100 w-md-25" style="max-width: 280px;" placeholder="Buscar planes...">
 </div>
 
 <div class="card card-custom p-3">
@@ -28,7 +28,7 @@ $isAdmin = $userRole === 'Administrador';
                                 <div class="text-white-50 small text-uppercase mb-1">Plan</div>
                                 <h4 class="mb-1"><?php echo htmlspecialchars($p['plan']); ?></h4>
                             </div>
-                            <span class="badge bg-primary text-dark fs-6">
+                            <span class="badge bg-primary text-white fs-6">
                                 <?php echo isset($p['price']) ? '$'.number_format($p['price'], 0, ',', '.') : '-'; ?>
                             </span>
                         </div>
@@ -44,10 +44,14 @@ $isAdmin = $userRole === 'Administrador';
                                         data-id="<?php echo $p['id_plan']; ?>"
                                         data-plan="<?php echo htmlspecialchars($p['plan'], ENT_QUOTES); ?>"
                                         data-price="<?php echo isset($p['price']) ? $p['price'] : 0; ?>"
-                                        data-bs-toggle="modal" data-bs-target="#modalPlan">
+                                        data-bs-toggle="modal" data-bs-target="#modalPlan"
+                                        title="Editar plan">
                                     <i class="bi bi-pencil"></i>
                                 </button>
-                                <a href="index.php?url=plans&action=delete&id=<?php echo $p['id_plan']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Eliminar plan?');">
+                                <a href="index.php?url=plans&action=delete&id=<?php echo $p['id_plan']; ?>" 
+                                   class="btn btn-sm btn-danger" 
+                                   data-confirm-text="¿Deseas eliminar el plan <?php echo htmlspecialchars($p['plan'], ENT_QUOTES); ?>?"
+                                   title="Eliminar plan">
                                     <i class="bi bi-trash"></i>
                                 </a>
                             </div>

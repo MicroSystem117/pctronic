@@ -29,8 +29,11 @@ $isExpectador = $userRole === 'Expectador';
 </div>
 
 <div class="card card-custom antenas-card p-3">
+    <div class="mobile-table-hint d-md-none">
+        <i class="bi bi-arrow-left-right text-info"></i> Desliza horizontalmente para ver más columnas
+    </div>
     <div class="table-responsive">
-        <table class="table table-dark table-hover mb-0 datatable pdf-exportable" data-pdf-title="Antenas Starlink">
+        <table class="table table-dark table-hover mb-0 datatable pdf-exportable table-sticky-col" data-pdf-title="Antenas Starlink">
             <thead class="table-light">
                 <tr>
                     <th>Serial No.</th>
@@ -62,14 +65,14 @@ $isExpectador = $userRole === 'Expectador';
                             data-date="<?php echo htmlspecialchars($antena['date'], ENT_QUOTES); ?>"
                             data-pay="<?php echo htmlspecialchars($antena['pay'] ?? '', ENT_QUOTES); ?>"
                         >
-                                <td data-label="Serial"><code><?php echo $antena['serial']; ?></code></td>
+                                <td data-label="Serial"><code><?php echo htmlspecialchars($antena['serial']); ?></code></td>
                             <td data-label="Nickname"><?php echo !empty($antena['nickname']) ? htmlspecialchars($antena['nickname']) : '<span class="text-white-50">-</span>'; ?></td>
-                            <td data-label="Kit"><code><?php echo $antena['kit']; ?></code></td>
-                            <td data-label="Cliente"><?php echo $antena['cliente']; ?></td>
-                            <td data-label="Plan"><span class="badge bg-info text-dark"><?php echo $antena['nombre_plan']; ?></span></td>
-                            <td data-label="País"><?php echo $antena['pais']; ?></td>
+                            <td data-label="Kit"><code><?php echo htmlspecialchars($antena['kit']); ?></code></td>
+                            <td data-label="Cliente"><?php echo htmlspecialchars($antena['cliente']); ?></td>
+                            <td data-label="Plan"><span class="badge bg-info text-dark"><?php echo htmlspecialchars($antena['nombre_plan']); ?></span></td>
+                            <td data-label="País"><?php echo htmlspecialchars($antena['pais']); ?></td>
                             <td data-label="Cuenta Starlink">
-                                <?php echo !empty($antena['cuenta_starlink']) ? $antena['cuenta_starlink'] : '<span class="text-white-50">Sin Cuenta Vinc.</span>'; ?>
+                                <?php echo !empty($antena['cuenta_starlink']) ? htmlspecialchars($antena['cuenta_starlink']) : '<span class="text-white-50">Sin Cuenta Vinc.</span>'; ?>
                             </td>
                             <td data-label="Día de pago"><?php echo isset($antena['pay']) && $antena['pay'] !== null && $antena['pay'] !== '' ? htmlspecialchars(intval($antena['pay'])) : '<span class="text-white-50">-</span>'; ?></td>
                             <td data-label="Estado de pago">
@@ -102,24 +105,30 @@ $isExpectador = $userRole === 'Expectador';
                             </td>
                             <td data-label="Fecha de instalación"><?php echo date('d/m/Y', strtotime($antena['date'])); ?></td>
                             <?php if ($isAdmin): ?>
-                                <td data-label="Acciones">
-                                    <button class="btn btn-sm btn-info btn-edit-antena"
-                                        data-id="<?php echo $antena['id_starlink']; ?>"
-                                        data-serial="<?php echo htmlspecialchars($antena['serial'], ENT_QUOTES); ?>"
-                                        data-nickname="<?php echo htmlspecialchars($antena['nickname'] ?? '', ENT_QUOTES); ?>"
-                                        data-kit="<?php echo htmlspecialchars($antena['kit'], ENT_QUOTES); ?>"
-                                        data-client-id="<?php echo $antena['client_id']; ?>"
-                                        data-account-id="<?php echo htmlspecialchars($antena['account_id'] ?? '', ENT_QUOTES); ?>"
-                                        data-plan-id="<?php echo $antena['plan_id']; ?>"
-                                        data-country-id="<?php echo $antena['country_id']; ?>"
-                                        data-date="<?php echo $antena['date']; ?>"
-                                        data-pay="<?php echo htmlspecialchars($antena['pay'] ?? '', ENT_QUOTES); ?>"
-                                        data-bs-toggle="modal" data-bs-target="#modalAntena">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <a href="index.php?url=antenas&action=delete&id=<?php echo $antena['id_starlink']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar antena?');">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
+                                <td data-label="Acciones" class="text-nowrap">
+                                    <div class="d-inline-flex gap-1">
+                                        <button class="btn btn-sm btn-info btn-edit-antena"
+                                            data-id="<?php echo $antena['id_starlink']; ?>"
+                                            data-serial="<?php echo htmlspecialchars($antena['serial'], ENT_QUOTES); ?>"
+                                            data-nickname="<?php echo htmlspecialchars($antena['nickname'] ?? '', ENT_QUOTES); ?>"
+                                            data-kit="<?php echo htmlspecialchars($antena['kit'], ENT_QUOTES); ?>"
+                                            data-client-id="<?php echo $antena['client_id']; ?>"
+                                            data-account-id="<?php echo htmlspecialchars($antena['account_id'] ?? '', ENT_QUOTES); ?>"
+                                            data-plan-id="<?php echo $antena['plan_id']; ?>"
+                                            data-country-id="<?php echo $antena['country_id']; ?>"
+                                            data-date="<?php echo $antena['date']; ?>"
+                                            data-pay="<?php echo htmlspecialchars($antena['pay'] ?? '', ENT_QUOTES); ?>"
+                                            data-bs-toggle="modal" data-bs-target="#modalAntena"
+                                            title="Editar antena">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <a href="index.php?url=antenas&action=delete&id=<?php echo $antena['id_starlink']; ?>" 
+                                           class="btn btn-sm btn-danger" 
+                                           data-confirm-text="¿Deseas eliminar la antena con serial <?php echo htmlspecialchars($antena['serial'], ENT_QUOTES); ?>?"
+                                           title="Eliminar antena">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
                                 </td>
                             <?php endif; ?>
                         </tr>

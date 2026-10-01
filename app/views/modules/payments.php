@@ -45,8 +45,11 @@ $canDelete = $canReview;
     <div class="col-lg-6 mb-4">
         <div class="card card-custom payments-panel p-3 h-100">
             <h5 class="mb-3">Estado de Pago por Antena</h5>
+            <div class="mobile-table-hint d-md-none">
+                <i class="bi bi-arrow-left-right text-info"></i> Desliza para ver más
+            </div>
             <div class="table-responsive">
-                <table class="table table-dark table-hover mb-0 pdf-exportable" data-pdf-title="Estado de pago por antena">
+                <table class="table table-dark table-hover mb-0 pdf-exportable table-sticky-col" data-pdf-title="Estado de pago por antena">
                     <thead class="table-light">
                         <tr>
                             <th>Serial</th>
@@ -88,8 +91,8 @@ $canDelete = $canReview;
                                     data-plan="<?php echo htmlspecialchars($antena['nombre_plan'], ENT_QUOTES); ?>"
                                     data-status="<?php echo strip_tags($statusLabel); ?>"
                                     data-pay="<?php echo htmlspecialchars($antena['pay'] ?? '', ENT_QUOTES); ?>">
-                                    <td><code><?php echo $antena['serial']; ?></code></td>
-                                    <td><?php echo $antena['cliente']; ?></td>
+                                    <td><code><?php echo htmlspecialchars($antena['serial']); ?></code></td>
+                                    <td><?php echo htmlspecialchars($antena['cliente']); ?></td>
                                     <td><?php echo isset($antena['pay']) && $antena['pay'] !== null && $antena['pay'] !== '' ? htmlspecialchars(intval($antena['pay'])) : '<span class="text-white-50">N/A</span>'; ?></td>
                                     <td><?php echo $statusLabel; ?></td>
                                 </tr>
@@ -108,8 +111,11 @@ $canDelete = $canReview;
     <div class="col-lg-6 mb-4">
         <div class="card card-custom payments-panel p-3 h-100">
             <h5 class="mb-3">Historial de Pagos</h5>
+            <div class="mobile-table-hint d-md-none">
+                <i class="bi bi-arrow-left-right text-info"></i> Desliza para ver más
+            </div>
             <div class="table-responsive">
-                <table class="table table-dark table-hover mb-0 pdf-exportable payment-history-table" data-pdf-title="Historial de pagos">
+                <table class="table table-dark table-hover mb-0 pdf-exportable payment-history-table table-sticky-col" data-pdf-title="Historial de pagos">
                     <thead class="table-light">
                         <tr>
                             <th>Antena</th>
@@ -134,8 +140,8 @@ $canDelete = $canReview;
                                     data-currency="<?php echo htmlspecialchars($payment['currency'], ENT_QUOTES); ?>"
                                     data-status="<?php echo htmlspecialchars($payment['status'] ?? 'Pendiente', ENT_QUOTES); ?>"
                                     data-payment-date="<?php echo htmlspecialchars($payment['payment_date'], ENT_QUOTES); ?>">
-                                    <td><code><?php echo $payment['serial']; ?></code></td>
-                                    <td><?php echo $payment['cliente']; ?></td>
+                                    <td><code><?php echo htmlspecialchars($payment['serial']); ?></code></td>
+                                    <td><?php echo htmlspecialchars($payment['cliente']); ?></td>
                                     <td><?php echo number_format($payment['amount'], 2, ',', '.'); ?></td>
                                     <td><?php echo htmlspecialchars($payment['currency']); ?></td>
                                     <td><?php echo date('d/m/Y', strtotime($payment['payment_date'])); ?></td>
@@ -154,24 +160,26 @@ $canDelete = $canReview;
                                         <?php endif; ?>
                                     </td>
                                     <?php if ($canDelete || $canReview): ?>
-                                        <td>
-                                            <?php if ($canReview && ($payment['status'] ?? '') === 'Pendiente'): ?>
-                                                <button type="button" class="btn btn-sm btn-outline-info payment-review-button"
-                                                        data-bs-toggle="modal" data-bs-target="#modalReviewPayment"
-                                                    data-id="<?php echo $payment['id_payment']; ?>"
-                                                        data-serial="<?php echo htmlspecialchars($payment['serial'], ENT_QUOTES); ?>"
-                                                        data-client="<?php echo htmlspecialchars($payment['cliente'], ENT_QUOTES); ?>"
-                                                        data-amount="<?php echo htmlspecialchars(number_format($payment['amount'], 2, ',', '.'), ENT_QUOTES); ?>"
-                                                        data-currency="<?php echo htmlspecialchars($payment['currency'], ENT_QUOTES); ?>"
-                                                        data-date="<?php echo htmlspecialchars(date('d/m/Y', strtotime($payment['payment_date'])), ENT_QUOTES); ?>"
-                                                        data-receipt="<?php echo htmlspecialchars($payment['receipt_path'] ?? '', ENT_QUOTES); ?>"
-                                                        title="Revisar pago"><i class="bi bi-search me-1"></i>Revisar</button>
-                                                <a href="index.php?url=payments&action=approve&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-success payment-action" title="Aprobar pago"><i class="bi bi-check-lg"></i></a>
-                                                <a href="index.php?url=payments&action=reject&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-warning payment-action" title="Rechazar pago"><i class="bi bi-x-lg"></i></a>
-                                            <?php endif; ?>
-                                            <?php if ($canDelete): ?>
-                                                <a href="index.php?url=payments&action=delete&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-danger payment-delete-action" title="Eliminar pago"><i class="bi bi-trash"></i></a>
-                                            <?php endif; ?>
+                                        <td class="text-nowrap">
+                                            <div class="d-inline-flex align-items-center gap-1">
+                                                <?php if ($canReview && ($payment['status'] ?? '') === 'Pendiente'): ?>
+                                                    <button type="button" class="btn btn-sm btn-outline-info payment-review-button"
+                                                            data-bs-toggle="modal" data-bs-target="#modalReviewPayment"
+                                                        data-id="<?php echo $payment['id_payment']; ?>"
+                                                            data-serial="<?php echo htmlspecialchars($payment['serial'], ENT_QUOTES); ?>"
+                                                            data-client="<?php echo htmlspecialchars($payment['cliente'], ENT_QUOTES); ?>"
+                                                            data-amount="<?php echo htmlspecialchars(number_format($payment['amount'], 2, ',', '.'), ENT_QUOTES); ?>"
+                                                            data-currency="<?php echo htmlspecialchars($payment['currency'], ENT_QUOTES); ?>"
+                                                            data-date="<?php echo htmlspecialchars(date('d/m/Y', strtotime($payment['payment_date'])), ENT_QUOTES); ?>"
+                                                            data-receipt="<?php echo htmlspecialchars($payment['receipt_path'] ?? '', ENT_QUOTES); ?>"
+                                                            title="Revisar pago"><i class="bi bi-search me-1"></i>Revisar</button>
+                                                    <a href="index.php?url=payments&action=approve&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-success payment-action" title="Aprobar pago"><i class="bi bi-check-lg"></i></a>
+                                                    <a href="index.php?url=payments&action=reject&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-warning payment-action" title="Rechazar pago"><i class="bi bi-x-lg"></i></a>
+                                                <?php endif; ?>
+                                                <?php if ($canDelete): ?>
+                                                    <a href="index.php?url=payments&action=delete&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-danger payment-delete-action" title="Eliminar pago"><i class="bi bi-trash"></i></a>
+                                                <?php endif; ?>
+                                            </div>
                                         </td>
                                     <?php endif; ?>
                                 </tr>
@@ -337,15 +345,19 @@ document.addEventListener('app:content-ready', function() {
     const paymentForm = document.getElementById('payment_form');
 
     function showPaymentMessage(message, type) {
-        document.querySelectorAll('.alert').forEach(existingMessage => {
-            if (existingMessage.textContent.includes(message)) existingMessage.remove();
-        });
-        const messageBox = document.createElement('div');
-        messageBox.className = 'alert alert-' + type + ' alert-dismissible fade show payment-live-message';
-        messageBox.dataset.message = message;
-        messageBox.setAttribute('role', 'alert');
-        messageBox.innerHTML = message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>';
-        (document.querySelector('main') || document.body).prepend(messageBox);
+        if (typeof window.showSweetAlert === 'function') {
+            window.showSweetAlert(type, message);
+        } else if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: type === 'danger' ? 'error' : type,
+                title: message,
+                timer: 3000,
+                showConfirmButton: false,
+                customClass: { popup: 'swal-custom-toast' },
+                toast: true,
+                position: 'top-end'
+            });
+        }
     }
 
     function updatePaymentRow(row, status) {
@@ -430,9 +442,23 @@ document.addEventListener('app:content-ready', function() {
                             action.dataset.bound = 'true';
                             action.addEventListener('click', function(event) {
                                 event.preventDefault();
-                                if (!window.confirm('¿Eliminar este pago?')) return;
-                                const row = this.closest('tr');
-                                processPaymentAction(this, row, () => row.remove());
+                                const link = this;
+                                const row = link.closest('tr');
+                                Swal.fire({
+                                    title: '¿Eliminar este pago?',
+                                    text: 'Esta acción no se puede deshacer.',
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#dc3545',
+                                    cancelButtonColor: '#6c757d',
+                                    confirmButtonText: 'Sí, eliminar',
+                                    cancelButtonText: 'Cancelar',
+                                    customClass: { popup: 'swal-custom-dark' }
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        processPaymentAction(link, row, () => row.remove());
+                                    }
+                                });
                             });
                         }
                     });
@@ -502,11 +528,25 @@ document.addEventListener('app:content-ready', function() {
     document.querySelectorAll('.payment-delete-action').forEach(action => {
         action.addEventListener('click', function(event) {
             event.preventDefault();
-            if (!window.confirm('¿Eliminar este pago?')) return;
-            const row = this.closest('tr');
-            processPaymentAction(this, row, () => {
-                row.remove();
-                showPaymentMessage('Pago eliminado correctamente.', 'success');
+            const link = this;
+            const row = link.closest('tr');
+            Swal.fire({
+                title: '¿Eliminar este pago?',
+                text: 'Esta acción no se puede deshacer.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                customClass: { popup: 'swal-custom-dark' }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    processPaymentAction(link, row, () => {
+                        row.remove();
+                        showPaymentMessage('Pago eliminado correctamente.', 'success');
+                    });
+                }
             });
         });
     });

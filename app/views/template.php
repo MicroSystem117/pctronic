@@ -8,7 +8,12 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.11/css/dataTables.bootstrap5.min.css">
     
-    <link href="<?php echo htmlspecialchars(app_url('css/style.css?v=20260819-4'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link href="<?php echo htmlspecialchars(app_url('css/style.css?v=20261001-1'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
 
     <style>
         /* ==========================================================================
@@ -18,6 +23,32 @@
             background:
                 url('<?php echo htmlspecialchars(app_url('assets/background.jpg'), ENT_QUOTES, 'UTF-8'); ?>') center center / cover no-repeat fixed !important;
             color: #ffffff !important;
+        }
+
+        /* Estilos SweetAlert2 Oscuro Glassmorphism */
+        .swal2-popup.swal-custom-dark {
+            background: #161b22 !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            color: #ffffff !important;
+            border-radius: 16px !important;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6) !important;
+        }
+        .swal-custom-dark .swal2-title {
+            color: #ffffff !important;
+        }
+        .swal-custom-dark .swal2-html-container {
+            color: #cbd5e1 !important;
+        }
+        .swal2-toast.swal-custom-toast {
+            background: #1e293b !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            border-radius: 12px !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+        }
+        .swal-custom-toast .swal2-title {
+            color: #ffffff !important;
+            font-size: 0.95rem !important;
         }
         
         .sidebar {
@@ -291,32 +322,184 @@ select:focus option {
             color: #212529 !important;
         }
 
+        /* ==========================================================================
+           TABLAS MODERNAS Y RESPONSIVE
+           ========================================================================== */
+        .table {
+            --bs-table-bg: transparent !important;
+            --bs-table-striped-bg: rgba(255, 255, 255, 0.02) !important;
+            --bs-table-hover-bg: rgba(14, 165, 233, 0.08) !important;
+            border-color: rgba(255, 255, 255, 0.06) !important;
+        }
+
+        .table thead th {
+            background: rgba(15, 23, 42, 0.95) !important;
+            color: #94a3b8 !important;
+            font-family: 'Outfit', sans-serif !important;
+            font-weight: 600 !important;
+            text-transform: uppercase !important;
+            font-size: 0.74rem !important;
+            letter-spacing: 0.06em !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+            padding: 0.85rem 0.9rem !important;
+            white-space: nowrap !important;
+            vertical-align: middle;
+        }
+
+        .table tbody td {
+            padding: 0.85rem 0.9rem !important;
+            vertical-align: middle !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+            color: #e2e8f0 !important;
+        }
+
+        .table-responsive {
+            position: relative;
+            border-radius: 14px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(14, 165, 233, 0.4) rgba(15, 23, 42, 0.6);
+        }
+
+        .table-responsive::-webkit-scrollbar {
+            height: 6px;
+        }
+        .table-responsive::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 999px;
+        }
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: linear-gradient(90deg, #0ea5e9, #2563eb);
+            border-radius: 999px;
+        }
+
+        /* Indicador móvil para sugerir scroll */
+        .mobile-table-hint {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.76rem;
+            font-weight: 500;
+            color: #94a3b8;
+            background: rgba(14, 165, 233, 0.08);
+            border: 1px solid rgba(14, 165, 233, 0.22);
+            border-radius: 20px;
+            padding: 0.35rem 0.75rem;
+            margin-bottom: 0.65rem;
+        }
+
+        /* DataTables controles oscuros y estilizados */
+        .dataTables_wrapper .dataTables_filter input {
+            background: rgba(15, 23, 42, 0.85) !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            border-radius: 10px !important;
+            color: #ffffff !important;
+            padding: 0.35rem 0.75rem !important;
+            font-size: 0.85rem !important;
+        }
+        .dataTables_wrapper .dataTables_filter input:focus {
+            border-color: #0ea5e9 !important;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.25) !important;
+            outline: none !important;
+        }
+        .dataTables_wrapper .dataTables_length select {
+            background-color: #1e293b !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            border-radius: 8px !important;
+            color: #ffffff !important;
+            padding: 0.3rem 0.5rem !important;
+        }
+        .dataTables_wrapper .dataTables_info {
+            color: #94a3b8 !important;
+            font-size: 0.82rem !important;
+            padding-top: 0.75rem !important;
+        }
+        .dataTables_wrapper .dataTables_paginate {
+            padding-top: 0.75rem !important;
+        }
+        .dataTables_wrapper .dataTables_paginate .pagination {
+            gap: 4px;
+        }
+        .dataTables_wrapper .dataTables_paginate .page-item .page-link {
+            background: rgba(15, 23, 42, 0.6) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            color: #94a3b8 !important;
+            border-radius: 8px !important;
+            padding: 0.3rem 0.65rem !important;
+            font-size: 0.82rem !important;
+        }
+        .dataTables_wrapper .dataTables_paginate .page-item.active .page-link {
+            background: linear-gradient(135deg, #0ea5e9, #2563eb) !important;
+            border-color: transparent !important;
+            color: #ffffff !important;
+            font-weight: 600;
+            box-shadow: 0 2px 10px rgba(14, 165, 233, 0.4);
+        }
+
+        /* ==========================================================================
+           REGLAS RESPONSIVE MÓVIL (TELÉFONOS)
+           ========================================================================== */
         @media (max-width: 767.98px) {
             body {
-                font-size: 0.95rem;
+                font-size: 0.92rem;
             }
 
             .main-content {
-                padding: 1rem !important;
+                padding: 0.75rem 0.5rem !important;
             }
 
             .card-custom {
-                padding: 1rem !important;
+                padding: 1rem 0.75rem !important;
+                border-radius: 16px !important;
             }
 
-            .table-responsive {
-                font-size: 0.9rem;
+            /* Los botones en celdas de tabla NO se expanden al 100% */
+            .table .btn,
+            .table .btn-sm,
+            .table td .btn,
+            .table td a.btn,
+            .table td button.btn {
+                width: auto !important;
+                min-width: 32px !important;
+                height: 32px !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 0 0.55rem !important;
+                margin: 1px !important;
+                white-space: nowrap !important;
+                border-radius: 8px !important;
             }
 
-            .btn {
-                width: 100%;
-                margin-bottom: 0.35rem;
+            .table td:last-child {
+                white-space: nowrap !important;
+                min-width: 90px;
             }
 
-            .d-flex.justify-content-between,
-            .d-flex.justify-content-end {
-                flex-direction: column;
-                align-items: flex-start !important;
+            /* Columna fija (Sticky) en pantallas pequeñas para no perder el contexto */
+            .table-sticky-col th:first-child,
+            .table-sticky-col td:first-child {
+                position: sticky !important;
+                left: 0 !important;
+                z-index: 3 !important;
+                background-color: #0f172a !important;
+                box-shadow: 3px 0 8px rgba(0, 0, 0, 0.5) !important;
+                border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+            }
+            .table-sticky-col thead th:first-child {
+                z-index: 4 !important;
+                background-color: #0f172a !important;
+            }
+
+            /* Botones principales de cabecera de página sí se adaptan */
+            .page-heading-actions {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 0.65rem !important;
+            }
+            .page-heading-actions .btn {
+                width: 100% !important;
             }
         }
     </style>
@@ -379,18 +562,27 @@ select:focus option {
                     'no_sec_questions' => ['type' => 'danger', 'message' => 'No tienes preguntas de seguridad registradas. Configura al menos 3 preguntas desde tu panel de usuario o contacta al administrador.'],
                     'password_reset_success' => ['type' => 'success', 'message' => 'Contraseña restablecida correctamente. Ya puedes iniciar sesión.'],
                     'security_saved' => ['type' => 'success', 'message' => 'Preguntas de seguridad guardadas correctamente.'],
+                    'security_empty' => ['type' => 'warning', 'message' => 'Completa todas las preguntas y respuestas de seguridad.'],
+                    'session_questions' => ['type' => 'info', 'message' => 'Detectamos otra sesión activa. Responde tus preguntas de seguridad para continuar.'],
+                    'session_questions_wrong' => ['type' => 'danger', 'message' => 'Las respuestas de seguridad no son correctas.'],
+                    'session_questions_invalid' => ['type' => 'warning', 'message' => 'La verificación de seguridad expiró o está incompleta.'],
+                    'session_questions_unavailable' => ['type' => 'danger', 'message' => 'No tienes preguntas de seguridad configuradas para autorizar otra sesión.'],
+                    'session_revoked' => ['type' => 'danger', 'message' => 'Esta sesión fue cerrada porque se abrió otra sesión para el mismo usuario.'],
+                    'forgot_empty' => ['type' => 'warning', 'message' => 'Ingresa tu cédula de identidad.'],
+                    'forgot_user_not_found' => ['type' => 'danger', 'message' => 'No se encontró un usuario con esa cédula.'],
+                    'answers_empty' => ['type' => 'warning', 'message' => 'Completa todas las respuestas de seguridad.'],
+                    'wrong_answers' => ['type' => 'danger', 'message' => 'Alguna respuesta es incorrecta. Intenta de nuevo.'],
+                    'reset_empty' => ['type' => 'warning', 'message' => 'Completa los campos de la nueva contraseña.'],
                     'error' => ['type' => 'danger', 'message' => 'Ocurrió un error durante la operación.']
                 ];
             ?>
 
-            <div id="globalAlertContainer">
-                <?php if (empty($hideLayout) && $status && isset($alerts[$status])): ?>
-                    <div class="alert alert-<?php echo $alerts[$status]['type']; ?> alert-dismissible fade show" role="alert">
-                        <?php echo $alerts[$status]['message']; ?>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-                    </div>
-                <?php endif; ?>
-            </div>
+            <script>
+                window.appAlerts = <?php echo json_encode($alerts, JSON_UNESCAPED_UNICODE); ?>;
+                window.initialAppStatus = <?php echo json_encode($status); ?>;
+            </script>
+
+            <div id="globalAlertContainer" style="display: none;"></div>
 
             <?php if (empty($hideLayout)): ?>
                 <?php include "layout/header.php"; ?>
@@ -429,10 +621,17 @@ select:focus option {
 <script src="https://cdn.datatables.net/1.13.11/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 function exportTableToPdf(table) {
     if (!window.jspdf || typeof window.jspdf.jsPDF !== 'function') {
-        alert('No se pudo cargar el módulo de exportación PDF.');
+        Swal.fire({
+            icon: 'error',
+            title: 'Error de exportación',
+            text: 'No se pudo cargar el módulo de exportación PDF.',
+            customClass: { popup: 'swal-custom-dark' },
+            confirmButtonColor: '#0d6efd'
+        });
         return;
     }
 
@@ -600,9 +799,73 @@ function initializeDataTables() {
     });
 }
 
+window.showSweetAlert = function(type, message, isModal = false) {
+    if (typeof Swal === 'undefined') return;
+    const iconMap = {
+        'success': 'success',
+        'danger': 'error',
+        'error': 'error',
+        'warning': 'warning',
+        'info': 'info'
+    };
+    const icon = iconMap[type] || 'info';
+
+    if (isModal || icon === 'error') {
+        Swal.fire({
+            icon: icon,
+            title: icon === 'error' ? 'Atención' : (icon === 'success' ? '¡Éxito!' : 'Aviso'),
+            text: message,
+            confirmButtonColor: '#0d6efd',
+            confirmButtonText: 'Entendido',
+            customClass: { popup: 'swal-custom-dark' }
+        });
+    } else {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3500,
+            timerProgressBar: true,
+            customClass: { popup: 'swal-custom-toast' },
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+        Toast.fire({
+            icon: icon,
+            title: message
+        });
+    }
+};
+
+window.checkUrlStatusAndAlert = function(url = window.location.href) {
+    try {
+        const u = new URL(url, window.location.origin);
+        const status = u.searchParams.get('status');
+        if (status && window.appAlerts && window.appAlerts[status]) {
+            const item = window.appAlerts[status];
+            window.showSweetAlert(item.type, item.message);
+            u.searchParams.delete('status');
+            window.history.replaceState({}, '', u.toString());
+        }
+    } catch (e) {
+        console.error(e);
+    }
+};
+
 $(document).ready(function () {
     initializePdfExportables();
     initializeDataTables();
+    if (window.initialAppStatus && window.appAlerts && window.appAlerts[window.initialAppStatus]) {
+        const item = window.appAlerts[window.initialAppStatus];
+        window.showSweetAlert(item.type, item.message);
+        try {
+            const u = new URL(window.location.href);
+            u.searchParams.delete('status');
+            window.history.replaceState({}, '', u.toString());
+        } catch(e) {}
+    }
 });
 
 function replaceMainContent(documentResponse, responseUrl) {
@@ -641,6 +904,7 @@ function replaceMainContent(documentResponse, responseUrl) {
     document.dispatchEvent(new Event('app:content-ready'));
     initializePdfExportables();
     initializeDataTables();
+    window.checkUrlStatusAndAlert(responseUrl);
 }
 
 function loadContentWithoutReload(url, options = {}) {
@@ -662,17 +926,112 @@ function loadContentWithoutReload(url, options = {}) {
     });
 }
 
+// Interceptor universal de confirmaciones con SweetAlert2
+document.addEventListener('click', function (event) {
+    const targetLink = event.target.closest('a[onclick*="confirm"], button[onclick*="confirm"], .btn-confirm-action, [data-confirm-text]');
+    if (!targetLink) return;
+
+    if (targetLink.dataset.swalApproved === 'true') {
+        targetLink.dataset.swalApproved = 'false';
+        return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+
+    const title = targetLink.dataset.confirmTitle || '¿Estás seguro?';
+    let text = targetLink.dataset.confirmText;
+    if (!text && targetLink.getAttribute('onclick')) {
+        const match = targetLink.getAttribute('onclick').match(/confirm\s*\(\s*['"]([^'"]+)['"]\s*\)/);
+        if (match && match[1]) text = match[1];
+    }
+    if (!text) text = 'Esta acción no se puede deshacer.';
+
+    const confirmBtn = targetLink.dataset.confirmBtn || 'Sí, continuar';
+    const isDanger = !targetLink.classList.contains('btn-warning') && !targetLink.classList.contains('btn-info');
+
+    Swal.fire({
+        title: title,
+        text: text,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: isDanger ? '#dc3545' : '#eab308',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: confirmBtn,
+        cancelButtonText: 'Cancelar',
+        customClass: { popup: 'swal-custom-dark' }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            targetLink.dataset.swalApproved = 'true';
+            if (targetLink.tagName.toLowerCase() === 'a' && targetLink.href) {
+                if (targetLink.href.includes('index.php?url=') && targetLink.href.includes('action=')) {
+                    loadContentWithoutReload(targetLink.href).catch(err => {
+                        window.showSweetAlert('danger', err.message, true);
+                    });
+                } else {
+                    window.location.href = targetLink.href;
+                }
+            } else if (targetLink.form) {
+                targetLink.form.submit();
+            } else {
+                targetLink.click();
+            }
+        }
+    });
+}, true);
+
+// Interceptor de confirmación en formularios
 document.addEventListener('submit', function (event) {
-    if (event.defaultPrevented || event.target.dataset.ajaxDisabled === 'true') return;
     const form = event.target;
-    if (!(form instanceof HTMLFormElement) || form.method.toLowerCase() !== 'post') return;
+    if (!(form instanceof HTMLFormElement)) return;
+
+    if (form.dataset.swalApproved === 'true') {
+        form.dataset.swalApproved = 'false';
+        return;
+    }
+
+    const onsubmitAttr = form.getAttribute('onsubmit') || '';
+    if (onsubmitAttr.includes('confirm') || form.dataset.confirmText) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+
+        let text = form.dataset.confirmText;
+        if (!text && onsubmitAttr) {
+            const match = onsubmitAttr.match(/confirm\s*\(\s*['"]([^'"]+)['"]\s*\)/);
+            if (match && match[1]) text = match[1];
+        }
+        if (!text) text = '¿Confirmar operación?';
+
+        Swal.fire({
+            title: '¿Confirmar acción?',
+            text: text,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0d6efd',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, continuar',
+            cancelButtonText: 'Cancelar',
+            customClass: { popup: 'swal-custom-dark' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.dataset.swalApproved = 'true';
+                form.submit();
+            }
+        });
+        return;
+    }
+
+    if (event.defaultPrevented || form.dataset.ajaxDisabled === 'true') return;
+    if (form.method.toLowerCase() !== 'post') return;
     if (form.action.includes('url=login') || form.action.includes('url=register') || form.action.includes('url=auth')) return;
 
     event.preventDefault();
     const submitButton = form.querySelector('button[type="submit"]');
     if (submitButton) submitButton.disabled = true;
     loadContentWithoutReload(form.action, { method: 'POST', body: new FormData(form) })
-        .catch(error => alert(error.message))
+        .catch(error => window.showSweetAlert('danger', error.message, true))
         .finally(() => { if (submitButton) submitButton.disabled = false; });
 });
 
@@ -682,9 +1041,10 @@ document.addEventListener('click', function (event) {
     if (!link || link.target === '_blank' || link.hasAttribute('download') || link.dataset.bsToggle || link.href.includes('#')) return;
     if (!link.href.includes('index.php?url=') || !link.href.includes('action=')) return;
     if (link.classList.contains('payment-action') || link.classList.contains('payment-delete-action')) return;
+    if (link.getAttribute('onclick')?.includes('confirm') || link.dataset.confirmText) return;
 
     event.preventDefault();
-    loadContentWithoutReload(link.href).catch(error => alert(error.message));
+    loadContentWithoutReload(link.href).catch(error => window.showSweetAlert('danger', error.message, true));
 });
 
 document.dispatchEvent(new Event('app:content-ready'));

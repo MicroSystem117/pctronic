@@ -131,7 +131,8 @@ class DashboardController extends Controller {
             'pay_days'        => $payDays,
             'calendar_month'  => date('n'),
             'calendar_year'   => date('Y'),
-            'has_sec_questions' => isset($hasSecQuestions) ? $hasSecQuestions : false
+            'has_sec_questions' => isset($hasSecQuestions) ? $hasSecQuestions : false,
+            'isExpectador'    => $isExpectador
         ];
 
         // Renderizamos la vista del inicio (puedes llamarla dashboard o home según tu enrutador)

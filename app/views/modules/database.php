@@ -49,7 +49,7 @@ $sqlBackups = array_filter($backups, function($b) {
             <p class="text-white-50">Restaura la base de datos desde los respaldos generados o subiendo un archivo SQL.</p>
 
             <?php if (!empty($sqlBackups)): ?>
-                <form action="index.php?url=database" method="POST" class="mb-3" onsubmit="return confirm('¿Restablecer la base de datos con el respaldo seleccionado? Los datos actuales serán reemplazados.');">
+                <form action="index.php?url=database" method="POST" class="mb-3" data-confirm-text="¿Restablecer la base de datos con el respaldo seleccionado? Los datos actuales serán reemplazados.">
                     <input type="hidden" name="action" value="restore_existing">
                     <label class="form-label text-white-50 small mb-1">Seleccionar respaldo del servidor:</label>
                     <div class="input-group mb-3">
@@ -93,8 +93,11 @@ $sqlBackups = array_filter($backups, function($b) {
 <div class="card card-custom p-4 mt-4">
     <h5 class="mb-3">Archivos generados</h5>
     <?php if (!empty($backups)): ?>
+        <div class="mobile-table-hint d-md-none">
+            <i class="bi bi-arrow-left-right text-info"></i> Desliza para ver más
+        </div>
         <div class="table-responsive">
-            <table class="table table-dark table-hover align-middle mb-0 pdf-exportable" data-pdf-title="Archivos de respaldo">
+            <table class="table table-dark table-hover align-middle mb-0 pdf-exportable table-sticky-col" data-pdf-title="Archivos de respaldo">
                 <thead class="table-light">
                     <tr>
                         <th>Archivo</th>
@@ -107,22 +110,30 @@ $sqlBackups = array_filter($backups, function($b) {
                 <tbody>
                     <?php foreach ($backups as $backup): ?>
                         <tr>
-                            <td><?php echo htmlspecialchars($backup['name']); ?></td>
-                            <td><?php echo strtoupper(htmlspecialchars($backup['type'])); ?></td>
+                            <td><code><?php echo htmlspecialchars($backup['name']); ?></code></td>
+                            <td><span class="badge bg-secondary"><?php echo strtoupper(htmlspecialchars($backup['type'])); ?></span></td>
                             <td><?php echo number_format($backup['size'] / 1024, 2); ?> KB</td>
                             <td><?php echo date('d/m/Y H:i:s', $backup['modified']); ?></td>
-                            <td>
-                                <?php if (strtolower($backup['type']) === 'sql'): ?>
-                                    <a href="index.php?url=database&action=restore_existing&file=<?php echo rawurlencode($backup['name']); ?>" class="btn btn-sm btn-warning me-2" onclick="return confirm('¿Restaurar la base de datos a este respaldo (<?php echo htmlspecialchars($backup['name'], ENT_QUOTES); ?>)? Esta acción sobrescribirá los datos actuales.');">
-                                        <i class="bi bi-arrow-counterclockwise"></i> Restaurar
+                            <td class="text-nowrap">
+                                <div class="d-inline-flex align-items-center gap-1">
+                                    <?php if (strtolower($backup['type']) === 'sql'): ?>
+                                        <a href="index.php?url=database&action=restore_existing&file=<?php echo rawurlencode($backup['name']); ?>" 
+                                           class="btn btn-sm btn-warning" 
+                                           data-confirm-text="¿Restaurar la base de datos a este respaldo (<?php echo htmlspecialchars($backup['name'], ENT_QUOTES); ?>)? Esta acción sobrescribirá los datos actuales."
+                                           title="Restaurar base de datos">
+                                            <i class="bi bi-arrow-counterclockwise"></i> Restaurar
+                                        </a>
+                                    <?php endif; ?>
+                                    <a href="index.php?url=database&action=download&file=<?php echo rawurlencode($backup['name']); ?>" class="btn btn-sm btn-outline-light" title="Descargar respaldo">
+                                        <i class="bi bi-download"></i> Descargar
                                     </a>
-                                <?php endif; ?>
-                                <a href="index.php?url=database&action=download&file=<?php echo rawurlencode($backup['name']); ?>" class="btn btn-sm btn-outline-light me-2">
-                                    <i class="bi bi-download"></i> Descargar
-                                </a>
-                                <a href="index.php?url=database&action=delete&file=<?php echo rawurlencode($backup['name']); ?>" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar este respaldo? Esta acción no se puede deshacer.');">
-                                    <i class="bi bi-trash"></i> Eliminar
-                                </a>
+                                    <a href="index.php?url=database&action=delete&file=<?php echo rawurlencode($backup['name']); ?>" 
+                                       class="btn btn-sm btn-danger" 
+                                       data-confirm-text="¿Eliminar este respaldo (<?php echo htmlspecialchars($backup['name'], ENT_QUOTES); ?>)? Esta acción no se puede deshacer."
+                                       title="Eliminar respaldo">
+                                        <i class="bi bi-trash"></i> Eliminar
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -143,9 +154,9 @@ $sqlBackups = array_filter($backups, function($b) {
             copyButton.addEventListener('click', function() {
                 var pathText = '<?php echo addslashes($backupFolderPath); ?>';
                 navigator.clipboard.writeText(pathText).then(function() {
-                    alert('Ruta de carpeta copiada al portapapeles.');
+                    window.showSweetAlert('success', 'Ruta de carpeta copiada al portapapeles.');
                 }).catch(function() {
-                    alert('No se pudo copiar la ruta. Usa Ctrl+C para copiar manualmente.');
+                    window.showSweetAlert('warning', 'No se pudo copiar la ruta. Usa Ctrl+C para copiar manualmente.', true);
                 });
             });
         }

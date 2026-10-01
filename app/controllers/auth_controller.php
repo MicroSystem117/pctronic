@@ -193,6 +193,7 @@ class AuthController extends Controller {
             }
 
             $_SESSION['reset_user_id'] = $user['id_user'];
+            $_SESSION['reset_user_verified'] = false;
             header('Location: index.php?url=auth/verify_questions');
             exit();
         }
@@ -216,6 +217,7 @@ class AuthController extends Controller {
         $secData = $this->secQuestionModel->getByUserId($userId);
 
         if (!$secData || empty($secData['question1']) || empty($secData['question2']) || empty($secData['question3'])) {
+            unset($_SESSION['reset_user_id'], $_SESSION['reset_user_verified']);
             header('Location: index.php?url=login&status=no_sec_questions');
             exit();
         }
@@ -239,6 +241,7 @@ class AuthController extends Controller {
                 exit();
             }
 
+            $_SESSION['reset_user_verified'] = true;
             header('Location: index.php?url=auth/reset_password');
             exit();
         }
@@ -258,7 +261,8 @@ class AuthController extends Controller {
     }
 
     public function reset_password() {
-        if (empty($_SESSION['reset_user_id'])) {
+        if (empty($_SESSION['reset_user_id']) || empty($_SESSION['reset_user_verified'])) {
+            unset($_SESSION['reset_user_id'], $_SESSION['reset_user_verified']);
             header('Location: index.php?url=login');
             exit();
         }
@@ -283,7 +287,7 @@ class AuthController extends Controller {
             $stmt = $db->prepare('UPDATE `user` SET pass = :pass WHERE id_user = :id');
             $stmt->execute([':pass' => $hash, ':id' => $userId]);
 
-            unset($_SESSION['reset_user_id']);
+            unset($_SESSION['reset_user_id'], $_SESSION['reset_user_verified']);
 
             header('Location: index.php?url=login&status=password_reset_success');
             exit();

@@ -1,6 +1,7 @@
 <?php
 $userRole = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : '';
 $isAdmin = $userRole === 'Administrador';
+$isExpectador = !empty($data['isExpectador']) || ($userRole === 'Expectador');
 $hasSecQuestions = isset($data['has_sec_questions']) ? $data['has_sec_questions'] : false;
 ?>
 <div class="mb-4">
@@ -136,6 +137,9 @@ $hasSecQuestions = isset($data['has_sec_questions']) ? $data['has_sec_questions'
 
             <div class="row">
                 <div class="col-12">
+                    <div class="mobile-table-hint d-md-none mb-2">
+                        <i class="bi bi-arrow-left-right text-info"></i> Desliza para ver el calendario completo
+                    </div>
                     <div class="table-responsive">
                         <table class="table table-dark table-bordered mb-0 calendar-table pdf-exportable" data-pdf-title="Calendario de pagos">
                             <thead class="table-light text-dark">

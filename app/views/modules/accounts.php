@@ -12,12 +12,15 @@ $isAdmin = $userRole === 'Administrador';
 </div>
 
 <div class="mb-3 d-flex justify-content-end">
-    <input id="search_accounts" class="form-control form-control-sm w-25" placeholder="Buscar cuentas...">
+    <input id="search_accounts" class="form-control form-control-sm w-100 w-md-25" style="max-width: 280px;" placeholder="Buscar cuentas...">
 </div>
 
 <div class="card card-custom p-3">
+    <div class="mobile-table-hint d-md-none">
+        <i class="bi bi-arrow-left-right text-info"></i> Desliza para ver más columnas
+    </div>
     <div class="table-responsive">
-        <table class="table table-dark table-hover mb-0 datatable pdf-exportable" data-pdf-title="Cuentas Starlink">
+        <table class="table table-dark table-hover mb-0 datatable pdf-exportable table-sticky-col" data-pdf-title="Cuentas Starlink">
             <thead class="table-light">
                 <tr>
                     <th>Titular / Propietario</th>
@@ -39,14 +42,15 @@ $isAdmin = $userRole === 'Administrador';
                             data-email="<?php echo htmlspecialchars($account['email'], ENT_QUOTES); ?>"
                             data-country="<?php echo htmlspecialchars($account['country_id'] ?? '', ENT_QUOTES); ?>"
                             data-date="<?php echo htmlspecialchars($account['create_date'], ENT_QUOTES); ?>">
-                            <td><strong><?php echo $account['owner']; ?></strong></td>
-                            <td><code><?php echo $account['acc']; ?></code></td>
+                            <td><strong><?php echo htmlspecialchars($account['owner']); ?></strong></td>
+                            <td><code><?php echo htmlspecialchars($account['acc']); ?></code></td>
                             <td><?php echo htmlspecialchars($account['email']); ?></td>
                             <td><?php echo htmlspecialchars($account['pais'] ?? 'Sin país'); ?></td>
                             <td><span class="badge bg-info text-dark"><?php echo intval($account['starlink_count'] ?? 0); ?></span></td>
                             <td><?php echo date('d/m/Y', strtotime($account['create_date'])); ?></td>
                     <?php if ($isAdmin): ?>
-                        <td>
+                        <td class="text-nowrap">
+                            <div class="d-inline-flex gap-1">
                             <button class="btn btn-sm btn-success btn-view-account-starlinks"
                                     data-account-id="<?php echo $account['id_accounts']; ?>"
                                     data-account-name="<?php echo htmlspecialchars($account['owner'], ENT_QUOTES); ?>"
@@ -68,6 +72,7 @@ $isAdmin = $userRole === 'Administrador';
                             <a href="index.php?url=accounts&action=delete&id=<?php echo $account['id_accounts']; ?>" class="btn btn-sm btn-danger" onclick="return prepareAccountDelete(this);">
                                 <i class="bi bi-trash"></i>
                             </a>
+                            </div>
                         </td>
                     <?php endif; ?>
                         </tr>
@@ -175,17 +180,43 @@ document.getElementById('modalAccount')?.addEventListener('show.bs.modal', funct
 });
 
 function prepareAccountDelete(link) {
-    if (!confirm('¿Eliminar esta cuenta?')) {
-        return false;
-    }
-
-    const preserveAntennas = confirm('¿Desea conservar las antenas asociadas?\n\nAceptar: conservar antenas y desvincularlas.\nCancelar: eliminar también las antenas.');
-    if (!preserveAntennas && !confirm('Esta opción eliminará definitivamente las antenas asociadas. ¿Desea continuar?')) {
-        return false;
-    }
-
-    link.href += '&preserve_antennas=' + (preserveAntennas ? '1' : '0');
-    return true;
+    Swal.fire({
+        title: '¿Eliminar cuenta administrativa?',
+        text: '¿Deseas conservar las antenas Starlink asociadas (desvinculándolas) o eliminarlas también del sistema?',
+        icon: 'warning',
+        showDenyButton: true,
+        showCancelButton: true,
+        confirmButtonColor: '#0d6efd',
+        denyButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '<i class="bi bi-shield-check me-1"></i> Conservar antenas',
+        denyButtonText: '<i class="bi bi-trash me-1"></i> Eliminar también antenas',
+        cancelButtonText: 'Cancelar',
+        customClass: { popup: 'swal-custom-dark' }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const targetUrl = link.href + '&preserve_antennas=1';
+            loadContentWithoutReload(targetUrl).catch(err => window.showSweetAlert('danger', err.message, true));
+        } else if (result.isDenied) {
+            Swal.fire({
+                title: '¿Confirmar eliminación total?',
+                text: 'Esta acción eliminará de forma irreversible la cuenta Y todas las antenas asociadas. ¿Deseas continuar?',
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, eliminar todo',
+                cancelButtonText: 'Cancelar',
+                customClass: { popup: 'swal-custom-dark' }
+            }).then((confirmRes) => {
+                if (confirmRes.isConfirmed) {
+                    const targetUrl = link.href + '&preserve_antennas=0';
+                    loadContentWithoutReload(targetUrl).catch(err => window.showSweetAlert('danger', err.message, true));
+                }
+            });
+        }
+    });
+    return false;
 }
 
 document.addEventListener('app:content-ready', function(){

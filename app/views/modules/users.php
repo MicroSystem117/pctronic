@@ -15,12 +15,15 @@ $canEdit = $canManage || $userRole === 'Moderador';
 </div>
 
 <div class="mb-3 d-flex justify-content-end">
-    <input id="search_users" class="form-control form-control-sm w-25" placeholder="Buscar usuarios...">
+    <input id="search_users" class="form-control form-control-sm w-100 w-md-25" style="max-width: 280px;" placeholder="Buscar usuarios...">
 </div>
 
 <div class="card card-custom p-3">
+    <div class="mobile-table-hint d-md-none">
+        <i class="bi bi-arrow-left-right text-info"></i> Desliza para ver más columnas
+    </div>
     <div class="table-responsive">
-        <table class="table table-dark table-hover mb-0 datatable pdf-exportable" data-pdf-title="Usuarios">
+        <table class="table table-dark table-hover mb-0 datatable pdf-exportable table-sticky-col" data-pdf-title="Usuarios">
             <thead class="table-light">
                 <tr>
                     <th>Nombre</th>
@@ -42,25 +45,33 @@ $canEdit = $canManage || $userRole === 'Moderador';
                             <td><code><?php echo htmlspecialchars($user['ci'] ?? '-'); ?></code></td>
                             <td><?php echo !empty($user['birth']) ? date('d/m/Y', strtotime($user['birth'])) : '-'; ?></td>
                             <td><span class="badge bg-primary"><?php echo htmlspecialchars($user['user_role'] ?? 'Sin rol'); ?></span></td>
-                            <?php if ($canEdit): ?><td>
-                                <button class="btn btn-sm btn-info btn-edit-user" type="button"
-                                        data-id="<?php echo intval($user['id_user']); ?>"
-                                        data-name="<?php echo htmlspecialchars($user['name'], ENT_QUOTES); ?>"
-                                        data-surname="<?php echo htmlspecialchars($user['surname'], ENT_QUOTES); ?>"
-                                        data-ci="<?php echo htmlspecialchars($user['ci'] ?? '', ENT_QUOTES); ?>"
-                                        data-birth="<?php echo htmlspecialchars($user['birth'] ?? '', ENT_QUOTES); ?>"
-                                        data-level="<?php echo intval($user['id_level']); ?>"
-                                        data-bs-toggle="modal" data-bs-target="#modalUser">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <?php if ($canManage && !$isCurrentUser): ?>
-                                    <a href="index.php?url=users&action=delete&id=<?php echo intval($user['id_user']); ?>" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar este usuario?');">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                <?php else: ?>
-                                    <span class="text-white-50 small ms-1">Sesión actual</span>
-                                <?php endif; ?>
-                            </td><?php endif; ?>
+                            <?php if ($canEdit): ?>
+                            <td class="text-nowrap">
+                                <div class="d-inline-flex align-items-center gap-1">
+                                    <button class="btn btn-sm btn-info btn-edit-user" type="button"
+                                            data-id="<?php echo intval($user['id_user']); ?>"
+                                            data-name="<?php echo htmlspecialchars($user['name'], ENT_QUOTES); ?>"
+                                            data-surname="<?php echo htmlspecialchars($user['surname'], ENT_QUOTES); ?>"
+                                            data-ci="<?php echo htmlspecialchars($user['ci'] ?? '', ENT_QUOTES); ?>"
+                                            data-birth="<?php echo htmlspecialchars($user['birth'] ?? '', ENT_QUOTES); ?>"
+                                            data-level="<?php echo intval($user['id_level']); ?>"
+                                            data-bs-toggle="modal" data-bs-target="#modalUser"
+                                            title="Editar usuario">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <?php if ($canManage && !$isCurrentUser): ?>
+                                        <a href="index.php?url=users&action=delete&id=<?php echo intval($user['id_user']); ?>" 
+                                           class="btn btn-sm btn-danger" 
+                                           data-confirm-text="¿Deseas eliminar al usuario <?php echo htmlspecialchars($user['name'] . ' ' . $user['surname'], ENT_QUOTES); ?>?"
+                                           title="Eliminar usuario">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    <?php else: ?>
+                                        <span class="badge bg-secondary ms-1">Sesión actual</span>
+                                    <?php endif; ?>
+                                </div>
+                            </td>
+                            <?php endif; ?>
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>

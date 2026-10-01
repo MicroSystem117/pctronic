@@ -5,7 +5,11 @@
     RewriteCond %{REQUEST_URI} ^.*/public(/.*)?$ [NC]
     RewriteRule ^ - [L]
 
-    # Si intentan acceder a una carpeta o archivo real en la raíz, que acceda normal
+    # Proteger carpetas sensibles y archivos privados de acceso directo por HTTP
+    RewriteRule ^(app|config|core|storage)(\/|$) - [F,L,NC]
+    RewriteRule \.(sql|env|ini|log|sh)$ - [F,L,NC]
+
+    # Si intentan acceder a una carpeta o archivo real en la raíz (que no sea sensible), que acceda normal
     RewriteCond %{REQUEST_FILENAME} -d [OR]
     RewriteCond %{REQUEST_FILENAME} -f
     RewriteRule ^ - [L]

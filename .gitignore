@@ -2,6 +2,7 @@
 storage/backups/*
 !storage/backups/.gitkeep
 *.sql
+!storage/schema.sql
 !storage/migrations/
 !storage/migrations/*.sql
 
