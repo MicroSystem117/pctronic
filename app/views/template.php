@@ -66,6 +66,12 @@
             color: #ffffff !important;
             font-size: 0.95rem !important;
         }
+        .swal2-container.swal2-bottom-end,
+        .swal2-container.swal2-bottom-right {
+            bottom: 20px !important;
+            right: 20px !important;
+            z-index: 1000000 !important;
+        }
         
         .sidebar {
             position: fixed !important;
@@ -826,7 +832,7 @@ window.showSweetAlert = function(type, message, isModal = false) {
     };
     const icon = iconMap[type] || 'info';
 
-    if (isModal || icon === 'error') {
+    if (isModal) {
         Swal.fire({
             icon: icon,
             title: icon === 'error' ? 'Atención' : (icon === 'success' ? '¡Éxito!' : 'Aviso'),
@@ -838,7 +844,7 @@ window.showSweetAlert = function(type, message, isModal = false) {
     } else {
         const Toast = Swal.mixin({
             toast: true,
-            position: 'top-end',
+            position: 'bottom-end',
             showConfirmButton: false,
             timer: 3500,
             timerProgressBar: true,

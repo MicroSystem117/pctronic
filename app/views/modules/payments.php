@@ -350,11 +350,11 @@ document.addEventListener('app:content-ready', function() {
             Swal.fire({
                 icon: type === 'danger' ? 'error' : type,
                 title: message,
-                timer: 3000,
+                timer: 3500,
                 showConfirmButton: false,
                 customClass: { popup: 'swal-custom-toast' },
                 toast: true,
-                position: 'top-end'
+                position: 'bottom-end'
             });
         }
     }
