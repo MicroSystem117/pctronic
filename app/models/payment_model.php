@@ -2,9 +2,53 @@
 
 class PaymentModel {
     private $db;
+    private $lastError = null;
 
     public function __construct() {
         $this->db = Database::connect();
+        $this->ensureSchema();
+    }
+
+    public function getLastError() {
+        return $this->lastError;
+    }
+
+    /**
+     * Asegura que las tablas y columnas necesarias para pagos existan en la BD (migraciones automáticas).
+     */
+    private function ensureSchema() {
+        static $checked = false;
+        if ($checked) return;
+        $checked = true;
+
+        try {
+            // 1. Asegurar tabla payment_antennas
+            $this->db->exec("CREATE TABLE IF NOT EXISTS `payment_antennas` (
+                `payment_id` INT NOT NULL,
+                `antenna_id` INT NOT NULL,
+                PRIMARY KEY (`payment_id`, `antenna_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+            // 2. Verificar columnas en payments
+            $columns = $this->db->query("SHOW COLUMNS FROM payments")->fetchAll(PDO::FETCH_COLUMN);
+            if (!in_array('status', $columns, true)) {
+                $this->db->exec("ALTER TABLE payments ADD COLUMN status ENUM('Pendiente', 'Aprobado', 'Rechazado') NOT NULL DEFAULT 'Pendiente'");
+            }
+            if (!in_array('receipt_path', $columns, true)) {
+                $this->db->exec("ALTER TABLE payments ADD COLUMN receipt_path VARCHAR(255) NULL");
+            }
+            if (!in_array('submitted_by', $columns, true)) {
+                $this->db->exec("ALTER TABLE payments ADD COLUMN submitted_by INT NULL");
+            }
+            if (!in_array('reviewed_by', $columns, true)) {
+                $this->db->exec("ALTER TABLE payments ADD COLUMN reviewed_by INT NULL");
+            }
+            if (!in_array('reviewed_at', $columns, true)) {
+                $this->db->exec("ALTER TABLE payments ADD COLUMN reviewed_at DATETIME NULL");
+            }
+        } catch (Throwable $e) {
+            error_log("PaymentModel::ensureSchema warning: " . $e->getMessage());
+        }
     }
 
     /**
@@ -29,8 +73,8 @@ class PaymentModel {
                     INNER JOIN payment_antennas pa ON pay.id_payment = pa.payment_id
                     INNER JOIN antenas a ON pa.antenna_id = a.id_starlink
                     LEFT JOIN client c ON a.client = c.id_client
-                    INNER JOIN plan p ON a.plan = p.id_plan
-                    INNER JOIN country co ON a.country = co.id_country";
+                    LEFT JOIN plan p ON a.plan = p.id_plan
+                    LEFT JOIN country co ON a.country = co.id_country";
 
             $params = [];
             $where = [];
@@ -56,6 +100,7 @@ class PaymentModel {
             $stmt->execute($params);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
+            $this->lastError = $e->getMessage();
             error_log("Error en PaymentModel::getAll -> " . $e->getMessage());
             return [];
         }
@@ -87,8 +132,8 @@ class PaymentModel {
                         lp.last_status
                     FROM antenas a
                     LEFT JOIN client c ON a.client = c.id_client
-                    INNER JOIN plan p ON a.plan = p.id_plan
-                    INNER JOIN country co ON a.country = co.id_country
+                    LEFT JOIN plan p ON a.plan = p.id_plan
+                    LEFT JOIN country co ON a.country = co.id_country
                     LEFT JOIN accounts acc ON a.account_id = acc.id_accounts
                     LEFT JOIN (
                         SELECT pa1.antenna_id, p1.payment_date AS last_payment_date, p1.amount AS last_amount, p1.currency AS last_currency{$lastStatusSelect}
@@ -115,6 +160,7 @@ class PaymentModel {
             $stmt->execute($params);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
+            $this->lastError = $e->getMessage();
             error_log("Error en PaymentModel::getAntennasForPayment -> " . $e->getMessage());
             return [];
         }
@@ -183,27 +229,30 @@ class PaymentModel {
             $antenna = $antennaStmt->fetch(PDO::FETCH_ASSOC);
             if (!$antenna) {
                 $this->db->rollBack();
+                $this->lastError = 'La antena seleccionada no existe en la base de datos.';
                 return false;
             }
 
+            $clientId = !empty($antenna['client']) ? (int)$antenna['client'] : null;
             $totalAmount = array_sum(array_map('floatval', $amounts));
+
             $stmt = $this->db->prepare(
                 'INSERT INTO payments (antenna_id, client_id, amount, currency, payment_date, submitted_by, status, receipt_path)
                  VALUES (:antenna_id, :client_id, :amount, :currency, :payment_date, :submitted_by, :status, :receipt_path)'
             );
             $stmt->execute([
                 ':antenna_id' => $firstAntennaId,
-                ':client_id' => $antenna['client'],
+                ':client_id' => $clientId,
                 ':amount' => $totalAmount,
                 ':currency' => $currency,
                 ':payment_date' => $paymentDate,
-                ':submitted_by' => $submittedBy,
+                ':submitted_by' => $submittedBy > 0 ? $submittedBy : null,
                 ':status' => $status,
                 ':receipt_path' => $receiptPath
             ]);
 
             $paymentId = $this->db->lastInsertId();
-            $linkStmt = $this->db->prepare('INSERT INTO payment_antennas (payment_id, antenna_id) VALUES (:payment_id, :antenna_id)');
+            $linkStmt = $this->db->prepare('INSERT IGNORE INTO payment_antennas (payment_id, antenna_id) VALUES (:payment_id, :antenna_id)');
             foreach ($antennaIds as $antennaId) {
                 $linkStmt->execute([':payment_id' => $paymentId, ':antenna_id' => $antennaId]);
             }
@@ -214,6 +263,7 @@ class PaymentModel {
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
+            $this->lastError = $e->getMessage();
             error_log("Error en PaymentModel::registerMany -> " . $e->getMessage());
             return false;
         }
@@ -234,19 +284,20 @@ class PaymentModel {
             }
 
             $stmt = $this->db->prepare(
-                'SELECT a.id_starlink, p.price
+                'SELECT a.id_starlink, COALESCE(p.price, 0) AS price
                  FROM antenas a
-                 INNER JOIN plan p ON a.plan = p.id_plan
+                 LEFT JOIN plan p ON a.plan = p.id_plan
                  WHERE a.id_starlink IN (' . implode(', ', $placeholders) . ')'
             );
             $stmt->execute($params);
 
             $amounts = [];
             foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-                $amounts[(int) $row['id_starlink']] = $row['price'];
+                $amounts[(int) $row['id_starlink']] = floatval($row['price']);
             }
             return $amounts;
         } catch (PDOException $e) {
+            $this->lastError = $e->getMessage();
             error_log("Error en PaymentModel::getAmountsForAntennas -> " . $e->getMessage());
             return [];
         }

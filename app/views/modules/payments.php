@@ -270,8 +270,7 @@ $canDelete = $canReview;
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Moneda <span class="text-danger">*</span></label>
                             <select class="form-select" name="currency" required>
-                                <option value="">-- Seleccionar --</option>
-                                <option value="USD">USD</option>
+                                <option value="USD" selected>USD</option>
                                 <option value="VES">Bolívares</option>
                                 <option value="USDT">USDT</option>
                             </select>
@@ -498,10 +497,24 @@ document.addEventListener('app:content-ready', function() {
                 body: new FormData(this),
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
-                .then(response => response.json())
+                .then(async response => {
+                    const contentType = response.headers.get('content-type') || '';
+                    if (!contentType.includes('application/json')) {
+                        const errorText = await response.text();
+                        console.error('Server non-JSON response:', errorText);
+                        throw new Error('El servidor devolvió una respuesta no válida (revisa la configuración o permisos en el VPS).');
+                    }
+                    return response.json();
+                })
                 .then(result => {
-                    if (!result.success) throw new Error();
-                    bootstrap.Modal.getInstance(document.getElementById('modalPayment')).hide();
+                    if (!result || !result.success) {
+                        throw new Error((result && result.message) ? result.message : 'No se pudo registrar el pago.');
+                    }
+                    const modalEl = document.getElementById('modalPayment');
+                    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                    if (modalInstance) {
+                        modalInstance.hide();
+                    }
                     this.reset();
                     paymentCheckboxes.forEach(checkbox => checkbox.closest('.payment-antenna-option').classList.remove('payment-antenna-selected'));
                     paymentAmount.value = '';
@@ -509,7 +522,10 @@ document.addEventListener('app:content-ready', function() {
                     synchronizePayments();
                     showPaymentMessage(result.status === 'payment_pending' ? 'Pago cargado y enviado a revisión.' : 'Pago registrado correctamente.', 'success');
                 })
-                .catch(() => showPaymentMessage('No se pudo registrar el pago.', 'danger'))
+                .catch(err => {
+                    console.error('Payment submit error:', err);
+                    showPaymentMessage(err.message || 'No se pudo registrar el pago.', 'danger');
+                })
                 .finally(() => { submitButton.disabled = false; });
         });
     }
