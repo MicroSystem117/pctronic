@@ -33,7 +33,7 @@ $isExpectador = $userRole === 'Expectador';
         <i class="bi bi-arrow-left-right text-info"></i> Desliza horizontalmente para ver más columnas
     </div>
     <div class="table-responsive">
-        <table class="table table-dark table-hover mb-0 datatable pdf-exportable table-sticky-col" data-pdf-title="Antenas Starlink">
+        <table class="table table-dark table-hover mb-0 datatable pdf-exportable" data-pdf-title="Antenas Starlink">
             <thead class="table-light">
                 <tr>
                     <th>Serial No.</th>
@@ -65,16 +65,16 @@ $isExpectador = $userRole === 'Expectador';
                             data-date="<?php echo htmlspecialchars($antena['date'], ENT_QUOTES); ?>"
                             data-pay="<?php echo htmlspecialchars($antena['pay'] ?? '', ENT_QUOTES); ?>"
                         >
-                                <td data-label="Serial"><code><?php echo htmlspecialchars($antena['serial']); ?></code></td>
-                            <td data-label="Nickname"><?php echo !empty($antena['nickname']) ? htmlspecialchars($antena['nickname']) : '<span class="text-white-50">-</span>'; ?></td>
+                            <td data-label="Serial"><code><?php echo htmlspecialchars($antena['serial']); ?></code></td>
+                            <td data-label="Nickname"><?php echo !empty($antena['nickname']) ? '<span class="td-value">' . htmlspecialchars($antena['nickname']) . '</span>' : '<span class="text-white-50">-</span>'; ?></td>
                             <td data-label="Kit"><code><?php echo htmlspecialchars($antena['kit']); ?></code></td>
-                            <td data-label="Cliente"><?php echo htmlspecialchars($antena['cliente']); ?></td>
+                            <td data-label="Cliente"><span class="td-value"><?php echo htmlspecialchars($antena['cliente']); ?></span></td>
                             <td data-label="Plan"><span class="badge bg-info text-dark"><?php echo htmlspecialchars($antena['nombre_plan']); ?></span></td>
-                            <td data-label="País"><?php echo htmlspecialchars($antena['pais']); ?></td>
+                            <td data-label="País"><span class="td-value"><?php echo htmlspecialchars($antena['pais']); ?></span></td>
                             <td data-label="Cuenta Starlink">
-                                <?php echo !empty($antena['cuenta_starlink']) ? htmlspecialchars($antena['cuenta_starlink']) : '<span class="text-white-50">Sin Cuenta Vinc.</span>'; ?>
+                                <?php echo !empty($antena['cuenta_starlink']) ? '<span class="td-value">' . htmlspecialchars($antena['cuenta_starlink']) . '</span>' : '<span class="text-white-50">Sin Cuenta Vinc.</span>'; ?>
                             </td>
-                            <td data-label="Día de pago"><?php echo isset($antena['pay']) && $antena['pay'] !== null && $antena['pay'] !== '' ? htmlspecialchars(intval($antena['pay'])) : '<span class="text-white-50">-</span>'; ?></td>
+                            <td data-label="Día de pago"><?php echo isset($antena['pay']) && $antena['pay'] !== null && $antena['pay'] !== '' ? '<span class="td-value">Día ' . htmlspecialchars(intval($antena['pay'])) . '</span>' : '<span class="text-white-50">-</span>'; ?></td>
                             <td data-label="Estado de pago">
                                 <?php
                                     $paymentStatus = '<span class="text-white-50">-</span>';
@@ -103,7 +103,7 @@ $isExpectador = $userRole === 'Expectador';
                                     echo $paymentStatus;
                                 ?>
                             </td>
-                            <td data-label="Fecha de instalación"><?php echo date('d/m/Y', strtotime($antena['date'])); ?></td>
+                            <td data-label="Fecha de instalación"><span class="td-value"><?php echo date('d/m/Y', strtotime($antena['date'])); ?></span></td>
                             <?php if ($isAdmin): ?>
                                 <td data-label="Acciones" class="text-nowrap">
                                     <div class="d-inline-flex gap-1">

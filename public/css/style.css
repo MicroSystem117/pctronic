@@ -881,7 +881,9 @@ select:focus {
 
 @media (max-width: 767.98px) {
     .antenas-page {
-        min-width: 0;
+        min-width: 0 !important;
+        width: 100% !important;
+        overflow-x: hidden !important;
     }
 
     .antenas-page .antenas-heading {
@@ -903,6 +905,7 @@ select:focus {
         display: grid !important;
         grid-template-columns: 1fr !important;
         gap: 0.6rem !important;
+        width: 100% !important;
     }
 
     .antenas-page .antenas-filters .input-group,
@@ -915,24 +918,48 @@ select:focus {
     }
 
     .antenas-page .antenas-card {
-        padding: 0.5rem !important;
+        padding: 0 !important;
         background: transparent !important;
         border: none !important;
         box-shadow: none !important;
     }
 
+    /* Ocultar barra de búsqueda duplicada de DataTables ya que existe la personalizada */
+    .antenas-page .dataTables_filter {
+        display: none !important;
+    }
+
+    .antenas-page .dataTables_length {
+        margin-bottom: 0.75rem !important;
+    }
+
+    .antenas-page .dataTables_wrapper,
+    .antenas-page .dataTables_scroll,
+    .antenas-page .dataTables_scrollBody,
     .antenas-page .table-responsive {
+        width: 100% !important;
+        max-width: 100% !important;
         overflow-x: visible !important;
         border: none !important;
         padding: 0 !important;
         margin: 0 !important;
     }
 
-    .antenas-page .table-responsive > .table {
+    .antenas-page .dataTables_scrollHead {
+        display: none !important;
+    }
+
+    .antenas-page .table-responsive > .table,
+    .antenas-page table.dataTable,
+    .antenas-page .table {
+        width: 100% !important;
+        max-width: 100% !important;
         min-width: 100% !important;
+        margin: 0 !important;
         border-collapse: separate !important;
         border-spacing: 0 !important;
         background: transparent !important;
+        display: block !important;
     }
 
     /* Ocultar la cabecera thead tradicional */
@@ -944,66 +971,100 @@ select:focus {
     .antenas-page .table tbody {
         display: grid !important;
         grid-template-columns: 1fr !important;
-        gap: 1rem !important;
+        gap: 1.15rem !important;
         width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
     }
 
-    /* Cada fila (tr) es una tarjeta Dark Glassmorphic */
+    /* Cada fila (tr) es una tarjeta completa */
     .antenas-page .table tbody tr {
         display: flex !important;
         flex-direction: column !important;
-        background: rgba(30, 41, 59, 0.75) !important;
-        backdrop-filter: blur(12px) !important;
-        -webkit-backdrop-filter: blur(12px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 100% !important;
+        box-sizing: border-box !important;
+        background: rgba(30, 41, 59, 0.85) !important;
+        backdrop-filter: blur(14px) !important;
+        -webkit-backdrop-filter: blur(14px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
         border-radius: 16px !important;
         padding: 1.15rem !important;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
-        transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6) !important;
+        transition: transform 0.15s ease, border-color 0.15s ease !important;
         position: relative !important;
         overflow: hidden !important;
         margin-bottom: 0 !important;
     }
 
-    .antenas-page .table tbody tr:hover,
-    .antenas-page .table tbody tr:active {
+    .antenas-page .table tbody tr:hover {
         border-color: rgba(56, 189, 248, 0.5) !important;
-        box-shadow: 0 12px 30px -5px rgba(14, 165, 233, 0.25) !important;
-        transform: translateY(-2px);
     }
 
-    /* Cada celda (td) es un renglón clave-valor */
+    /* Anular columna fija sticky para que no tape contenido */
+    .antenas-page .table-sticky-col th:first-child,
+    .antenas-page .table-sticky-col td:first-child,
+    .antenas-page .table tbody tr td:first-child {
+        position: static !important;
+        left: auto !important;
+        background: transparent !important;
+        background-color: transparent !important;
+        box-shadow: none !important;
+        border-right: none !important;
+    }
+
+    /* Cada celda (td) es un renglón clave-valor a ancho completo */
     .antenas-page .table tbody tr td {
         display: flex !important;
+        flex-direction: row !important;
         justify-content: space-between !important;
         align-items: center !important;
-        padding: 0.5rem 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 100% !important;
+        box-sizing: border-box !important;
+        padding: 0.55rem 0 !important;
         border: none !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
         background: transparent !important;
         text-align: right !important;
         font-size: 0.92rem !important;
-        min-height: 2.3rem !important;
+        min-height: 2.4rem !important;
+        white-space: normal !important;
+        position: static !important;
     }
 
-    /* Etiqueta descriptiva (data-label) */
+    /* Etiqueta descriptiva (data-label) en la izquierda */
     .antenas-page .table tbody tr td::before {
         content: attr(data-label);
-        font-weight: 600;
-        color: rgba(148, 163, 184, 0.9);
-        font-size: 0.78rem;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
-        text-align: left;
-        margin-right: 1rem;
-        flex-shrink: 0;
+        font-weight: 700 !important;
+        color: #94a3b8 !important;
+        font-size: 0.78rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.6px !important;
+        text-align: left !important;
+        margin-right: 0.75rem !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* El contenido/valor en la derecha de la celda */
+    .antenas-page .td-value,
+    .antenas-page .table tbody tr td > *:not(::before) {
+        display: inline-block !important;
+        text-align: right !important;
+        color: #ffffff !important;
+        font-size: 0.92rem !important;
+        max-width: 65% !important;
+        white-space: normal !important;
+        word-break: break-word !important;
     }
 
     /* Cabecera destacada de la tarjeta: Serial No. */
     .antenas-page .table tbody tr td[data-label="Serial"] {
         padding-top: 0 !important;
         padding-bottom: 0.75rem !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.18) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
         margin-bottom: 0.25rem !important;
     }
 
@@ -1011,11 +1072,12 @@ select:focus {
         font-size: 1.05rem !important;
         color: #38bdf8 !important;
         font-weight: 700 !important;
-        background: rgba(56, 189, 248, 0.12) !important;
-        border: 1px solid rgba(56, 189, 248, 0.25) !important;
+        background: rgba(56, 189, 248, 0.15) !important;
+        border: 1px solid rgba(56, 189, 248, 0.3) !important;
         padding: 0.25rem 0.6rem !important;
         border-radius: 8px !important;
         letter-spacing: 0.5px !important;
+        max-width: 100% !important;
     }
 
     /* Renglón de Acciones al final de la tarjeta */
@@ -1033,6 +1095,7 @@ select:focus {
 
     .antenas-page .table tbody tr td[data-label="Acciones"] .d-inline-flex {
         width: 100% !important;
+        max-width: 100% !important;
         display: grid !important;
         grid-template-columns: 1fr 1fr !important;
         gap: 0.75rem !important;
@@ -1040,6 +1103,7 @@ select:focus {
 
     .antenas-page .table tbody tr td[data-label="Acciones"] .btn {
         width: 100% !important;
+        max-width: 100% !important;
         padding: 0.6rem 0.75rem !important;
         display: inline-flex !important;
         align-items: center !important;
@@ -1060,6 +1124,7 @@ select:focus {
         text-align: center !important;
         border-bottom: none !important;
         padding: 2.5rem 1rem !important;
+        width: 100% !important;
     }
 
     .antenas-page .table tbody tr td.dataTables_empty::before {
