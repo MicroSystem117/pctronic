@@ -82,6 +82,20 @@ $canDelete = $canReview;
                                             }
                                         }
                                     }
+
+                                    $waReminderUrl = null;
+                                    if (!$isPaid && !empty($antena['client_phone'])) {
+                                        $waReminderUrl = build_whatsapp_reminder_url(
+                                            $antena['cliente'] ?? '',
+                                            $antena['client_phone'] ?? '',
+                                            $antena['serial'] ?? '',
+                                            $antena['nickname'] ?? '',
+                                            $antena['nombre_plan'] ?? '',
+                                            $antena['plan_price'] ?? '',
+                                            $antena['pay'] ?? '',
+                                            strip_tags($statusLabel)
+                                        );
+                                    }
                                 ?>
                                 <tr data-serial="<?php echo htmlspecialchars($antena['serial'], ENT_QUOTES); ?>"
                                     data-cliente="<?php echo htmlspecialchars($antena['cliente'], ENT_QUOTES); ?>"
@@ -91,7 +105,16 @@ $canDelete = $canReview;
                                     <td data-label="Serial"><code><?php echo htmlspecialchars($antena['serial']); ?></code></td>
                                     <td data-label="Cliente"><span class="td-value"><?php echo htmlspecialchars($antena['cliente']); ?></span></td>
                                     <td data-label="Vence"><span class="td-value"><?php echo isset($antena['pay']) && $antena['pay'] !== null && $antena['pay'] !== '' ? 'Día ' . htmlspecialchars(intval($antena['pay'])) : '<span class="text-white-50">N/A</span>'; ?></span></td>
-                                    <td data-label="Estado"><?php echo $statusLabel; ?></td>
+                                    <td data-label="Estado">
+                                        <div class="d-inline-flex align-items-center gap-2">
+                                            <?php echo $statusLabel; ?>
+                                            <?php if ($waReminderUrl && $canReview): ?>
+                                                <a href="<?php echo htmlspecialchars($waReminderUrl, ENT_QUOTES); ?>" target="_blank" class="btn btn-sm btn-whatsapp text-white py-0 px-2 d-inline-flex align-items-center" style="font-size: 0.78rem; height: 1.6rem;" title="Enviar recordatorio por WhatsApp">
+                                                    <i class="bi bi-whatsapp me-1"></i><span>Recordar</span>
+                                                </a>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>

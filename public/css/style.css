@@ -780,6 +780,20 @@ select:focus {
     color: #ffffff !important;
 }
 
+.btn-whatsapp {
+    background: linear-gradient(180deg, #25d366, #128c7e) !important;
+    border-color: #25d366 !important;
+    color: #ffffff !important;
+}
+
+.btn-whatsapp:hover,
+.btn-whatsapp:focus {
+    background: linear-gradient(180deg, #20ba5a, #0e7064) !important;
+    border-color: #20ba5a !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4) !important;
+}
+
 .table-dark,
 .table-striped > tbody > tr:nth-of-type(odd) > * {
     background-color: rgba(11, 14, 20, 0.88) !important;

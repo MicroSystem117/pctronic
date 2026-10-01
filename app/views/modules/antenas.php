@@ -75,10 +75,11 @@ $isExpectador = $userRole === 'Expectador';
                             <td data-label="Estado de pago">
                                 <?php
                                     $paymentStatus = '<span class="text-white-50">-</span>';
+                                    $currentStatusText = 'Pendiente';
+                                    $isCurrentMonthPaid = false;
                                     if (isset($antena['pay']) && $antena['pay'] !== null && $antena['pay'] !== '') {
                                         $dueDay = intval($antena['pay']);
                                         $today = new DateTime();
-                                        $isCurrentMonthPaid = false;
 
                                         if (!empty($antena['last_payment_date'])) {
                                             $lastPaymentDate = DateTime::createFromFormat('Y-m-d', $antena['last_payment_date']);
@@ -88,22 +89,50 @@ $isExpectador = $userRole === 'Expectador';
                                         }
 
                                         if ($isCurrentMonthPaid) {
+                                            $currentStatusText = 'Pagado';
                                             $paymentStatus = '<span class="badge bg-success text-dark">Pagado</span>';
                                         } else {
                                             if (intval($today->format('j')) <= $dueDay) {
+                                                $currentStatusText = 'Pendiente';
                                                 $paymentStatus = '<span class="badge bg-warning text-dark">Pendiente</span>';
                                             } else {
+                                                $currentStatusText = 'Atrasado';
                                                 $paymentStatus = '<span class="badge bg-danger text-white">Atrasado</span>';
                                             }
                                         }
                                     }
+
+                                    $waReminderUrl = null;
+                                    if (!$isCurrentMonthPaid && !empty($antena['client_phone'])) {
+                                        $waReminderUrl = build_whatsapp_reminder_url(
+                                            $antena['cliente'] ?? '',
+                                            $antena['client_phone'] ?? '',
+                                            $antena['serial'] ?? '',
+                                            $antena['nickname'] ?? '',
+                                            $antena['nombre_plan'] ?? '',
+                                            $antena['plan_price'] ?? '',
+                                            $antena['pay'] ?? '',
+                                            $currentStatusText
+                                        );
+                                    }
+
                                     echo $paymentStatus;
+                                    if ($waReminderUrl && $isAdmin) {
+                                        echo ' <a href="' . htmlspecialchars($waReminderUrl, ENT_QUOTES) . '" target="_blank" class="text-success ms-1 text-decoration-none" title="Enviar recordatorio por WhatsApp"><i class="bi bi-whatsapp"></i></a>';
+                                    }
                                 ?>
                             </td>
                             <td data-label="Fecha de instalación"><span class="td-value"><?php echo date('d/m/Y', strtotime($antena['date'])); ?></span></td>
                             <?php if ($isAdmin): ?>
                                 <td data-label="Acciones" class="text-nowrap">
                                     <div class="d-inline-flex gap-1">
+                                        <?php if ($waReminderUrl): ?>
+                                            <a href="<?php echo htmlspecialchars($waReminderUrl, ENT_QUOTES); ?>" target="_blank"
+                                               class="btn btn-sm btn-whatsapp text-white"
+                                               title="Enviar recordatorio de pago por WhatsApp">
+                                                <i class="bi bi-whatsapp"></i><span class="action-btn-text ms-1">Recordar</span>
+                                            </a>
+                                        <?php endif; ?>
                                         <button class="btn btn-sm btn-info btn-edit-antena"
                                             data-id="<?php echo $antena['id_starlink']; ?>"
                                             data-serial="<?php echo htmlspecialchars($antena['serial'], ENT_QUOTES); ?>"

@@ -121,6 +121,7 @@ class PaymentModel {
                         a.nickname,
                         a.pay,
                         CONCAT(c.name, ' ', c.surname) AS cliente,
+                        c.phone AS client_phone,
                         a.client AS client_id,
                         p.plan AS nombre_plan,
                         p.price AS plan_price,

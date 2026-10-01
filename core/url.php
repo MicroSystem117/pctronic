@@ -13,3 +13,68 @@ function app_url($path = '') {
     return $scheme . '://' . $host . ($basePath === '' ? '' : $basePath)
         . '/' . ltrim($path, '/');
 }
+
+/**
+ * Normaliza un número telefónico para la API de WhatsApp (wa.me).
+ * Elimina caracteres no numéricos y antepone código de país si es necesario (ej: Venezuela 58).
+ */
+function format_whatsapp_phone($phone) {
+    if (empty($phone)) return '';
+    $digits = preg_replace('/\D+/', '', (string) $phone);
+    if (empty($digits)) return '';
+
+    // Si comienza con 0 (ej: 04141234567, 0424..., 0412...) -> reemplazar 0 por 58
+    if (strpos($digits, '0') === 0) {
+        $digits = '58' . substr($digits, 1);
+    }
+    // Si tiene 10 dígitos y empieza por 4 (ej: 4141234567) -> anteponer 58
+    elseif (strlen($digits) === 10 && strpos($digits, '4') === 0) {
+        $digits = '58' . $digits;
+    }
+    return $digits;
+}
+
+/**
+ * Genera el enlace de WhatsApp con mensaje personalizado de recordatorio de pago.
+ */
+function build_whatsapp_reminder_url($clientName, $phone, $serial, $nickname = '', $planName = '', $planPrice = '', $dueDay = '', $status = 'Pendiente') {
+    $cleanPhone = format_whatsapp_phone($phone);
+
+    $nombreCliente = trim((string) $clientName);
+    if (empty($nombreCliente)) {
+        $nombreCliente = 'Estimado/a cliente';
+    }
+
+    $msg = "Hola *{$nombreCliente}*, le saludamos cordialmente de *PCTRONIC* 🛰️\n\n";
+
+    $diaTexto = !empty($dueDay) ? "el día *{$dueDay}* de cada mes" : "en los próximos días";
+    $msg .= "Le recordamos que la fecha de corte y pago de su servicio Starlink corresponde a {$diaTexto}.\n\n";
+
+    $msg .= "📋 *Detalles del servicio:*\n";
+    $msg .= "• *Serial:* `{$serial}`\n";
+    if (!empty($nickname)) {
+        $msg .= "• *Identificador:* {$nickname}\n";
+    }
+    if (!empty($planName)) {
+        $msg .= "• *Plan:* {$planName}\n";
+    }
+    if (!empty($planPrice) && is_numeric($planPrice)) {
+        $msg .= "• *Monto mensual:* $" . number_format((float) $planPrice, 2, ',', '.') . "\n";
+    }
+
+    $isAtrasado = strtolower((string) $status) === 'atrasado';
+    if ($isAtrasado) {
+        $msg .= "\n⚠️ *Estado:* *Atrasado / Pago pendiente*\n";
+        $msg .= "Agradecemos reportar su pago a la brevedad para garantizar la continuidad del servicio.\n\n";
+    } else {
+        $msg .= "\n⏳ *Estado:* *Pendiente*\n";
+        $msg .= "Por favor recuerde realizar su pago a tiempo para mantener su servicio activo.\n\n";
+    }
+
+    $msg .= "Si ya efectuó su pago, por favor ignore este recordatorio o compártanos su comprobante por este medio. ¡Muchas gracias! 🙏";
+
+    if (!empty($cleanPhone)) {
+        return 'https://wa.me/' . $cleanPhone . '?text=' . rawurlencode($msg);
+    }
+    return 'https://wa.me/?text=' . rawurlencode($msg);
+}

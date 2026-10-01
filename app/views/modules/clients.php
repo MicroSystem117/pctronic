@@ -37,7 +37,16 @@ $isAdmin = $userRole === 'Administrador';
                     data-phone="<?php echo htmlspecialchars($c['phone'], ENT_QUOTES); ?>">
                     <td data-label="Cédula"><span class="td-value"><?php echo !empty($c['ci']) ? htmlspecialchars($c['ci']) : '<span class="text-white-50">N/A</span>'; ?></span></td>
                     <td data-label="Cliente"><span class="td-value text-white fw-bold"><?php echo htmlspecialchars($c['name'] . ' ' . $c['surname']); ?></span></td>
-                    <td data-label="Teléfono"><span class="td-value"><code><?php echo htmlspecialchars($c['phone']); ?></code></span></td>
+                    <td data-label="Teléfono">
+                        <span class="td-value">
+                            <code><?php echo htmlspecialchars($c['phone']); ?></code>
+                            <?php if (!empty($c['phone'])): ?>
+                                <a href="https://wa.me/<?php echo format_whatsapp_phone($c['phone']); ?>" target="_blank" class="text-success ms-1 text-decoration-none" title="Chatear por WhatsApp">
+                                    <i class="bi bi-whatsapp"></i>
+                                </a>
+                            <?php endif; ?>
+                        </span>
+                    </td>
                     <?php if ($isAdmin): ?>
                         <td data-label="Acciones" class="text-nowrap">
                             <div class="d-inline-flex gap-1 w-100">
