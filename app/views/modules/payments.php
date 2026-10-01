@@ -45,11 +45,8 @@ $canDelete = $canReview;
     <div class="col-lg-6 mb-4">
         <div class="card card-custom payments-panel p-3 h-100">
             <h5 class="mb-3">Estado de Pago por Antena</h5>
-            <div class="mobile-table-hint d-md-none">
-                <i class="bi bi-arrow-left-right text-info"></i> Desliza para ver más
-            </div>
             <div class="table-responsive">
-                <table class="table table-dark table-hover mb-0 pdf-exportable table-sticky-col" data-pdf-title="Estado de pago por antena">
+                <table class="table table-dark table-hover mb-0 pdf-exportable table-mobile-cards" data-pdf-title="Estado de pago por antena">
                     <thead class="table-light">
                         <tr>
                             <th>Serial</th>
@@ -91,10 +88,10 @@ $canDelete = $canReview;
                                     data-plan="<?php echo htmlspecialchars($antena['nombre_plan'], ENT_QUOTES); ?>"
                                     data-status="<?php echo strip_tags($statusLabel); ?>"
                                     data-pay="<?php echo htmlspecialchars($antena['pay'] ?? '', ENT_QUOTES); ?>">
-                                    <td><code><?php echo htmlspecialchars($antena['serial']); ?></code></td>
-                                    <td><?php echo htmlspecialchars($antena['cliente']); ?></td>
-                                    <td><?php echo isset($antena['pay']) && $antena['pay'] !== null && $antena['pay'] !== '' ? htmlspecialchars(intval($antena['pay'])) : '<span class="text-white-50">N/A</span>'; ?></td>
-                                    <td><?php echo $statusLabel; ?></td>
+                                    <td data-label="Serial"><code><?php echo htmlspecialchars($antena['serial']); ?></code></td>
+                                    <td data-label="Cliente"><span class="td-value"><?php echo htmlspecialchars($antena['cliente']); ?></span></td>
+                                    <td data-label="Vence"><span class="td-value"><?php echo isset($antena['pay']) && $antena['pay'] !== null && $antena['pay'] !== '' ? 'Día ' . htmlspecialchars(intval($antena['pay'])) : '<span class="text-white-50">N/A</span>'; ?></span></td>
+                                    <td data-label="Estado"><?php echo $statusLabel; ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
@@ -111,11 +108,8 @@ $canDelete = $canReview;
     <div class="col-lg-6 mb-4">
         <div class="card card-custom payments-panel p-3 h-100">
             <h5 class="mb-3">Historial de Pagos</h5>
-            <div class="mobile-table-hint d-md-none">
-                <i class="bi bi-arrow-left-right text-info"></i> Desliza para ver más
-            </div>
             <div class="table-responsive">
-                <table class="table table-dark table-hover mb-0 pdf-exportable payment-history-table table-sticky-col" data-pdf-title="Historial de pagos">
+                <table class="table table-dark table-hover mb-0 pdf-exportable payment-history-table table-mobile-cards" data-pdf-title="Historial de pagos">
                     <thead class="table-light">
                         <tr>
                             <th>Antena</th>
@@ -140,19 +134,19 @@ $canDelete = $canReview;
                                     data-currency="<?php echo htmlspecialchars($payment['currency'], ENT_QUOTES); ?>"
                                     data-status="<?php echo htmlspecialchars($payment['status'] ?? 'Pendiente', ENT_QUOTES); ?>"
                                     data-payment-date="<?php echo htmlspecialchars($payment['payment_date'], ENT_QUOTES); ?>">
-                                    <td><code><?php echo htmlspecialchars($payment['serial']); ?></code></td>
-                                    <td><?php echo htmlspecialchars($payment['cliente']); ?></td>
-                                    <td><?php echo number_format($payment['amount'], 2, ',', '.'); ?></td>
-                                    <td><?php echo htmlspecialchars($payment['currency']); ?></td>
-                                    <td><?php echo date('d/m/Y', strtotime($payment['payment_date'])); ?></td>
-                                    <td>
+                                    <td data-label="Antena"><code><?php echo htmlspecialchars($payment['serial']); ?></code></td>
+                                    <td data-label="Cliente"><span class="td-value"><?php echo htmlspecialchars($payment['cliente']); ?></span></td>
+                                    <td data-label="Monto"><span class="td-value"><?php echo number_format($payment['amount'], 2, ',', '.'); ?></span></td>
+                                    <td data-label="Moneda"><span class="td-value badge bg-secondary"><?php echo htmlspecialchars($payment['currency']); ?></span></td>
+                                    <td data-label="Fecha Pago"><span class="td-value"><?php echo date('d/m/Y', strtotime($payment['payment_date'])); ?></span></td>
+                                    <td data-label="Estado">
                                         <?php
                                             $paymentStatus = $payment['status'] ?? 'Pendiente';
                                             $statusClass = $paymentStatus === 'Aprobado' ? 'bg-success text-dark' : ($paymentStatus === 'Rechazado' ? 'bg-danger text-white' : 'bg-warning text-dark');
                                         ?>
                                         <span class="badge <?php echo $statusClass; ?>"><?php echo htmlspecialchars($paymentStatus); ?></span>
                                     </td>
-                                    <td>
+                                    <td data-label="Comprobante">
                                         <?php if (!empty($payment['receipt_path'])): ?>
                                             <a href="<?php echo htmlspecialchars($payment['receipt_path'], ENT_QUOTES); ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-info" title="Ver comprobante"><i class="bi bi-paperclip"></i></a>
                                         <?php else: ?>
@@ -160,7 +154,7 @@ $canDelete = $canReview;
                                         <?php endif; ?>
                                     </td>
                                     <?php if ($canDelete || $canReview): ?>
-                                        <td class="text-nowrap">
+                                        <td data-label="Acciones" class="text-nowrap">
                                             <div class="d-inline-flex align-items-center gap-1">
                                                 <?php if ($canReview && ($payment['status'] ?? '') === 'Pendiente'): ?>
                                                     <button type="button" class="btn btn-sm btn-outline-info payment-review-button"
@@ -172,12 +166,12 @@ $canDelete = $canReview;
                                                             data-currency="<?php echo htmlspecialchars($payment['currency'], ENT_QUOTES); ?>"
                                                             data-date="<?php echo htmlspecialchars(date('d/m/Y', strtotime($payment['payment_date'])), ENT_QUOTES); ?>"
                                                             data-receipt="<?php echo htmlspecialchars($payment['receipt_path'] ?? '', ENT_QUOTES); ?>"
-                                                            title="Revisar pago"><i class="bi bi-search me-1"></i>Revisar</button>
-                                                    <a href="index.php?url=payments&action=approve&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-success payment-action" title="Aprobar pago"><i class="bi bi-check-lg"></i></a>
-                                                    <a href="index.php?url=payments&action=reject&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-warning payment-action" title="Rechazar pago"><i class="bi bi-x-lg"></i></a>
+                                                            title="Revisar pago"><i class="bi bi-search me-1"></i><span class="action-btn-text">Revisar</span></button>
+                                                    <a href="index.php?url=payments&action=approve&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-success payment-action" title="Aprobar pago"><i class="bi bi-check-lg me-1"></i><span class="action-btn-text">Aprobar</span></a>
+                                                    <a href="index.php?url=payments&action=reject&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-warning payment-action" title="Rechazar pago"><i class="bi bi-x-lg me-1"></i><span class="action-btn-text">Rechazar</span></a>
                                                 <?php endif; ?>
                                                 <?php if ($canDelete): ?>
-                                                    <a href="index.php?url=payments&action=delete&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-danger payment-delete-action" title="Eliminar pago"><i class="bi bi-trash"></i></a>
+                                                    <a href="index.php?url=payments&action=delete&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-danger payment-delete-action" title="Eliminar pago"><i class="bi bi-trash me-1"></i><span class="action-btn-text">Eliminar</span></a>
                                                 <?php endif; ?>
                                             </div>
                                         </td>
@@ -391,14 +385,14 @@ document.addEventListener('app:content-ready', function() {
         const row = document.createElement('tr');
         row.dataset.paymentId = payment.id;
         row.dataset.status = payment.status;
-        row.innerHTML = '<td><code>' + escapePaymentValue(payment.serial) + '</code></td>' +
-            '<td>' + escapePaymentValue(payment.client) + '</td>' +
-            '<td>' + Number(payment.amount).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</td>' +
-            '<td>' + escapePaymentValue(payment.currency) + '</td>' +
-            '<td>' + escapePaymentValue(payment.date) + '</td>' +
-            '<td><span class="badge ' + statusClass + '">' + escapePaymentValue(payment.status) + '</span></td>' +
-            '<td>' + receipt + '</td>' +
-            (actions ? '<td>' + actions + '</td>' : '');
+        row.innerHTML = '<td data-label="Antena"><code>' + escapePaymentValue(payment.serial) + '</code></td>' +
+            '<td data-label="Cliente"><span class="td-value">' + escapePaymentValue(payment.client) + '</span></td>' +
+            '<td data-label="Monto"><span class="td-value">' + Number(payment.amount).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</span></td>' +
+            '<td data-label="Moneda"><span class="td-value badge bg-secondary">' + escapePaymentValue(payment.currency) + '</span></td>' +
+            '<td data-label="Fecha Pago"><span class="td-value">' + escapePaymentValue(payment.date) + '</span></td>' +
+            '<td data-label="Estado"><span class="badge ' + statusClass + '">' + escapePaymentValue(payment.status) + '</span></td>' +
+            '<td data-label="Comprobante">' + receipt + '</td>' +
+            (actions ? '<td data-label="Acciones">' + actions + '</td>' : '');
         return row;
     }
 

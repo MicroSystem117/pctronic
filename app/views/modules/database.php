@@ -1,3 +1,4 @@
+<div class="database-page">
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h2><i class="bi bi-hdd-network"></i> Base de Datos</h2>
@@ -90,14 +91,11 @@ $sqlBackups = array_filter($backups, function($b) {
     </div>
 </div>
 
-<div class="card card-custom p-4 mt-4">
+<div class="card card-custom p-4 mt-4 database-card">
     <h5 class="mb-3">Archivos generados</h5>
     <?php if (!empty($backups)): ?>
-        <div class="mobile-table-hint d-md-none">
-            <i class="bi bi-arrow-left-right text-info"></i> Desliza para ver más
-        </div>
         <div class="table-responsive">
-            <table class="table table-dark table-hover align-middle mb-0 pdf-exportable table-sticky-col" data-pdf-title="Archivos de respaldo">
+            <table class="table table-dark table-hover align-middle mb-0 pdf-exportable table-mobile-cards" data-pdf-title="Archivos de respaldo">
                 <thead class="table-light">
                     <tr>
                         <th>Archivo</th>
@@ -110,28 +108,28 @@ $sqlBackups = array_filter($backups, function($b) {
                 <tbody>
                     <?php foreach ($backups as $backup): ?>
                         <tr>
-                            <td><code><?php echo htmlspecialchars($backup['name']); ?></code></td>
-                            <td><span class="badge bg-secondary"><?php echo strtoupper(htmlspecialchars($backup['type'])); ?></span></td>
-                            <td><?php echo number_format($backup['size'] / 1024, 2); ?> KB</td>
-                            <td><?php echo date('d/m/Y H:i:s', $backup['modified']); ?></td>
-                            <td class="text-nowrap">
-                                <div class="d-inline-flex align-items-center gap-1">
+                            <td data-label="Archivo"><span class="td-value"><code class="text-info"><?php echo htmlspecialchars($backup['name']); ?></code></span></td>
+                            <td data-label="Tipo"><span class="td-value"><span class="badge bg-secondary"><?php echo strtoupper(htmlspecialchars($backup['type'])); ?></span></span></td>
+                            <td data-label="Tamaño"><span class="td-value"><?php echo number_format($backup['size'] / 1024, 2); ?> KB</span></td>
+                            <td data-label="Fecha"><span class="td-value"><?php echo date('d/m/Y H:i:s', $backup['modified']); ?></span></td>
+                            <td data-label="Acción" class="text-nowrap">
+                                <div class="d-inline-flex align-items-center gap-1 w-100">
                                     <?php if (strtolower($backup['type']) === 'sql'): ?>
                                         <a href="index.php?url=database&action=restore_existing&file=<?php echo rawurlencode($backup['name']); ?>" 
                                            class="btn btn-sm btn-warning" 
                                            data-confirm-text="¿Restaurar la base de datos a este respaldo (<?php echo htmlspecialchars($backup['name'], ENT_QUOTES); ?>)? Esta acción sobrescribirá los datos actuales."
                                            title="Restaurar base de datos">
-                                            <i class="bi bi-arrow-counterclockwise"></i> Restaurar
+                                            <i class="bi bi-arrow-counterclockwise"></i><span class="action-btn-text ms-1">Restaurar</span>
                                         </a>
                                     <?php endif; ?>
                                     <a href="index.php?url=database&action=download&file=<?php echo rawurlencode($backup['name']); ?>" class="btn btn-sm btn-outline-light" title="Descargar respaldo">
-                                        <i class="bi bi-download"></i> Descargar
+                                        <i class="bi bi-download"></i><span class="action-btn-text ms-1">Descargar</span>
                                     </a>
                                     <a href="index.php?url=database&action=delete&file=<?php echo rawurlencode($backup['name']); ?>" 
                                        class="btn btn-sm btn-danger" 
                                        data-confirm-text="¿Eliminar este respaldo (<?php echo htmlspecialchars($backup['name'], ENT_QUOTES); ?>)? Esta acción no se puede deshacer."
                                        title="Eliminar respaldo">
-                                        <i class="bi bi-trash"></i> Eliminar
+                                        <i class="bi bi-trash"></i><span class="action-btn-text ms-1">Eliminar</span>
                                     </a>
                                 </div>
                             </td>
@@ -162,3 +160,4 @@ $sqlBackups = array_filter($backups, function($b) {
         }
     });
 </script>
+</div>

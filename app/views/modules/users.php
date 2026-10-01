@@ -5,6 +5,7 @@ $isAdmin = $userRole === 'Administrador';
 $canManage = !empty($data['can_manage']);
 $canEdit = $canManage || $userRole === 'Moderador';
 ?>
+<div class="users-page">
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="bi bi-person-gear"></i> Gestión de Usuarios</h2>
     <?php if ($canManage): ?>
@@ -18,12 +19,9 @@ $canEdit = $canManage || $userRole === 'Moderador';
     <input id="search_users" class="form-control form-control-sm w-100 w-md-25" style="max-width: 280px;" placeholder="Buscar usuarios...">
 </div>
 
-<div class="card card-custom p-3">
-    <div class="mobile-table-hint d-md-none">
-        <i class="bi bi-arrow-left-right text-info"></i> Desliza para ver más columnas
-    </div>
+<div class="card card-custom p-3 users-card">
     <div class="table-responsive">
-        <table class="table table-dark table-hover mb-0 datatable pdf-exportable table-sticky-col" data-pdf-title="Usuarios">
+        <table class="table table-dark table-hover mb-0 datatable pdf-exportable table-mobile-cards" data-pdf-title="Usuarios">
             <thead class="table-light">
                 <tr>
                     <th>Nombre</th>
@@ -41,13 +39,13 @@ $canEdit = $canManage || $userRole === 'Moderador';
                             data-ci="<?php echo htmlspecialchars($user['ci'] ?? '', ENT_QUOTES); ?>"
                             data-birth="<?php echo htmlspecialchars($user['birth'] ?? '', ENT_QUOTES); ?>"
                             data-level="<?php echo intval($user['id_level']); ?>">
-                            <td><?php echo htmlspecialchars(trim($user['name'] . ' ' . $user['surname'])); ?></td>
-                            <td><code><?php echo htmlspecialchars($user['ci'] ?? '-'); ?></code></td>
-                            <td><?php echo !empty($user['birth']) ? date('d/m/Y', strtotime($user['birth'])) : '-'; ?></td>
-                            <td><span class="badge bg-primary"><?php echo htmlspecialchars($user['user_role'] ?? 'Sin rol'); ?></span></td>
+                            <td data-label="Nombre"><span class="td-value text-white fw-bold"><?php echo htmlspecialchars(trim($user['name'] . ' ' . $user['surname'])); ?></span></td>
+                            <td data-label="Cédula"><span class="td-value"><code><?php echo htmlspecialchars($user['ci'] ?? '-'); ?></code></span></td>
+                            <td data-label="Nacimiento"><span class="td-value"><?php echo !empty($user['birth']) ? date('d/m/Y', strtotime($user['birth'])) : '-'; ?></span></td>
+                            <td data-label="Rol"><span class="td-value"><span class="badge bg-primary"><?php echo htmlspecialchars($user['user_role'] ?? 'Sin rol'); ?></span></span></td>
                             <?php if ($canEdit): ?>
-                            <td class="text-nowrap">
-                                <div class="d-inline-flex align-items-center gap-1">
+                            <td data-label="Acciones" class="text-nowrap">
+                                <div class="d-inline-flex align-items-center gap-1 w-100">
                                     <button class="btn btn-sm btn-info btn-edit-user" type="button"
                                             data-id="<?php echo intval($user['id_user']); ?>"
                                             data-name="<?php echo htmlspecialchars($user['name'], ENT_QUOTES); ?>"
@@ -57,17 +55,17 @@ $canEdit = $canManage || $userRole === 'Moderador';
                                             data-level="<?php echo intval($user['id_level']); ?>"
                                             data-bs-toggle="modal" data-bs-target="#modalUser"
                                             title="Editar usuario">
-                                        <i class="bi bi-pencil"></i>
+                                        <i class="bi bi-pencil"></i><span class="action-btn-text ms-1">Editar</span>
                                     </button>
                                     <?php if ($canManage && !$isCurrentUser): ?>
                                         <a href="index.php?url=users&action=delete&id=<?php echo intval($user['id_user']); ?>" 
                                            class="btn btn-sm btn-danger" 
                                            data-confirm-text="¿Deseas eliminar al usuario <?php echo htmlspecialchars($user['name'] . ' ' . $user['surname'], ENT_QUOTES); ?>?"
                                            title="Eliminar usuario">
-                                            <i class="bi bi-trash"></i>
+                                            <i class="bi bi-trash"></i><span class="action-btn-text ms-1">Eliminar</span>
                                         </a>
                                     <?php else: ?>
-                                        <span class="badge bg-secondary ms-1">Sesión actual</span>
+                                        <span class="badge bg-secondary ms-1 p-2 text-center flex-fill">Sesión actual</span>
                                     <?php endif; ?>
                                 </div>
                             </td>
@@ -176,3 +174,4 @@ document.addEventListener('app:content-ready', function () {
     });
 });
 </script>
+</div>

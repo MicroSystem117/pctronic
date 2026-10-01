@@ -2,6 +2,7 @@
 $userRole = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : '';
 $isAdmin = $userRole === 'Administrador';
 ?>
+<div class="accounts-page">
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="bi bi-person-badge"></i> Cuentas Administrativas Starlink</h2>
     <?php if ($isAdmin): ?>
@@ -15,12 +16,9 @@ $isAdmin = $userRole === 'Administrador';
     <input id="search_accounts" class="form-control form-control-sm w-100 w-md-25" style="max-width: 280px;" placeholder="Buscar cuentas...">
 </div>
 
-<div class="card card-custom p-3">
-    <div class="mobile-table-hint d-md-none">
-        <i class="bi bi-arrow-left-right text-info"></i> Desliza para ver más columnas
-    </div>
+<div class="card card-custom p-3 accounts-card">
     <div class="table-responsive">
-        <table class="table table-dark table-hover mb-0 datatable pdf-exportable table-sticky-col" data-pdf-title="Cuentas Starlink">
+        <table class="table table-dark table-hover mb-0 datatable pdf-exportable table-mobile-cards" data-pdf-title="Cuentas Starlink">
             <thead class="table-light">
                 <tr>
                     <th>Titular / Propietario</th>
@@ -42,15 +40,15 @@ $isAdmin = $userRole === 'Administrador';
                             data-email="<?php echo htmlspecialchars($account['email'], ENT_QUOTES); ?>"
                             data-country="<?php echo htmlspecialchars($account['country_id'] ?? '', ENT_QUOTES); ?>"
                             data-date="<?php echo htmlspecialchars($account['create_date'], ENT_QUOTES); ?>">
-                            <td><strong><?php echo htmlspecialchars($account['owner']); ?></strong></td>
-                            <td><code><?php echo htmlspecialchars($account['acc']); ?></code></td>
-                            <td><?php echo htmlspecialchars($account['email']); ?></td>
-                            <td><?php echo htmlspecialchars($account['pais'] ?? 'Sin país'); ?></td>
-                            <td><span class="badge bg-info text-dark"><?php echo intval($account['starlink_count'] ?? 0); ?></span></td>
-                            <td><?php echo date('d/m/Y', strtotime($account['create_date'])); ?></td>
+                            <td data-label="Titular"><span class="td-value text-white fw-bold"><?php echo htmlspecialchars($account['owner']); ?></span></td>
+                            <td data-label="Cuenta ACC"><span class="td-value"><code><?php echo htmlspecialchars($account['acc']); ?></code></span></td>
+                            <td data-label="Email"><span class="td-value"><?php echo htmlspecialchars($account['email']); ?></span></td>
+                            <td data-label="País"><span class="td-value"><?php echo htmlspecialchars($account['pais'] ?? 'Sin país'); ?></span></td>
+                            <td data-label="Antenas"><span class="td-value"><span class="badge bg-info text-dark"><?php echo intval($account['starlink_count'] ?? 0); ?></span></span></td>
+                            <td data-label="Fecha"><span class="td-value"><?php echo date('d/m/Y', strtotime($account['create_date'])); ?></span></td>
                     <?php if ($isAdmin): ?>
-                        <td class="text-nowrap">
-                            <div class="d-inline-flex gap-1">
+                        <td data-label="Acciones" class="text-nowrap">
+                            <div class="d-inline-flex gap-1 w-100">
                             <button class="btn btn-sm btn-success btn-view-account-starlinks"
                                     data-account-id="<?php echo $account['id_accounts']; ?>"
                                     data-account-name="<?php echo htmlspecialchars($account['owner'], ENT_QUOTES); ?>"
@@ -58,7 +56,7 @@ $isAdmin = $userRole === 'Administrador';
                                     data-bs-toggle="modal"
                                     data-bs-target="#modalAccountStarlinks"
                                     title="Ver Starlink asociadas">
-                                <i class="bi bi-broadcast"></i>
+                                <i class="bi bi-broadcast"></i><span class="action-btn-text ms-1">Antenas</span>
                             </button>
                             <button class="btn btn-sm btn-info btn-edit-account"
                                     data-id="<?php echo $account['id_accounts']; ?>"
@@ -67,10 +65,10 @@ $isAdmin = $userRole === 'Administrador';
                                     data-email="<?php echo htmlspecialchars($account['email'], ENT_QUOTES); ?>"
                                     data-date="<?php echo $account['create_date']; ?>"
                                     data-bs-toggle="modal" data-bs-target="#modalAccount">
-                                <i class="bi bi-pencil"></i>
+                                <i class="bi bi-pencil"></i><span class="action-btn-text ms-1">Editar</span>
                             </button>
                             <a href="index.php?url=accounts&action=delete&id=<?php echo $account['id_accounts']; ?>" class="btn btn-sm btn-danger" onclick="return prepareAccountDelete(this);">
-                                <i class="bi bi-trash"></i>
+                                <i class="bi bi-trash"></i><span class="action-btn-text ms-1">Eliminar</span>
                             </a>
                             </div>
                         </td>
@@ -254,3 +252,4 @@ document.addEventListener('app:content-ready', function(){
 
 });
 </script>
+</div>

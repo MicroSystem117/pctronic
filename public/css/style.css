@@ -871,32 +871,41 @@ select:focus {
 }
 
 /* ========================================================
-   VISTA DE TABLA TRANSFORMADA EN GRILLA/CARDS PARA MÓVILES (ANTENAS)
+   VISTA DE TABLA TRANSFORMADA EN GRILLA/CARDS PARA MÓVILES (UNIVERSAL)
+   Aplica a: Antenas, Pagos, Clientes, Cuentas, Usuarios, Base de Datos
    ======================================================== */
 @media (min-width: 768px) {
-    .table .action-btn-text {
+    .action-btn-text {
         display: none !important;
     }
 }
 
 @media (max-width: 767.98px) {
-    .antenas-page {
+    .antenas-page,
+    .payments-page,
+    .clients-page,
+    .accounts-page,
+    .users-page,
+    .database-page {
         min-width: 0 !important;
         width: 100% !important;
         overflow-x: hidden !important;
     }
 
-    .antenas-page .antenas-heading {
+    .antenas-page .antenas-heading,
+    .payments-page .payments-heading {
         flex-direction: column !important;
         align-items: stretch !important;
         gap: 0.85rem !important;
     }
 
-    .antenas-page .antenas-heading h2 {
+    .antenas-page .antenas-heading h2,
+    .payments-page .payments-heading h3 {
         font-size: 1.35rem !important;
     }
 
-    .antenas-page .antenas-heading .btn {
+    .antenas-page .antenas-heading .btn,
+    .payments-page .payments-heading .btn {
         width: 100% !important;
         min-height: 2.75rem;
     }
@@ -913,11 +922,16 @@ select:focus {
         width: 100% !important;
     }
 
-    .antenas-page .mobile-table-hint {
+    .mobile-table-hint {
         display: none !important;
     }
 
-    .antenas-page .antenas-card {
+    .antenas-card,
+    .clients-card,
+    .accounts-card,
+    .users-card,
+    .database-card,
+    .payments-panel {
         padding: 0 !important;
         background: transparent !important;
         border: none !important;
@@ -925,18 +939,18 @@ select:focus {
     }
 
     /* Ocultar barra de búsqueda duplicada de DataTables ya que existe la personalizada */
-    .antenas-page .dataTables_filter {
+    .dataTables_filter {
         display: none !important;
     }
 
-    .antenas-page .dataTables_length {
+    .dataTables_length {
         margin-bottom: 0.75rem !important;
     }
 
-    .antenas-page .dataTables_wrapper,
-    .antenas-page .dataTables_scroll,
-    .antenas-page .dataTables_scrollBody,
-    .antenas-page .table-responsive {
+    .dataTables_wrapper,
+    .dataTables_scroll,
+    .dataTables_scrollBody,
+    .table-responsive {
         width: 100% !important;
         max-width: 100% !important;
         overflow-x: visible !important;
@@ -945,13 +959,13 @@ select:focus {
         margin: 0 !important;
     }
 
-    .antenas-page .dataTables_scrollHead {
+    .dataTables_scrollHead {
         display: none !important;
     }
 
-    .antenas-page .table-responsive > .table,
-    .antenas-page table.dataTable,
-    .antenas-page .table {
+    .table-mobile-cards,
+    .table-responsive > .table-mobile-cards,
+    table.dataTable.table-mobile-cards {
         width: 100% !important;
         max-width: 100% !important;
         min-width: 100% !important;
@@ -963,12 +977,12 @@ select:focus {
     }
 
     /* Ocultar la cabecera thead tradicional */
-    .antenas-page .table thead {
+    .table-mobile-cards thead {
         display: none !important;
     }
 
     /* El tbody pasa a ser una grilla vertical */
-    .antenas-page .table tbody {
+    .table-mobile-cards tbody {
         display: grid !important;
         grid-template-columns: 1fr !important;
         gap: 1.15rem !important;
@@ -978,7 +992,7 @@ select:focus {
     }
 
     /* Cada fila (tr) es una tarjeta completa */
-    .antenas-page .table tbody tr {
+    .table-mobile-cards tbody tr {
         display: flex !important;
         flex-direction: column !important;
         width: 100% !important;
@@ -998,14 +1012,14 @@ select:focus {
         margin-bottom: 0 !important;
     }
 
-    .antenas-page .table tbody tr:hover {
+    .table-mobile-cards tbody tr:hover {
         border-color: rgba(56, 189, 248, 0.5) !important;
     }
 
     /* Anular columna fija sticky para que no tape contenido */
-    .antenas-page .table-sticky-col th:first-child,
-    .antenas-page .table-sticky-col td:first-child,
-    .antenas-page .table tbody tr td:first-child {
+    .table-mobile-cards.table-sticky-col th:first-child,
+    .table-mobile-cards.table-sticky-col td:first-child,
+    .table-mobile-cards tbody tr td:first-child {
         position: static !important;
         left: auto !important;
         background: transparent !important;
@@ -1015,7 +1029,7 @@ select:focus {
     }
 
     /* Cada celda (td) es un renglón clave-valor a ancho completo */
-    .antenas-page .table tbody tr td {
+    .table-mobile-cards tbody tr td {
         display: flex !important;
         flex-direction: row !important;
         justify-content: space-between !important;
@@ -1036,7 +1050,7 @@ select:focus {
     }
 
     /* Etiqueta descriptiva (data-label) en la izquierda */
-    .antenas-page .table tbody tr td::before {
+    .table-mobile-cards tbody tr td::before {
         content: attr(data-label);
         font-weight: 700 !important;
         color: #94a3b8 !important;
@@ -1049,8 +1063,8 @@ select:focus {
     }
 
     /* El contenido/valor en la derecha de la celda */
-    .antenas-page .td-value,
-    .antenas-page .table tbody tr td > *:not(::before) {
+    .table-mobile-cards .td-value,
+    .table-mobile-cards tbody tr td > *:not(::before) {
         display: inline-block !important;
         text-align: right !important;
         color: #ffffff !important;
@@ -1060,15 +1074,19 @@ select:focus {
         word-break: break-word !important;
     }
 
-    /* Cabecera destacada de la tarjeta: Serial No. */
-    .antenas-page .table tbody tr td[data-label="Serial"] {
+    /* Cabecera destacada de la tarjeta: Serial No., Titular, Nombre, etc. */
+    .table-mobile-cards tbody tr td[data-label="Serial"],
+    .table-mobile-cards tbody tr td[data-label="Titular"],
+    .table-mobile-cards tbody tr td[data-label="Nombre"],
+    .table-mobile-cards tbody tr td[data-label="Archivo"],
+    .table-mobile-cards tbody tr td[data-label="Antena"]:first-child {
         padding-top: 0 !important;
         padding-bottom: 0.75rem !important;
         border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
         margin-bottom: 0.25rem !important;
     }
 
-    .antenas-page .table tbody tr td[data-label="Serial"] code {
+    .table-mobile-cards tbody tr td code {
         font-size: 1.05rem !important;
         color: #38bdf8 !important;
         font-weight: 700 !important;
@@ -1081,7 +1099,8 @@ select:focus {
     }
 
     /* Renglón de Acciones al final de la tarjeta */
-    .antenas-page .table tbody tr td[data-label="Acciones"] {
+    .table-mobile-cards tbody tr td[data-label="Acciones"],
+    .table-mobile-cards tbody tr td[data-label="Acción"] {
         border-bottom: none !important;
         padding-top: 0.9rem !important;
         padding-bottom: 0 !important;
@@ -1089,37 +1108,40 @@ select:focus {
         margin-top: 0.35rem !important;
     }
 
-    .antenas-page .table tbody tr td[data-label="Acciones"]::before {
+    .table-mobile-cards tbody tr td[data-label="Acciones"]::before,
+    .table-mobile-cards tbody tr td[data-label="Acción"]::before {
         display: none !important;
     }
 
-    .antenas-page .table tbody tr td[data-label="Acciones"] .d-inline-flex {
+    .table-mobile-cards tbody tr td[data-label="Acciones"] .d-inline-flex,
+    .table-mobile-cards tbody tr td[data-label="Acción"] .d-inline-flex {
         width: 100% !important;
         max-width: 100% !important;
-        display: grid !important;
-        grid-template-columns: 1fr 1fr !important;
-        gap: 0.75rem !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 0.5rem !important;
     }
 
-    .antenas-page .table tbody tr td[data-label="Acciones"] .btn {
-        width: 100% !important;
-        max-width: 100% !important;
+    .table-mobile-cards tbody tr td[data-label="Acciones"] .d-inline-flex > *,
+    .table-mobile-cards tbody tr td[data-label="Acción"] .d-inline-flex > * {
+        flex: 1 1 calc(50% - 0.5rem) !important;
+        min-width: 110px !important;
         padding: 0.6rem 0.75rem !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
-        font-size: 0.92rem !important;
+        font-size: 0.88rem !important;
         font-weight: 500 !important;
         border-radius: 10px !important;
         min-height: 2.5rem !important;
     }
 
-    .antenas-page .action-btn-text {
+    .action-btn-text {
         display: inline !important;
     }
 
     /* Fila vacía cuando no hay datos */
-    .antenas-page .table tbody tr td.dataTables_empty {
+    .table-mobile-cards tbody tr td.dataTables_empty {
         display: block !important;
         text-align: center !important;
         border-bottom: none !important;
@@ -1127,19 +1149,19 @@ select:focus {
         width: 100% !important;
     }
 
-    .antenas-page .table tbody tr td.dataTables_empty::before {
+    .table-mobile-cards tbody tr td.dataTables_empty::before {
         display: none !important;
     }
 
     /* Paginación y resumen de DataTables en móviles */
-    .antenas-page .dataTables_wrapper .dataTables_info,
-    .antenas-page .dataTables_wrapper .dataTables_paginate {
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate {
         text-align: center !important;
         margin-top: 1rem !important;
         float: none !important;
     }
 
-    .antenas-page .dataTables_wrapper .dataTables_paginate .pagination {
+    .dataTables_wrapper .dataTables_paginate .pagination {
         justify-content: center !important;
         flex-wrap: wrap !important;
         gap: 0.25rem !important;
@@ -1237,7 +1259,7 @@ select:focus {
         margin: 0 -0.25rem;
     }
 
-    .payments-page .table-responsive > .table {
+    .payments-page .table-responsive > .table:not(.table-mobile-cards) {
         min-width: 620px;
     }
 
