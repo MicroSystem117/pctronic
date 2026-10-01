@@ -20,6 +20,50 @@ class PaymentsController extends Controller {
                 exit();
             }
 
+            // Exoneración de deuda pasada
+            if (isset($_POST['action']) && $_POST['action'] === 'save_debt_exemption') {
+                if (!$this->isAdmin()) {
+                    header('Location: index.php?url=payments&status=access_denied');
+                    exit();
+                }
+
+                $id_starlink = isset($_POST['id_starlink']) ? intval($_POST['id_starlink']) : 0;
+                if ($id_starlink <= 0) {
+                    header('Location: index.php?url=payments&status=error');
+                    exit();
+                }
+
+                $antenaModel = new AntenaModel();
+
+                if (!empty($_POST['remove_exemption'])) {
+                    $cleared = $antenaModel->clearDebtExemption($id_starlink);
+                    $status = $cleared ? 'exemption_cleared' : 'error';
+                    header('Location: index.php?url=payments&status=' . $status);
+                    exit();
+                }
+
+                $mode = $_POST['exemption_mode'] ?? 'current_month';
+                $exemptUntil = null;
+                if ($mode === 'current_month') {
+                    $exemptUntil = date('Y-m-01');
+                } elseif ($mode === 'next_month') {
+                    $exemptUntil = date('Y-m-01', strtotime('+1 month'));
+                } elseif ($mode === 'custom') {
+                    $exemptUntil = !empty($_POST['custom_exempt_until']) ? trim($_POST['custom_exempt_until']) : null;
+                }
+
+                if (!$exemptUntil || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $exemptUntil)) {
+                    header('Location: index.php?url=payments&status=exemption_error');
+                    exit();
+                }
+
+                $note = isset($_POST['debt_exempt_note']) ? trim($_POST['debt_exempt_note']) : null;
+                $saved = $antenaModel->setDebtExemption($id_starlink, $exemptUntil, $note);
+                $status = $saved ? 'exemption_saved' : 'exemption_error';
+                header('Location: index.php?url=payments&status=' . $status);
+                exit();
+            }
+
             $antenna_ids  = isset($_POST['antenna_ids']) && is_array($_POST['antenna_ids']) ? array_map('intval', $_POST['antenna_ids']) : [];
             $antenna_ids  = array_values(array_unique(array_filter($antenna_ids, function ($antennaId) {
                 return $antennaId > 0;

@@ -53,6 +53,9 @@ $canDelete = $canReview;
                             <th>Cliente</th>
                             <th>Vence</th>
                             <th>Estado</th>
+                            <?php if ($canReview): ?>
+                                <th>Acciones</th>
+                            <?php endif; ?>
                         </tr>
                     </thead>
                     <tbody>
@@ -98,14 +101,7 @@ $canDelete = $canReview;
                                     <td data-label="Vence"><span class="td-value"><?php echo isset($antena['due_day']) && $antena['due_day'] !== null && $antena['due_day'] !== '' ? 'Día ' . htmlspecialchars(intval($antena['due_day'])) : '<span class="text-white-50">N/A</span>'; ?></span></td>
                                     <td data-label="Estado">
                                         <div class="d-inline-flex flex-column align-items-start">
-                                            <div class="d-inline-flex align-items-center gap-2">
-                                                <?php echo $statusLabel; ?>
-                                                <?php if ($waReminderUrl && $canReview): ?>
-                                                    <a href="<?php echo htmlspecialchars($waReminderUrl, ENT_QUOTES); ?>" target="_blank" class="btn btn-sm btn-whatsapp text-white py-0 px-2 d-inline-flex align-items-center" style="font-size: 0.78rem; height: 1.6rem;" title="Enviar recordatorio por WhatsApp">
-                                                        <i class="bi bi-whatsapp me-1"></i><span>Recordar</span>
-                                                    </a>
-                                                <?php endif; ?>
-                                            </div>
+                                            <div><?php echo $statusLabel; ?></div>
                                             <?php if ($overdueMonths > 0): ?>
                                                 <div class="small text-danger fw-semibold mt-1">
                                                     Deuda: $<?php echo number_format($overdueAmount, 2); ?>
@@ -120,11 +116,43 @@ $canDelete = $canReview;
                                             <?php endif; ?>
                                         </div>
                                     </td>
+                                    <?php if ($canReview): ?>
+                                        <td data-label="Acciones" class="text-nowrap">
+                                            <div class="d-inline-flex gap-1 flex-wrap">
+                                                <?php if ($waReminderUrl): ?>
+                                                    <a href="<?php echo htmlspecialchars($waReminderUrl, ENT_QUOTES); ?>" target="_blank" class="btn btn-sm btn-whatsapp text-white" title="Enviar recordatorio por WhatsApp">
+                                                        <i class="bi bi-whatsapp"></i><span class="action-btn-text ms-1">Recordar</span>
+                                                    </a>
+                                                <?php endif; ?>
+                                                <button type="button" 
+                                                    class="btn btn-sm <?php echo !empty($antena['is_exempt']) ? 'btn-outline-info' : 'btn-outline-warning'; ?> btn-exonerate-debt"
+                                                    data-id="<?php echo $antena['id_starlink']; ?>"
+                                                    data-serial="<?php echo htmlspecialchars($antena['serial'], ENT_QUOTES); ?>"
+                                                    data-nickname="<?php echo htmlspecialchars($antena['nickname'] ?? '', ENT_QUOTES); ?>"
+                                                    data-cliente="<?php echo htmlspecialchars($antena['cliente'] ?? '', ENT_QUOTES); ?>"
+                                                    data-plan="<?php echo htmlspecialchars($antena['nombre_plan'] ?? '', ENT_QUOTES); ?>"
+                                                    data-price="<?php echo htmlspecialchars($antena['plan_price'] ?? '0', ENT_QUOTES); ?>"
+                                                    data-date="<?php echo htmlspecialchars($antena['date'] ?? '', ENT_QUOTES); ?>"
+                                                    data-due-day="<?php echo htmlspecialchars($antena['due_day'] ?? $antena['pay'] ?? '', ENT_QUOTES); ?>"
+                                                    data-overdue-months="<?php echo intval($antena['overdue_months'] ?? 0); ?>"
+                                                    data-overdue-amount="<?php echo number_format((float)($antena['overdue_amount'] ?? 0), 2, '.', ''); ?>"
+                                                    data-is-exempt="<?php echo !empty($antena['is_exempt']) ? '1' : '0'; ?>"
+                                                    data-exempt-until="<?php echo htmlspecialchars($antena['debt_exempt_until'] ?? '', ENT_QUOTES); ?>"
+                                                    data-exempt-note="<?php echo htmlspecialchars($antena['debt_exempt_note'] ?? '', ENT_QUOTES); ?>"
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#modalExonerateDebt"
+                                                    title="<?php echo !empty($antena['is_exempt']) ? 'Gestionar exoneración de deuda' : 'Exonerar deuda pasada'; ?>">
+                                                    <i class="bi <?php echo !empty($antena['is_exempt']) ? 'bi-shield-fill-check' : 'bi-shield-check'; ?>"></i>
+                                                    <span class="action-btn-text ms-1"><?php echo !empty($antena['is_exempt']) ? 'Exonerada' : 'Exonerar'; ?></span>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    <?php endif; ?>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="4" class="text-center py-4 text-muted">No hay antenas disponibles.</td>
+                                <td colspan="<?php echo $canReview ? 5 : 4; ?>" class="text-center py-4 text-muted">No hay antenas disponibles.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -321,6 +349,111 @@ $canDelete = $canReview;
                 <div class="modal-footer border-secondary">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Guardar Pago</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
+<?php if ($canReview): ?>
+<div class="modal fade" id="modalExonerateDebt" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content card-custom text-white">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title"><i class="bi bi-shield-check text-warning me-2"></i>Exonerar Deuda Pasada</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formExonerateDebt" action="index.php?url=payments" method="POST">
+                <input type="hidden" name="action" value="save_debt_exemption">
+                <input type="hidden" name="id_starlink" id="exonerate_id_starlink" value="0">
+                <input type="hidden" name="remove_exemption" id="exonerate_remove_input" value="0">
+
+                <div class="modal-body">
+                    <!-- Resumen del equipo y estado de deuda -->
+                    <div class="card bg-black bg-opacity-40 border-secondary mb-3 p-3">
+                        <div class="row g-2 align-items-center">
+                            <div class="col-md-6">
+                                <div class="text-white-50 small">Antena / Serial</div>
+                                <div class="fw-bold fs-6" id="exonerate_summary_serial">-</div>
+                                <div class="small text-info" id="exonerate_summary_nickname"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="text-white-50 small">Cliente Asignado</div>
+                                <div class="fw-bold" id="exonerate_summary_client">-</div>
+                            </div>
+                            <div class="col-md-6 mt-2">
+                                <div class="text-white-50 small">Plan Contratado</div>
+                                <div id="exonerate_summary_plan">-</div>
+                            </div>
+                            <div class="col-md-6 mt-2">
+                                <div class="text-white-50 small">Estado actual de deuda</div>
+                                <div id="exonerate_summary_debt">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alerta de exoneración activa previa si existe -->
+                    <div id="exonerate_active_alert" class="alert alert-info border-info d-none mb-3 py-2">
+                        <i class="bi bi-info-circle-fill me-1"></i>
+                        <span>Esta antena tiene una exoneración activa registrada hasta el </span>
+                        <strong id="exonerate_active_date"></strong>.
+                        <div class="small mt-1 text-white-50" id="exonerate_active_note_wrap">
+                            Motivo: <span id="exonerate_active_note" class="fst-italic text-white"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Selecciona hasta qué fecha exonerar la deuda:</label>
+                        <div class="d-flex flex-column gap-2">
+                            <div class="form-check p-3 rounded border border-secondary border-opacity-50 bg-black bg-opacity-20">
+                                <input class="form-check-input" type="radio" name="exemption_mode" id="mode_current_month" value="current_month" checked>
+                                <label class="form-check-label w-100" for="mode_current_month">
+                                    <div class="fw-bold text-white">Exonerar meses pasados (Iniciar cobro desde este mes: <?php echo date('m/Y'); ?>)</div>
+                                    <div class="small text-white-50">Condonará todas las cuotas de meses anteriores. El cliente queda al día con el pasado y solo se le cobrará a partir del ciclo en curso (01/<?php echo date('m/Y'); ?>). Ideal para antenas viejas agregadas recientemente.</div>
+                                </label>
+                            </div>
+
+                            <div class="form-check p-3 rounded border border-secondary border-opacity-50 bg-black bg-opacity-20">
+                                <input class="form-check-input" type="radio" name="exemption_mode" id="mode_next_month" value="next_month">
+                                <label class="form-check-label w-100" for="mode_next_month">
+                                    <div class="fw-bold text-white">Exonerar totalmente hasta el próximo mes (Paz y salvo total: <?php echo date('m/Y', strtotime('+1 month')); ?>)</div>
+                                    <div class="small text-white-50">Exonera tanto meses pasados como el mes en curso. Su primer ciclo a cobrar empezará a partir del día 01/<?php echo date('m/Y', strtotime('+1 month')); ?>.</div>
+                                </label>
+                            </div>
+
+                            <div class="form-check p-3 rounded border border-secondary border-opacity-50 bg-black bg-opacity-20">
+                                <input class="form-check-input" type="radio" name="exemption_mode" id="mode_custom" value="custom">
+                                <label class="form-check-label w-100" for="mode_custom">
+                                    <div class="fw-bold text-white">Personalizar fecha de corte / inicio de cobro</div>
+                                    <div class="small text-white-50">Ingresa manualmente la fecha a partir de la cual se empezará a contabilizar la deuda. Los períodos anteriores a esta fecha no generarán atraso.</div>
+                                    <div class="mt-2" id="custom_exempt_date_wrap" style="display: none;">
+                                        <input type="date" class="form-control" name="custom_exempt_until" id="custom_exempt_until" value="<?php echo date('Y-m-01'); ?>">
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Motivo u observación (opcional)</label>
+                        <input type="text" class="form-control" name="debt_exempt_note" id="exonerate_note" placeholder="Ej: Antena antigua incorporada al sistema, condonación acordada, etc.">
+                        <div class="form-text text-white-50">Quedará registrado como justificación de la exoneración.</div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-secondary d-flex justify-content-between">
+                    <div>
+                        <button type="button" class="btn btn-outline-danger d-none" id="btn_remove_exemption">
+                            <i class="bi bi-trash me-1"></i>Quitar Exoneración
+                        </button>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-warning text-dark fw-bold">
+                            <i class="bi bi-shield-check me-1"></i>Aplicar Exoneración
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -688,5 +821,121 @@ document.addEventListener('app:content-ready', function() {
     }
 
     reviewButtons.forEach(bindReviewButton);
+
+    // Modal de exoneración de deuda por antena
+    document.querySelectorAll('.btn-exonerate-debt').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            const serial = this.getAttribute('data-serial');
+            const nickname = this.getAttribute('data-nickname');
+            const cliente = this.getAttribute('data-cliente');
+            const plan = this.getAttribute('data-plan');
+            const price = parseFloat(this.getAttribute('data-price') || 0);
+            const overdueMonths = parseInt(this.getAttribute('data-overdue-months') || 0, 10);
+            const overdueAmount = parseFloat(this.getAttribute('data-overdue-amount') || 0);
+            const isExempt = this.getAttribute('data-is-exempt') === '1';
+            const exemptUntil = this.getAttribute('data-exempt-until') || '';
+            const exemptNote = this.getAttribute('data-exempt-note') || '';
+
+            const idInput = document.getElementById('exonerate_id_starlink');
+            if (idInput) idInput.value = id;
+            const removeInput = document.getElementById('exonerate_remove_input');
+            if (removeInput) removeInput.value = '0';
+            const summarySerial = document.getElementById('exonerate_summary_serial');
+            if (summarySerial) summarySerial.textContent = serial;
+            const summaryNick = document.getElementById('exonerate_summary_nickname');
+            if (summaryNick) summaryNick.textContent = nickname ? ('“' + nickname + '”') : '';
+            const summaryClient = document.getElementById('exonerate_summary_client');
+            if (summaryClient) summaryClient.textContent = cliente || 'Sin asignar';
+            const summaryPlan = document.getElementById('exonerate_summary_plan');
+            if (summaryPlan) summaryPlan.textContent = plan + (price > 0 ? (' ($' + price.toFixed(2) + '/mes)') : '');
+
+            const debtContainer = document.getElementById('exonerate_summary_debt');
+            if (debtContainer) {
+                if (overdueMonths > 0) {
+                    debtContainer.innerHTML = '<span class="badge bg-danger text-white"><i class="bi bi-exclamation-triangle-fill me-1"></i>' + overdueMonths + (overdueMonths === 1 ? ' mes atrasado' : ' meses atrasados') + '</span> <span class="text-danger fw-bold ms-1">($' + overdueAmount.toFixed(2) + ')</span>';
+                } else {
+                    debtContainer.innerHTML = '<span class="badge bg-success text-dark"><i class="bi bi-check-circle-fill me-1"></i>Al día (Sin deuda pendiente)</span>';
+                }
+            }
+
+            const alertBox = document.getElementById('exonerate_active_alert');
+            const btnRemove = document.getElementById('btn_remove_exemption');
+            const noteWrap = document.getElementById('exonerate_active_note_wrap');
+            const noteSpan = document.getElementById('exonerate_active_note');
+            const noteInput = document.getElementById('exonerate_note');
+
+            if (alertBox && isExempt && exemptUntil) {
+                alertBox.classList.remove('d-none');
+                let parts = exemptUntil.split('-');
+                let dateFormatted = parts.length === 3 ? (parts[2] + '/' + parts[1] + '/' + parts[0]) : exemptUntil;
+                const activeDate = document.getElementById('exonerate_active_date');
+                if (activeDate) activeDate.textContent = dateFormatted;
+
+                if (exemptNote && noteWrap && noteSpan) {
+                    noteWrap.style.display = 'block';
+                    noteSpan.textContent = exemptNote;
+                    if (noteInput) noteInput.value = exemptNote;
+                } else {
+                    if (noteWrap) noteWrap.style.display = 'none';
+                    if (noteInput) noteInput.value = '';
+                }
+
+                if (btnRemove) btnRemove.classList.remove('d-none');
+            } else {
+                if (alertBox) alertBox.classList.add('d-none');
+                if (noteWrap) noteWrap.style.display = 'none';
+                if (noteInput) noteInput.value = '';
+                if (btnRemove) btnRemove.classList.add('d-none');
+            }
+
+            const modeCurrent = document.getElementById('mode_current_month');
+            if (modeCurrent) modeCurrent.checked = true;
+            const customWrap = document.getElementById('custom_exempt_date_wrap');
+            if (customWrap) customWrap.style.display = 'none';
+        });
+    });
+
+    const radioModes = document.querySelectorAll('#modalExonerateDebt input[name="exemption_mode"]');
+    const customWrap = document.getElementById('custom_exempt_date_wrap');
+    radioModes.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (customWrap) {
+                customWrap.style.display = (this.value === 'custom') ? 'block' : 'none';
+            }
+        });
+    });
+
+    const btnRemoveExemption = document.getElementById('btn_remove_exemption');
+    if (btnRemoveExemption) {
+        btnRemoveExemption.addEventListener('click', function() {
+            const executeRemove = function() {
+                const removeInput = document.getElementById('exonerate_remove_input');
+                if (removeInput) removeInput.value = '1';
+                const form = document.getElementById('formExonerateDebt');
+                if (form) form.submit();
+            };
+
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: '¿Quitar exoneración?',
+                    text: 'Se restablecerá el cálculo histórico original de deuda según la fecha de instalación inicial.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Sí, quitar exoneración',
+                    cancelButtonText: 'Cancelar',
+                    customClass: { popup: 'swal-custom-dark' }
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        executeRemove();
+                    }
+                });
+            } else if (confirm('¿Deseas quitar la exoneración y restablecer el cálculo original de deuda?')) {
+                executeRemove();
+            }
+        });
+    }
 });
 </script>
