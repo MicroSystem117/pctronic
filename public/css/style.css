@@ -870,6 +870,217 @@ select:focus {
     background: rgba(255, 255, 255, 0.07) !important;
 }
 
+/* ========================================================
+   VISTA DE TABLA TRANSFORMADA EN GRILLA/CARDS PARA MÓVILES (ANTENAS)
+   ======================================================== */
+@media (min-width: 768px) {
+    .table .action-btn-text {
+        display: none !important;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .antenas-page {
+        min-width: 0;
+    }
+
+    .antenas-page .antenas-heading {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.85rem !important;
+    }
+
+    .antenas-page .antenas-heading h2 {
+        font-size: 1.35rem !important;
+    }
+
+    .antenas-page .antenas-heading .btn {
+        width: 100% !important;
+        min-height: 2.75rem;
+    }
+
+    .antenas-page .antenas-filters {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 0.6rem !important;
+    }
+
+    .antenas-page .antenas-filters .input-group,
+    .antenas-page .antenas-filters .antenas-search-input {
+        width: 100% !important;
+    }
+
+    .antenas-page .mobile-table-hint {
+        display: none !important;
+    }
+
+    .antenas-page .antenas-card {
+        padding: 0.5rem !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .antenas-page .table-responsive {
+        overflow-x: visible !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .antenas-page .table-responsive > .table {
+        min-width: 100% !important;
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+        background: transparent !important;
+    }
+
+    /* Ocultar la cabecera thead tradicional */
+    .antenas-page .table thead {
+        display: none !important;
+    }
+
+    /* El tbody pasa a ser una grilla vertical */
+    .antenas-page .table tbody {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+        width: 100% !important;
+    }
+
+    /* Cada fila (tr) es una tarjeta Dark Glassmorphic */
+    .antenas-page .table tbody tr {
+        display: flex !important;
+        flex-direction: column !important;
+        background: rgba(30, 41, 59, 0.75) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 16px !important;
+        padding: 1.15rem !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
+        transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease !important;
+        position: relative !important;
+        overflow: hidden !important;
+        margin-bottom: 0 !important;
+    }
+
+    .antenas-page .table tbody tr:hover,
+    .antenas-page .table tbody tr:active {
+        border-color: rgba(56, 189, 248, 0.5) !important;
+        box-shadow: 0 12px 30px -5px rgba(14, 165, 233, 0.25) !important;
+        transform: translateY(-2px);
+    }
+
+    /* Cada celda (td) es un renglón clave-valor */
+    .antenas-page .table tbody tr td {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 0.5rem 0 !important;
+        border: none !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+        background: transparent !important;
+        text-align: right !important;
+        font-size: 0.92rem !important;
+        min-height: 2.3rem !important;
+    }
+
+    /* Etiqueta descriptiva (data-label) */
+    .antenas-page .table tbody tr td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: rgba(148, 163, 184, 0.9);
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        text-align: left;
+        margin-right: 1rem;
+        flex-shrink: 0;
+    }
+
+    /* Cabecera destacada de la tarjeta: Serial No. */
+    .antenas-page .table tbody tr td[data-label="Serial"] {
+        padding-top: 0 !important;
+        padding-bottom: 0.75rem !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.18) !important;
+        margin-bottom: 0.25rem !important;
+    }
+
+    .antenas-page .table tbody tr td[data-label="Serial"] code {
+        font-size: 1.05rem !important;
+        color: #38bdf8 !important;
+        font-weight: 700 !important;
+        background: rgba(56, 189, 248, 0.12) !important;
+        border: 1px solid rgba(56, 189, 248, 0.25) !important;
+        padding: 0.25rem 0.6rem !important;
+        border-radius: 8px !important;
+        letter-spacing: 0.5px !important;
+    }
+
+    /* Renglón de Acciones al final de la tarjeta */
+    .antenas-page .table tbody tr td[data-label="Acciones"] {
+        border-bottom: none !important;
+        padding-top: 0.9rem !important;
+        padding-bottom: 0 !important;
+        justify-content: stretch !important;
+        margin-top: 0.35rem !important;
+    }
+
+    .antenas-page .table tbody tr td[data-label="Acciones"]::before {
+        display: none !important;
+    }
+
+    .antenas-page .table tbody tr td[data-label="Acciones"] .d-inline-flex {
+        width: 100% !important;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 0.75rem !important;
+    }
+
+    .antenas-page .table tbody tr td[data-label="Acciones"] .btn {
+        width: 100% !important;
+        padding: 0.6rem 0.75rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 0.92rem !important;
+        font-weight: 500 !important;
+        border-radius: 10px !important;
+        min-height: 2.5rem !important;
+    }
+
+    .antenas-page .action-btn-text {
+        display: inline !important;
+    }
+
+    /* Fila vacía cuando no hay datos */
+    .antenas-page .table tbody tr td.dataTables_empty {
+        display: block !important;
+        text-align: center !important;
+        border-bottom: none !important;
+        padding: 2.5rem 1rem !important;
+    }
+
+    .antenas-page .table tbody tr td.dataTables_empty::before {
+        display: none !important;
+    }
+
+    /* Paginación y resumen de DataTables en móviles */
+    .antenas-page .dataTables_wrapper .dataTables_info,
+    .antenas-page .dataTables_wrapper .dataTables_paginate {
+        text-align: center !important;
+        margin-top: 1rem !important;
+        float: none !important;
+    }
+
+    .antenas-page .dataTables_wrapper .dataTables_paginate .pagination {
+        justify-content: center !important;
+        flex-wrap: wrap !important;
+        gap: 0.25rem !important;
+    }
+}
+
 /* Pagos: mantiene el contenido usable en pantallas estrechas. */
 .payments-page {
     min-width: 0;

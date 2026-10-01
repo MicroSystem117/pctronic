@@ -120,13 +120,13 @@ $isExpectador = $userRole === 'Expectador';
                                             data-pay="<?php echo htmlspecialchars($antena['pay'] ?? '', ENT_QUOTES); ?>"
                                             data-bs-toggle="modal" data-bs-target="#modalAntena"
                                             title="Editar antena">
-                                            <i class="bi bi-pencil"></i>
+                                            <i class="bi bi-pencil"></i><span class="action-btn-text ms-1">Editar</span>
                                         </button>
                                         <a href="index.php?url=antenas&action=delete&id=<?php echo $antena['id_starlink']; ?>" 
                                            class="btn btn-sm btn-danger" 
                                            data-confirm-text="¿Deseas eliminar la antena con serial <?php echo htmlspecialchars($antena['serial'], ENT_QUOTES); ?>?"
                                            title="Eliminar antena">
-                                            <i class="bi bi-trash"></i>
+                                            <i class="bi bi-trash"></i><span class="action-btn-text ms-1">Eliminar</span>
                                         </a>
                                     </div>
                                 </td>
