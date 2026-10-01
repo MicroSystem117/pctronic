@@ -87,6 +87,18 @@ small {
     z-index: 3990 !important;
 }
 
+/* SweetAlert2 siempre al frente de modales, backdrop, sidebar y cualquier capa */
+.swal2-container {
+    z-index: 999999 !important;
+}
+.swal2-container.swal2-backdrop-show,
+.swal2-container.swal2-noanimation {
+    z-index: 999999 !important;
+}
+.swal2-popup {
+    z-index: 1000000 !important;
+}
+
 .modal.show .modal-dialog {
     display: flex;
     align-items: center;

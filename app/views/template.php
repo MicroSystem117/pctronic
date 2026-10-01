@@ -25,13 +25,27 @@
             color: #ffffff !important;
         }
 
-        /* Estilos SweetAlert2 Oscuro Glassmorphism */
+        /* ==========================================================================
+           SWEETALERT2 GLOBAL: SIEMPRE AL FRENTE DE TODO (Z-INDEX MÁXIMO)
+           ========================================================================== */
+        .swal2-container {
+            z-index: 999999 !important;
+            pointer-events: none;
+        }
+        .swal2-container.swal2-backdrop-show,
+        .swal2-container.swal2-noanimation {
+            pointer-events: auto;
+        }
+        .swal2-popup {
+            pointer-events: auto;
+        }
         .swal2-popup.swal-custom-dark {
             background: #161b22 !important;
             border: 1px solid rgba(255, 255, 255, 0.15) !important;
             color: #ffffff !important;
             border-radius: 16px !important;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6) !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7) !important;
+            z-index: 1000000 !important;
         }
         .swal-custom-dark .swal2-title {
             color: #ffffff !important;
@@ -45,6 +59,8 @@
             border: 1px solid rgba(255, 255, 255, 0.15) !important;
             border-radius: 12px !important;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+            z-index: 1000000 !important;
+            pointer-events: auto !important;
         }
         .swal-custom-toast .swal2-title {
             color: #ffffff !important;
@@ -838,6 +854,13 @@ window.showSweetAlert = function(type, message, isModal = false) {
         });
     }
 };
+
+// Garantizar que SweetAlert2 reciba el foco sin conflicto con modales de Bootstrap
+document.addEventListener('focusin', function (e) {
+    if (e.target && e.target.closest && e.target.closest('.swal2-container')) {
+        e.stopImmediatePropagation();
+    }
+}, true);
 
 window.checkUrlStatusAndAlert = function(url = window.location.href) {
     try {
