@@ -549,61 +549,7 @@ small {
         gap: 0.6rem !important;
     }
 
-    .antenas-page .antenas-card {
-        padding: 1rem 0.75rem !important;
-        background: rgba(15, 23, 42, 0.78) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        border-radius: 16px !important;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35) !important;
-    }
 
-    .antenas-page .antenas-card .table-responsive {
-        overflow-x: auto;
-        margin: 0;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .antenas-page .antenas-card .dataTables_wrapper {
-        width: 100%;
-    }
-
-    .antenas-page .antenas-card .dataTables_scrollBody {
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .antenas-page .antenas-card .dataTables_scrollHeadInner > table,
-    .antenas-page .antenas-card .dataTables_scrollBody > table {
-        min-width: 860px;
-    }
-
-    .antenas-page .antenas-card .dataTables_length,
-    .antenas-page .antenas-card .dataTables_filter,
-    .antenas-page .antenas-card .dataTables_info,
-    .antenas-page .antenas-card .dataTables_paginate {
-        float: none;
-        text-align: left;
-        width: 100%;
-    }
-
-    .antenas-page .antenas-card .dataTables_length,
-    .antenas-page .antenas-card .dataTables_filter {
-        margin-bottom: 0.65rem;
-    }
-
-    .antenas-page .antenas-card .dataTables_filter input,
-    .antenas-page .antenas-card .dataTables_length select {
-        max-width: 100%;
-    }
-
-    .antenas-page .antenas-card .dataTables_paginate {
-        margin-top: 0.65rem;
-        white-space: normal;
-    }
-
-    .antenas-page .antenas-card .dataTables_paginate .paginate_button {
-        margin-bottom: 0.25rem;
-    }
 
     .antenas-page .antenas-form-dialog {
         max-width: none;
@@ -964,6 +910,8 @@ select:focus {
     }
 
     .table-mobile-cards,
+    .antenas-page table,
+    .antenas-page .table,
     .table-responsive > .table-mobile-cards,
     table.dataTable.table-mobile-cards {
         width: 100% !important;
@@ -977,12 +925,16 @@ select:focus {
     }
 
     /* Ocultar la cabecera thead tradicional */
-    .table-mobile-cards thead {
+    .table-mobile-cards thead,
+    .antenas-page table thead,
+    .antenas-page .table thead {
         display: none !important;
     }
 
     /* El tbody pasa a ser una grilla vertical */
-    .table-mobile-cards tbody {
+    .table-mobile-cards tbody,
+    .antenas-page table tbody,
+    .antenas-page .table tbody {
         display: grid !important;
         grid-template-columns: 1fr !important;
         gap: 1.15rem !important;
@@ -992,7 +944,9 @@ select:focus {
     }
 
     /* Cada fila (tr) es una tarjeta completa */
-    .table-mobile-cards tbody tr {
+    .table-mobile-cards tbody tr,
+    .antenas-page table tbody tr,
+    .antenas-page .table tbody tr {
         display: flex !important;
         flex-direction: column !important;
         width: 100% !important;
@@ -1012,14 +966,17 @@ select:focus {
         margin-bottom: 0 !important;
     }
 
-    .table-mobile-cards tbody tr:hover {
+    .table-mobile-cards tbody tr:hover,
+    .antenas-page table tbody tr:hover,
+    .antenas-page .table tbody tr:hover {
         border-color: rgba(56, 189, 248, 0.5) !important;
     }
 
     /* Anular columna fija sticky para que no tape contenido */
-    .table-mobile-cards.table-sticky-col th:first-child,
-    .table-mobile-cards.table-sticky-col td:first-child,
-    .table-mobile-cards tbody tr td:first-child {
+    .table-sticky-col th:first-child,
+    .table-sticky-col td:first-child,
+    .table-mobile-cards tbody tr td:first-child,
+    .antenas-page .table tbody tr td:first-child {
         position: static !important;
         left: auto !important;
         background: transparent !important;
@@ -1029,7 +986,9 @@ select:focus {
     }
 
     /* Cada celda (td) es un renglón clave-valor a ancho completo */
-    .table-mobile-cards tbody tr td {
+    .table-mobile-cards tbody tr td,
+    .antenas-page table tbody tr td,
+    .antenas-page .table tbody tr td {
         display: flex !important;
         flex-direction: row !important;
         justify-content: space-between !important;
@@ -1050,7 +1009,9 @@ select:focus {
     }
 
     /* Etiqueta descriptiva (data-label) en la izquierda */
-    .table-mobile-cards tbody tr td::before {
+    .table-mobile-cards tbody tr td::before,
+    .antenas-page table tbody tr td::before,
+    .antenas-page .table tbody tr td::before {
         content: attr(data-label);
         font-weight: 700 !important;
         color: #94a3b8 !important;
@@ -1064,7 +1025,11 @@ select:focus {
 
     /* El contenido/valor en la derecha de la celda */
     .table-mobile-cards .td-value,
-    .table-mobile-cards tbody tr td > *:not(::before) {
+    .antenas-page .td-value,
+    .td-value,
+    .table-mobile-cards tbody tr td > *:not(::before),
+    .antenas-page table tbody tr td > *:not(::before),
+    .antenas-page .table tbody tr td > *:not(::before) {
         display: inline-block !important;
         text-align: right !important;
         color: #ffffff !important;
@@ -1076,6 +1041,26 @@ select:focus {
 
     /* Cabecera destacada de la tarjeta: Serial No., Titular, Nombre, etc. */
     .table-mobile-cards tbody tr td[data-label="Serial"],
+    .antenas-page .table tbody tr td[data-label="Serial"] {
+        padding-top: 0 !important;
+        padding-bottom: 0.75rem !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+        margin-bottom: 0.25rem !important;
+    }
+
+    .table-mobile-cards tbody tr td[data-label="Serial"] code,
+    .antenas-page .table tbody tr td[data-label="Serial"] code {
+        font-size: 1.05rem !important;
+        color: #38bdf8 !important;
+        font-weight: 700 !important;
+        background: rgba(56, 189, 248, 0.15) !important;
+        border: 1px solid rgba(56, 189, 248, 0.3) !important;
+        padding: 0.25rem 0.6rem !important;
+        border-radius: 8px !important;
+        letter-spacing: 0.5px !important;
+        max-width: 100% !important;
+    }
+
     .table-mobile-cards tbody tr td[data-label="Titular"],
     .table-mobile-cards tbody tr td[data-label="Nombre"],
     .table-mobile-cards tbody tr td[data-label="Archivo"],
@@ -1086,7 +1071,8 @@ select:focus {
         margin-bottom: 0.25rem !important;
     }
 
-    .table-mobile-cards tbody tr td code {
+    .table-mobile-cards tbody tr td code,
+    .antenas-page .table tbody tr td code {
         font-size: 1.05rem !important;
         color: #38bdf8 !important;
         font-weight: 700 !important;
@@ -1100,6 +1086,7 @@ select:focus {
 
     /* Renglón de Acciones al final de la tarjeta */
     .table-mobile-cards tbody tr td[data-label="Acciones"],
+    .antenas-page .table tbody tr td[data-label="Acciones"],
     .table-mobile-cards tbody tr td[data-label="Acción"] {
         border-bottom: none !important;
         padding-top: 0.9rem !important;
@@ -1109,11 +1096,13 @@ select:focus {
     }
 
     .table-mobile-cards tbody tr td[data-label="Acciones"]::before,
+    .antenas-page .table tbody tr td[data-label="Acciones"]::before,
     .table-mobile-cards tbody tr td[data-label="Acción"]::before {
         display: none !important;
     }
 
     .table-mobile-cards tbody tr td[data-label="Acciones"] .d-inline-flex,
+    .antenas-page .table tbody tr td[data-label="Acciones"] .d-inline-flex,
     .table-mobile-cards tbody tr td[data-label="Acción"] .d-inline-flex {
         width: 100% !important;
         max-width: 100% !important;
@@ -1123,6 +1112,7 @@ select:focus {
     }
 
     .table-mobile-cards tbody tr td[data-label="Acciones"] .d-inline-flex > *,
+    .antenas-page .table tbody tr td[data-label="Acciones"] .d-inline-flex > *,
     .table-mobile-cards tbody tr td[data-label="Acción"] .d-inline-flex > * {
         flex: 1 1 calc(50% - 0.5rem) !important;
         min-width: 110px !important;
@@ -1136,12 +1126,14 @@ select:focus {
         min-height: 2.5rem !important;
     }
 
-    .action-btn-text {
+    .action-btn-text,
+    .antenas-page .action-btn-text {
         display: inline !important;
     }
 
     /* Fila vacía cuando no hay datos */
-    .table-mobile-cards tbody tr td.dataTables_empty {
+    .table-mobile-cards tbody tr td.dataTables_empty,
+    .antenas-page .table tbody tr td.dataTables_empty {
         display: block !important;
         text-align: center !important;
         border-bottom: none !important;
@@ -1149,7 +1141,8 @@ select:focus {
         width: 100% !important;
     }
 
-    .table-mobile-cards tbody tr td.dataTables_empty::before {
+    .table-mobile-cards tbody tr td.dataTables_empty::before,
+    .antenas-page .table tbody tr td.dataTables_empty::before {
         display: none !important;
     }
 

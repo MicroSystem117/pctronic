@@ -29,11 +29,8 @@ $isExpectador = $userRole === 'Expectador';
 </div>
 
 <div class="card card-custom antenas-card p-3">
-    <div class="mobile-table-hint d-md-none">
-        <i class="bi bi-arrow-left-right text-info"></i> Desliza horizontalmente para ver más columnas
-    </div>
     <div class="table-responsive">
-        <table class="table table-dark table-hover mb-0 datatable pdf-exportable" data-pdf-title="Antenas Starlink">
+        <table class="table table-dark table-hover mb-0 datatable pdf-exportable table-mobile-cards" data-pdf-title="Antenas Starlink">
             <thead class="table-light">
                 <tr>
                     <th>Serial No.</th>
