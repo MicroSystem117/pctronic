@@ -59,28 +59,17 @@ $canDelete = $canReview;
                         <?php if (!empty($data['antennas'])): ?>
                             <?php foreach ($data['antennas'] as $antena): ?>
                                 <?php
-                                    $statusLabel = '<span class="text-white-50">-</span>';
-                                    if (isset($antena['pay']) && $antena['pay'] !== null && $antena['pay'] !== '') {
-                                        $dueDay = intval($antena['pay']);
-                                        $today = new DateTime();
-                                        $isPaid = false;
+                                    $overdueMonths = intval($antena['overdue_months'] ?? 0);
+                                    $overdueAmount = floatval($antena['overdue_amount'] ?? 0.0);
+                                    $isPaid = ($antena['status_label'] ?? '') === 'Pagado';
+                                    $isAtrasado = ($antena['status_label'] ?? '') === 'Atrasado';
 
-                                        if (!empty($antena['last_payment_date'])) {
-                                            $lastPaymentDate = DateTime::createFromFormat('Y-m-d', $antena['last_payment_date']);
-                                            if ($lastPaymentDate && $lastPaymentDate->format('Y-m') === $today->format('Y-m')) {
-                                                $isPaid = true;
-                                            }
-                                        }
-
-                                        if ($isPaid) {
-                                            $statusLabel = '<span class="badge bg-success text-dark">Pagado</span>';
-                                        } else {
-                                            if (intval($today->format('j')) <= $dueDay) {
-                                                $statusLabel = '<span class="badge bg-warning text-dark">Pendiente</span>';
-                                            } else {
-                                                $statusLabel = '<span class="badge bg-danger text-white">Atrasado</span>';
-                                            }
-                                        }
+                                    if ($overdueMonths > 0) {
+                                        $statusLabel = '<span class="badge bg-danger text-white"><i class="bi bi-exclamation-triangle-fill me-1"></i>' . $overdueMonths . ($overdueMonths === 1 ? ' mes atrasado' : ' meses atrasados') . '</span>';
+                                    } elseif ($isPaid) {
+                                        $statusLabel = '<span class="badge bg-success text-dark"><i class="bi bi-check-circle-fill me-1"></i>Al día</span>';
+                                    } else {
+                                        $statusLabel = '<span class="badge bg-warning text-dark"><i class="bi bi-clock-history me-1"></i>Pendiente</span>';
                                     }
 
                                     $waReminderUrl = null;
@@ -92,8 +81,10 @@ $canDelete = $canReview;
                                             $antena['nickname'] ?? '',
                                             $antena['nombre_plan'] ?? '',
                                             $antena['plan_price'] ?? '',
-                                            $antena['pay'] ?? '',
-                                            strip_tags($statusLabel)
+                                            $antena['due_day'] ?? $antena['pay'] ?? '',
+                                            $antena['status_label'] ?? 'Pendiente',
+                                            $overdueMonths,
+                                            $overdueAmount
                                         );
                                     }
                                 ?>
@@ -101,17 +92,31 @@ $canDelete = $canReview;
                                     data-cliente="<?php echo htmlspecialchars($antena['cliente'], ENT_QUOTES); ?>"
                                     data-plan="<?php echo htmlspecialchars($antena['nombre_plan'], ENT_QUOTES); ?>"
                                     data-status="<?php echo strip_tags($statusLabel); ?>"
-                                    data-pay="<?php echo htmlspecialchars($antena['pay'] ?? '', ENT_QUOTES); ?>">
+                                    data-pay="<?php echo htmlspecialchars($antena['due_day'] ?? $antena['pay'] ?? '', ENT_QUOTES); ?>">
                                     <td data-label="Serial"><code><?php echo htmlspecialchars($antena['serial']); ?></code></td>
                                     <td data-label="Cliente"><span class="td-value"><?php echo htmlspecialchars($antena['cliente']); ?></span></td>
-                                    <td data-label="Vence"><span class="td-value"><?php echo isset($antena['pay']) && $antena['pay'] !== null && $antena['pay'] !== '' ? 'Día ' . htmlspecialchars(intval($antena['pay'])) : '<span class="text-white-50">N/A</span>'; ?></span></td>
+                                    <td data-label="Vence"><span class="td-value"><?php echo isset($antena['due_day']) && $antena['due_day'] !== null && $antena['due_day'] !== '' ? 'Día ' . htmlspecialchars(intval($antena['due_day'])) : '<span class="text-white-50">N/A</span>'; ?></span></td>
                                     <td data-label="Estado">
-                                        <div class="d-inline-flex align-items-center gap-2">
-                                            <?php echo $statusLabel; ?>
-                                            <?php if ($waReminderUrl && $canReview): ?>
-                                                <a href="<?php echo htmlspecialchars($waReminderUrl, ENT_QUOTES); ?>" target="_blank" class="btn btn-sm btn-whatsapp text-white py-0 px-2 d-inline-flex align-items-center" style="font-size: 0.78rem; height: 1.6rem;" title="Enviar recordatorio por WhatsApp">
-                                                    <i class="bi bi-whatsapp me-1"></i><span>Recordar</span>
-                                                </a>
+                                        <div class="d-inline-flex flex-column align-items-start">
+                                            <div class="d-inline-flex align-items-center gap-2">
+                                                <?php echo $statusLabel; ?>
+                                                <?php if ($waReminderUrl && $canReview): ?>
+                                                    <a href="<?php echo htmlspecialchars($waReminderUrl, ENT_QUOTES); ?>" target="_blank" class="btn btn-sm btn-whatsapp text-white py-0 px-2 d-inline-flex align-items-center" style="font-size: 0.78rem; height: 1.6rem;" title="Enviar recordatorio por WhatsApp">
+                                                        <i class="bi bi-whatsapp me-1"></i><span>Recordar</span>
+                                                    </a>
+                                                <?php endif; ?>
+                                            </div>
+                                            <?php if ($overdueMonths > 0): ?>
+                                                <div class="small text-danger fw-semibold mt-1">
+                                                    Deuda: $<?php echo number_format($overdueAmount, 2); ?>
+                                                </div>
+                                            <?php endif; ?>
+                                            <?php if (!empty($antena['is_exempt']) && !empty($antena['debt_exempt_until'])): ?>
+                                                <div class="mt-1">
+                                                    <span class="badge bg-secondary-subtle text-info border border-info border-opacity-25" style="font-size: 0.70rem;" title="<?php echo htmlspecialchars('Deuda previa exonerada hasta el ' . date('d/m/Y', strtotime($antena['debt_exempt_until']))); ?>">
+                                                        <i class="bi bi-shield-check me-1"></i>Exonerada (<?php echo date('d/m/Y', strtotime($antena['debt_exempt_until'])); ?>)
+                                                    </span>
+                                                </div>
                                             <?php endif; ?>
                                         </div>
                                     </td>

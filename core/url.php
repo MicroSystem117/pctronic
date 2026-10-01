@@ -37,7 +37,7 @@ function format_whatsapp_phone($phone) {
 /**
  * Genera el enlace de WhatsApp con mensaje personalizado de recordatorio de pago.
  */
-function build_whatsapp_reminder_url($clientName, $phone, $serial, $nickname = '', $planName = '', $planPrice = '', $dueDay = '', $status = 'Pendiente') {
+function build_whatsapp_reminder_url($clientName, $phone, $serial, $nickname = '', $planName = '', $planPrice = '', $dueDay = '', $status = 'Pendiente', $overdueMonths = 0, $overdueAmount = 0.0) {
     $cleanPhone = format_whatsapp_phone($phone);
 
     $nombreCliente = trim((string) $clientName);
@@ -62,9 +62,19 @@ function build_whatsapp_reminder_url($clientName, $phone, $serial, $nickname = '
         $msg .= "• *Monto mensual:* $" . number_format((float) $planPrice, 2, ',', '.') . "\n";
     }
 
-    $isAtrasado = strtolower((string) $status) === 'atrasado';
+    $overdueMonths = intval($overdueMonths);
+    $isAtrasado = strtolower((string) $status) === 'atrasado' || $overdueMonths > 0;
+
     if ($isAtrasado) {
-        $msg .= "\n⚠️ *Estado:* *Atrasado / Pago pendiente*\n";
+        $msg .= "\n⚠️ *Estado:* *Atrasado*\n";
+        if ($overdueMonths > 0) {
+            $mesesTexto = $overdueMonths === 1 ? "1 mes pendiente" : "{$overdueMonths} meses pendientes";
+            $msg .= "Presenta un acumulado de *{$mesesTexto}* por pagar";
+            if ($overdueAmount > 0) {
+                $msg .= " (Total estimado: *$" . number_format((float) $overdueAmount, 2, ',', '.') . "*)";
+            }
+            $msg .= ".\n";
+        }
         $msg .= "Agradecemos reportar su pago a la brevedad para garantizar la continuidad del servicio.\n\n";
     } else {
         $msg .= "\n⏳ *Estado:* *Pendiente*\n";

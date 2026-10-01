@@ -595,6 +595,9 @@ select:focus option {
                     'answers_empty' => ['type' => 'warning', 'message' => 'Completa todas las respuestas de seguridad.'],
                     'wrong_answers' => ['type' => 'danger', 'message' => 'Alguna respuesta es incorrecta. Intenta de nuevo.'],
                     'reset_empty' => ['type' => 'warning', 'message' => 'Completa los campos de la nueva contraseña.'],
+                    'exemption_saved' => ['type' => 'success', 'message' => 'Deuda previa exonerada correctamente.'],
+                    'exemption_cleared' => ['type' => 'info', 'message' => 'Exoneración eliminada. Se restableció el cálculo original de deuda.'],
+                    'exemption_error' => ['type' => 'danger', 'message' => 'No se pudo aplicar la exoneración de deuda.'],
                     'error' => ['type' => 'danger', 'message' => 'Ocurrió un error durante la operación.']
                 ];
             ?>

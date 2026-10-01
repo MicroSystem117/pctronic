@@ -119,35 +119,23 @@ class PaymentModel {
                         a.id_starlink,
                         a.serial,
                         a.nickname,
+                        a.date,
                         a.pay,
+                        a.debt_exempt_until,
+                        a.debt_exempt_note,
+                        a.debt_exempt_at,
                         CONCAT(c.name, ' ', c.surname) AS cliente,
                         c.phone AS client_phone,
                         a.client AS client_id,
                         p.plan AS nombre_plan,
                         p.price AS plan_price,
                         co.country AS pais,
-                        CONCAT(acc.owner, ' • ', acc.acc) AS cuenta_starlink,
-                        lp.last_payment_date,
-                        lp.last_amount,
-                        lp.last_currency,
-                        lp.last_status
+                        CONCAT(acc.owner, ' • ', acc.acc) AS cuenta_starlink
                     FROM antenas a
                     LEFT JOIN client c ON a.client = c.id_client
                     LEFT JOIN plan p ON a.plan = p.id_plan
                     LEFT JOIN country co ON a.country = co.id_country
-                    LEFT JOIN accounts acc ON a.account_id = acc.id_accounts
-                    LEFT JOIN (
-                        SELECT pa1.antenna_id, p1.payment_date AS last_payment_date, p1.amount AS last_amount, p1.currency AS last_currency{$lastStatusSelect}
-                        FROM payments p1
-                        INNER JOIN payment_antennas pa1 ON p1.id_payment = pa1.payment_id
-                        INNER JOIN (
-                            SELECT pa2.antenna_id, MAX(p2.payment_date) AS max_date
-                            FROM payments p2
-                            INNER JOIN payment_antennas pa2 ON p2.id_payment = pa2.payment_id
-                            {$approvedFilter}
-                            GROUP BY pa2.antenna_id
-                        ) p2 ON pa1.antenna_id = p2.antenna_id AND p1.payment_date = p2.max_date
-                    ) lp ON a.id_starlink = lp.antenna_id";
+                    LEFT JOIN accounts acc ON a.account_id = acc.id_accounts";
 
             $params = [];
             if ($userRole === 'Expectador' && $ci !== null) {
@@ -159,7 +147,43 @@ class PaymentModel {
 
             $stmt = $this->db->prepare($sql);
             $stmt->execute($params);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $antenas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Obtener pagos aprobados para calcular estado
+            $paymentsSql = "SELECT antenna_id, payment_date, amount, currency, status 
+                            FROM (
+                                SELECT pa.antenna_id, p.payment_date, p.amount, p.currency, p.status
+                                FROM payments p
+                                INNER JOIN payment_antennas pa ON p.id_payment = pa.payment_id
+                                WHERE p.status = 'Aprobado'
+                                UNION ALL
+                                SELECT p.antenna_id, p.payment_date, p.amount, p.currency, p.status
+                                FROM payments p
+                                LEFT JOIN payment_antennas pa ON p.id_payment = pa.payment_id
+                                WHERE p.status = 'Aprobado' AND pa.payment_id IS NULL AND p.antenna_id IS NOT NULL
+                            ) ap
+                            ORDER BY payment_date ASC";
+            $paymentsStmt = $this->db->query($paymentsSql);
+            $paymentsRows = $paymentsStmt ? $paymentsStmt->fetchAll(PDO::FETCH_ASSOC) : [];
+
+            $paymentsByAntenna = [];
+            foreach ($paymentsRows as $pRow) {
+                $antId = (int)$pRow['antenna_id'];
+                if (!isset($paymentsByAntenna[$antId])) {
+                    $paymentsByAntenna[$antId] = [];
+                }
+                $paymentsByAntenna[$antId][] = $pRow;
+            }
+
+            foreach ($antenas as &$antena) {
+                $antId = (int)$antena['id_starlink'];
+                $antPayments = $paymentsByAntenna[$antId] ?? [];
+                $debtStats = AntenaModel::calculateDebtInfo($antena, $antPayments);
+                $antena = array_merge($antena, $debtStats);
+            }
+            unset($antena);
+
+            return $antenas;
         } catch (PDOException $e) {
             $this->lastError = $e->getMessage();
             error_log("Error en PaymentModel::getAntennasForPayment -> " . $e->getMessage());
