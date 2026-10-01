@@ -1039,13 +1039,23 @@ select:focus {
         word-break: break-word !important;
     }
 
-    /* Cabecera destacada de la tarjeta: Serial No., Titular, Nombre, etc. */
+    /* Cabecera destacada de la tarjeta: Serial No., Titular, Nombre, Asignada a, etc. */
+    .table-mobile-cards tbody tr td:first-child,
+    .table-mobile-cards tbody tr td[data-label="Asignada a"],
+    .antenas-page .table tbody tr td[data-label="Asignada a"],
     .table-mobile-cards tbody tr td[data-label="Serial"],
     .antenas-page .table tbody tr td[data-label="Serial"] {
         padding-top: 0 !important;
         padding-bottom: 0.75rem !important;
         border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
         margin-bottom: 0.25rem !important;
+    }
+
+    .table-mobile-cards tbody tr td[data-label="Asignada a"] .td-value,
+    .antenas-page .table tbody tr td[data-label="Asignada a"] .td-value {
+        font-size: 1.05rem !important;
+        font-weight: 700 !important;
+        color: #ffffff !important;
     }
 
     .table-mobile-cards tbody tr td[data-label="Serial"] code,

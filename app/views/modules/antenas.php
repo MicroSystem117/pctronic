@@ -33,10 +33,10 @@ $isExpectador = $userRole === 'Expectador';
         <table class="table table-dark table-hover mb-0 datatable pdf-exportable table-mobile-cards" data-pdf-title="Antenas Starlink">
             <thead class="table-light">
                 <tr>
-                    <th>Serial No.</th>
+                    <th>Asignada a</th>
                     <th>Nickname</th>
                     <th>Kit No.</th>
-                    <th>Asignada a</th>
+                    <th>Serial No.</th>
                     <th>Plan</th>
                     <th>País Región</th>
                     <th>Cuenta Starlink</th>
@@ -62,10 +62,10 @@ $isExpectador = $userRole === 'Expectador';
                             data-date="<?php echo htmlspecialchars($antena['date'], ENT_QUOTES); ?>"
                             data-pay="<?php echo htmlspecialchars($antena['pay'] ?? '', ENT_QUOTES); ?>"
                         >
-                            <td data-label="Serial"><code><?php echo htmlspecialchars($antena['serial']); ?></code></td>
+                            <td data-label="Asignada a"><span class="td-value text-white fw-bold"><?php echo htmlspecialchars($antena['cliente']); ?></span></td>
                             <td data-label="Nickname"><?php echo !empty($antena['nickname']) ? '<span class="td-value">' . htmlspecialchars($antena['nickname']) . '</span>' : '<span class="text-white-50">-</span>'; ?></td>
                             <td data-label="Kit"><code><?php echo htmlspecialchars($antena['kit']); ?></code></td>
-                            <td data-label="Cliente"><span class="td-value"><?php echo htmlspecialchars($antena['cliente']); ?></span></td>
+                            <td data-label="Serial"><code><?php echo htmlspecialchars($antena['serial']); ?></code></td>
                             <td data-label="Plan"><span class="badge bg-info text-dark"><?php echo htmlspecialchars($antena['nombre_plan']); ?></span></td>
                             <td data-label="País"><span class="td-value"><?php echo htmlspecialchars($antena['pais']); ?></span></td>
                             <td data-label="Cuenta Starlink">
