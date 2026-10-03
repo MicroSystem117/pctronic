@@ -243,12 +243,6 @@ $isAdmin = $userRole === 'Administrador';
                                 </td>
                             </tr>
                         <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">
-                                <i class="bi bi-info-circle me-1"></i>No hay registros de actividad que coincidan con los filtros seleccionados.
-                            </td>
-                        </tr>
                     <?php endif; ?>
                 </tbody>
             </table>

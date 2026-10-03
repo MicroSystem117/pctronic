@@ -1028,11 +1028,29 @@ function initializePdfExportables() {
 }
 
 function initializeDataTables() {
+    if (window.jQuery && $.fn && $.fn.dataTable) {
+        $.fn.dataTable.ext.errMode = function (settings, helpPage, message) {
+            console.warn('DataTables warning:', message, helpPage);
+        };
+    }
+
     $('.datatable').each(function () {
+        if ($.fn.DataTable.isDataTable(this)) {
+            $(this).DataTable().destroy();
+        }
+
+        // Si la tabla contiene una fila única con colspan (mensaje vacío de PHP),
+        // se vacía el tbody para que DataTables aplique su mensaje nativo sin error tn/18
+        const $tbody = $(this).find('tbody');
+        if ($tbody.find('tr td[colspan]').length > 0 && $tbody.find('tr').length === 1) {
+            $tbody.empty();
+        }
+
         const table = $(this).DataTable({
             paging: true,
             searching: true,
             ordering: true,
+            order: [],
             info: true,
             lengthChange: true,
             pageLength: 10,
