@@ -64,9 +64,15 @@ class AntenaController extends Controller {
                 if ($id_starlink > 0) {
                     $saved = $this->antenaModel->update($id_starlink, $client_id, $account_id, $serial, $nickname, $kit, $date, $pay, $plan_id, $country_id);
                     $status = $saved ? 'updated' : 'error';
+                    if ($saved) {
+                        LogModel::log('EDITAR', 'Antenas', "Actualizó la antena serial '$serial'" . ($nickname ? " ($nickname)" : "") . " (ID: $id_starlink)");
+                    }
                 } else {
                     $saved = $this->antenaModel->register($client_id, $account_id, $serial, $nickname, $kit, $date, $pay, $plan_id, $country_id);
                     $status = $saved ? 'success' : 'error';
+                    if ($saved) {
+                        LogModel::log('CREAR', 'Antenas', "Registró nueva antena serial '$serial'" . ($nickname ? " ($nickname)" : ""));
+                    }
                 }
 
                 header("Location: index.php?url=antenas&status=" . $status);
@@ -88,6 +94,9 @@ class AntenaController extends Controller {
             if ($id > 0) {
                 $deleted = $this->antenaModel->delete($id);
                 $status = $deleted ? 'deleted' : 'error';
+                if ($deleted) {
+                    LogModel::log('ELIMINAR', 'Antenas', "Eliminó la antena ID $id");
+                }
                 header("Location: index.php?url=antenas&status=" . $status);
                 exit();
             }

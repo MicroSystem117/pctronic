@@ -25,6 +25,9 @@ class ClientsController extends Controller {
             if ($id > 0) {
                 $deleted = $this->clientModel->delete($id);
                 $status = $deleted ? 'deleted' : 'error';
+                if ($deleted) {
+                    LogModel::log('ELIMINAR', 'Clientes', "Eliminó el cliente ID $id");
+                }
                 header("Location: index.php?url=clients&status=" . $status);
                 exit();
             }
@@ -50,10 +53,16 @@ class ClientsController extends Controller {
                     // EDICIÓN
                     $saved = $this->clientModel->update($id, $name, $surname, $ci, $phone);
                     $status = $saved ? 'updated' : 'error';
+                    if ($saved) {
+                        LogModel::log('EDITAR', 'Clientes', "Actualizó los datos del cliente '$name $surname' (ID: $id)");
+                    }
                 } else {
                     // REGISTRO NUEVO
                     $saved = $this->clientModel->register($name, $surname, $ci, $phone);
                     $status = $saved ? 'success' : 'error';
+                    if ($saved) {
+                        LogModel::log('CREAR', 'Clientes', "Registró nuevo cliente '$name $surname' (Tel: $phone)");
+                    }
                 }
                 
                 // Redirección limpia al listado en plural

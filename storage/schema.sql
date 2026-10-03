@@ -163,4 +163,22 @@ CREATE TABLE IF NOT EXISTS `payment_antennas` (
     CONSTRAINT `fk_payment_antennas_antenna` FOREIGN KEY (`antenna_id`) REFERENCES `antenas` (`id_starlink`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- 12. Tabla de Registros de Actividad y Auditoría
+CREATE TABLE IF NOT EXISTS `activity_logs` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `user_id` INT NULL,
+    `user_name` VARCHAR(100) NOT NULL,
+    `user_role` VARCHAR(50) NOT NULL,
+    `action` VARCHAR(50) NOT NULL,
+    `module` VARCHAR(50) NOT NULL,
+    `description` TEXT NOT NULL,
+    `ip_address` VARCHAR(45) NULL,
+    `user_agent` VARCHAR(255) NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY `idx_log_user` (`user_id`),
+    KEY `idx_log_module` (`module`),
+    KEY `idx_log_action` (`action`),
+    KEY `idx_log_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SET FOREIGN_KEY_CHECKS = 1;

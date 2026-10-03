@@ -38,6 +38,9 @@ class PaymentsController extends Controller {
                 if (!empty($_POST['remove_exemption'])) {
                     $cleared = $antenaModel->clearDebtExemption($id_starlink);
                     $status = $cleared ? 'exemption_cleared' : 'error';
+                    if ($cleared) {
+                        LogModel::log('QUITAR_EXONERACION', 'Pagos', "Restableció el cálculo histórico original de deuda para antena ID: $id_starlink");
+                    }
                     header('Location: index.php?url=payments&status=' . $status);
                     exit();
                 }
@@ -60,6 +63,9 @@ class PaymentsController extends Controller {
                 $note = isset($_POST['debt_exempt_note']) ? trim($_POST['debt_exempt_note']) : null;
                 $saved = $antenaModel->setDebtExemption($id_starlink, $exemptUntil, $note);
                 $status = $saved ? 'exemption_saved' : 'exemption_error';
+                if ($saved) {
+                    LogModel::log('EXONERAR', 'Pagos', "Exoneró deuda de antena ID: $id_starlink hasta $exemptUntil" . ($note ? " (Motivo: $note)" : ""));
+                }
                 header('Location: index.php?url=payments&status=' . $status);
                 exit();
             }
@@ -187,6 +193,7 @@ class PaymentsController extends Controller {
             }
 
             $status = $this->isExpectador() ? 'payment_pending' : 'payment_success';
+            LogModel::log('CREAR', 'Pagos', "Registró pago de $amount $currency para " . count($antenna_ids) . " antena(s)");
             if ($isAjax) {
                 header('Content-Type: application/json; charset=utf-8');
                 echo json_encode(['success' => true, 'status' => $status]);
@@ -229,6 +236,9 @@ class PaymentsController extends Controller {
             if ($id > 0) {
                 $deleted = $this->paymentModel->delete($id);
                 $status = $deleted ? 'payment_deleted' : 'error';
+                if ($deleted) {
+                    LogModel::log('ELIMINAR', 'Pagos', "Eliminó el pago registrado #$id");
+                }
                 if ($isAjax) {
                     header('Content-Type: application/json; charset=utf-8');
                     echo json_encode([
@@ -258,6 +268,10 @@ class PaymentsController extends Controller {
             $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
             $status = $_GET['action'] === 'approve' ? 'Aprobado' : 'Rechazado';
             $updated = $id > 0 && $this->paymentModel->review($id, $status, intval($_SESSION['user_id']));
+            if ($updated) {
+                $logAct = $status === 'Aprobado' ? 'APROBAR' : 'RECHAZAR';
+                LogModel::log($logAct, 'Pagos', "$status el pago registrado #$id");
+            }
             if ($isAjax) {
                 header('Content-Type: application/json; charset=utf-8');
                 echo json_encode([

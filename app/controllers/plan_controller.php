@@ -23,9 +23,15 @@ class PlanController extends Controller {
                 if ($id > 0) {
                     $saved = $this->planModel->update($id, $planName, $price);
                     $status = $saved ? 'updated' : 'error';
+                    if ($saved) {
+                        LogModel::log('EDITAR', 'Planes', "Actualizó el plan '$planName' ($$price) ID: $id");
+                    }
                 } else {
                     $saved = $this->planModel->register($planName, $price);
                     $status = $saved ? 'success' : 'error';
+                    if ($saved) {
+                        LogModel::log('CREAR', 'Planes', "Registró nuevo plan '$planName' ($$price)");
+                    }
                 }
 
                 header("Location: index.php?url=plans&status=" . $status);
@@ -47,6 +53,9 @@ class PlanController extends Controller {
             if ($id > 0) {
                 $deleted = $this->planModel->delete($id);
                 $status = $deleted ? 'deleted' : 'error';
+                if ($deleted) {
+                    LogModel::log('ELIMINAR', 'Planes', "Eliminó el plan ID $id");
+                }
                 header("Location: index.php?url=plans&status=" . $status);
                 exit();
             }

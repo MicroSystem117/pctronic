@@ -76,9 +76,15 @@ class AccountsController extends Controller {
                 if ($id > 0) {
                     $saved = $this->accountModel->update($id, $owner, $acc, $email, $date, $countryId);
                     $status = $saved ? 'updated' : 'error';
+                    if ($saved) {
+                        LogModel::log('EDITAR', 'Cuentas', "Actualizó la cuenta '$owner' ($email) ID: $id");
+                    }
                 } else {
                     $saved = $this->accountModel->register($owner, $acc, $email, $date, $countryId);
                     $status = $saved ? 'success' : 'error';
+                    if ($saved) {
+                        LogModel::log('CREAR', 'Cuentas', "Registró nueva cuenta '$owner' ($email)");
+                    }
                 }
 
                 header("Location: index.php?url=accounts&status=" . $status);
@@ -101,6 +107,9 @@ class AccountsController extends Controller {
                 $preserveAntennas = !isset($_GET['preserve_antennas']) || $_GET['preserve_antennas'] === '1';
                 $deleted = $this->accountModel->delete($id, $preserveAntennas);
                 $status = $deleted ? 'deleted' : 'error';
+                if ($deleted) {
+                    LogModel::log('ELIMINAR', 'Cuentas', "Eliminó la cuenta ID $id");
+                }
                 header("Location: index.php?url=accounts&status=" . $status);
                 exit();
             }

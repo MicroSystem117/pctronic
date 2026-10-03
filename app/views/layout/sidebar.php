@@ -72,6 +72,12 @@ $menuItems = [
         'label' => 'Usuarios',
         'show' => $userRole === 'Administrador' || $userRole === 'Moderador',
     ],
+    [
+        'url' => 'logs',
+        'icon' => 'bi bi-journal-text',
+        'label' => 'Registros',
+        'show' => $userRole === 'Administrador' || $userRole === 'Moderador',
+    ],
 ];
 ?>
 <div class="d-flex flex-column p-3 text-white sidebar-panel" id="sidebarPanel">

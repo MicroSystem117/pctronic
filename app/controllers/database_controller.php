@@ -19,6 +19,9 @@ class DatabaseController extends Controller {
             if ($action === 'backup') {
                 $backupFile = $this->databaseModel->createBackup();
                 $status = $backupFile ? 'backup_success' : 'backup_error';
+                if ($backupFile) {
+                    LogModel::log('RESPALDO', 'Base de Datos', "Creó copia de seguridad SQL: " . basename($backupFile));
+                }
                 header('Location: index.php?url=database&status=' . $status);
                 exit();
             }
@@ -26,6 +29,7 @@ class DatabaseController extends Controller {
             if ($action === 'export_csv') {
                 $csvFile = $this->databaseModel->exportCsv();
                 if ($csvFile) {
+                    LogModel::log('EXPORTAR', 'Base de Datos', "Exportó la base de datos completa en archivo ZIP de CSVs");
                     header('Location: index.php?url=database&action=download&file=' . rawurlencode($csvFile));
                     exit();
                 }
@@ -40,6 +44,9 @@ class DatabaseController extends Controller {
                     $targetPath = $this->databaseModel->getBackupFolder() . DIRECTORY_SEPARATOR . $fileName;
                     $restored = $this->databaseModel->restoreBackup($targetPath);
                     $status = $restored ? 'restore_success' : 'restore_error';
+                    if ($restored) {
+                        LogModel::log('RESTAURAR', 'Base de Datos', "Restauró la base de datos desde respaldo: $fileName");
+                    }
                 } else {
                     $status = 'restore_invalid_file';
                 }
@@ -58,6 +65,9 @@ class DatabaseController extends Controller {
                     if (move_uploaded_file($_FILES['sql_file']['tmp_name'], $targetPath)) {
                         $restored = $this->databaseModel->restoreBackup($targetPath);
                         $status = $restored ? 'restore_success' : 'restore_error';
+                        if ($restored) {
+                            LogModel::log('RESTAURAR', 'Base de Datos', "Cargó y restauró la base de datos desde archivo SQL: $uploadName");
+                        }
                     } else {
                         $status = 'restore_error';
                     }
@@ -93,6 +103,9 @@ class DatabaseController extends Controller {
             $fileName = basename($_GET['file']);
             $deleted = $this->databaseModel->deleteBackup($fileName);
             $status = $deleted ? 'delete_success' : 'delete_error';
+            if ($deleted) {
+                LogModel::log('ELIMINAR', 'Base de Datos', "Eliminó el archivo de respaldo: $fileName");
+            }
             header('Location: index.php?url=database&status=' . $status);
             exit();
         }

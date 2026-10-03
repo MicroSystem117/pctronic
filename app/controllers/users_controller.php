@@ -23,6 +23,9 @@ class UsersController extends Controller {
             if ($id > 0 && $id !== intval($_SESSION['user_id'])) {
                 $deleted = $this->userModel->deleteUser($id);
                 $status = $deleted ? 'user_deleted' : 'error';
+                if ($deleted) {
+                    LogModel::log('ELIMINAR', 'Usuarios', "Eliminó al usuario ID $id");
+                }
             } else {
                 $status = 'user_delete_denied';
             }
@@ -68,9 +71,15 @@ class UsersController extends Controller {
             if ($id > 0) {
                 $saved = $this->userModel->update($id, $name, $surname, $ci, $birth, $idLevel, $password);
                 $status = $saved ? 'user_updated' : 'error';
+                if ($saved) {
+                    LogModel::log('EDITAR', 'Usuarios', "Actualizó los datos del usuario '$name $surname' (C.I. $ci, ID: $id)");
+                }
             } else {
                 $saved = $this->userModel->create($name, $surname, $ci, $birth, $password, $idLevel);
                 $status = $saved ? 'user_created' : 'error';
+                if ($saved) {
+                    LogModel::log('CREAR', 'Usuarios', "Registró nuevo usuario '$name $surname' (C.I. $ci, Nivel: $idLevel)");
+                }
             }
 
             header('Location: index.php?url=users&status=' . $status);

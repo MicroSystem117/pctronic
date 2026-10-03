@@ -30,6 +30,8 @@ class Router {
             $controllerName = 'country';
         } elseif ($rawName === 'users') {
             $controllerName = 'users';
+        } elseif ($rawName === 'registros' || $rawName === 'logs' || $rawName === 'auditoria') {
+            $controllerName = 'logs';
         }
         
         // Formato para la Clase (ej: ClientController o AntenaController)

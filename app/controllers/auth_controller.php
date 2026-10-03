@@ -109,8 +109,8 @@ class AuthController extends Controller {
         $_SESSION['user_id'] = $user['id_user'];
         $_SESSION['user'] = trim($user['name'] . ' ' . $user['surname']);
         $_SESSION['user_ci'] = $user['ci'];
-        $_SESSION['user_role'] = $user['user_role'];
         $this->userModel->createSession($user['id_user'], session_id());
+        LogModel::log('LOGIN', 'Autenticación', 'Inicio de sesión exitoso', $user['id_user'], trim($user['name'] . ' ' . $user['surname']), $user['user_role']);
     }
 
     public function register() {
@@ -148,6 +148,8 @@ class AuthController extends Controller {
                 exit();
             }
 
+            LogModel::log('REGISTRO', 'Autenticación', "Nuevo usuario registrado: $name $surname (C.I. $ci)");
+
             header('Location: index.php?url=login&status=register_success');
             exit();
         }
@@ -163,6 +165,7 @@ class AuthController extends Controller {
 
     public function logout() {
         if (isset($_SESSION['user_id'])) {
+            LogModel::log('LOGOUT', 'Autenticación', 'Cierre de sesión');
             $this->userModel->deactivateSession(session_id());
         }
         session_unset();
@@ -286,6 +289,8 @@ class AuthController extends Controller {
             $hash = password_hash($password, PASSWORD_DEFAULT);
             $stmt = $db->prepare('UPDATE `user` SET pass = :pass WHERE id_user = :id');
             $stmt->execute([':pass' => $hash, ':id' => $userId]);
+
+            LogModel::log('PASSWORD_RESET', 'Autenticación', 'Restableció su contraseña mediante preguntas de seguridad', $userId);
 
             unset($_SESSION['reset_user_id'], $_SESSION['reset_user_verified']);
 

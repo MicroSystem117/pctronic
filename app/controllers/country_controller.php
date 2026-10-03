@@ -22,9 +22,15 @@ class CountryController extends Controller {
                 if ($id > 0) {
                     $saved = $this->countryModel->update($id, $countryName);
                     $status = $saved ? 'updated' : 'error';
+                    if ($saved) {
+                        LogModel::log('EDITAR', 'Países', "Actualizó el país '$countryName' (ID: $id)");
+                    }
                 } else {
                     $saved = $this->countryModel->register($countryName);
                     $status = $saved ? 'success' : 'error';
+                    if ($saved) {
+                        LogModel::log('CREAR', 'Países', "Registró nuevo país '$countryName'");
+                    }
                 }
 
                 header("Location: index.php?url=countries&status=" . $status);
@@ -46,6 +52,9 @@ class CountryController extends Controller {
             if ($id > 0) {
                 $deleted = $this->countryModel->delete($id);
                 $status = $deleted ? 'deleted' : 'error';
+                if ($deleted) {
+                    LogModel::log('ELIMINAR', 'Países', "Eliminó el país ID $id");
+                }
                 header("Location: index.php?url=countries&status=" . $status);
                 exit();
             }
