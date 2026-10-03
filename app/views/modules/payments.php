@@ -558,13 +558,35 @@ document.addEventListener('app:content-ready', function() {
     }
 
     let paymentSyncInProgress = false;
+    let paymentSyncFailures = 0;
 
     function synchronizePayments() {
-        if (document.hidden || paymentSyncInProgress) return;
+        // Evitar sincronizar si la pestaña está oculta, si hay petición en curso o si no hay conexión a internet
+        if (document.hidden || paymentSyncInProgress || (navigator && !navigator.onLine)) {
+            return;
+        }
+
+        // Si han fallado 3 intentos consecutivos (ej: VPS reiniciando o corte de red), esperar reconexión
+        if (paymentSyncFailures >= 3) {
+            return;
+        }
+
         paymentSyncInProgress = true;
-        fetch('index.php?url=payments&action=sync', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-            .then(response => response.json())
+        const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        const timeoutId = controller ? setTimeout(() => controller.abort(), 8000) : null;
+
+        fetch('index.php?url=payments&action=sync', { 
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            signal: controller ? controller.signal : undefined
+        })
+            .then(response => {
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                return response.json();
+            })
             .then(payments => {
+                paymentSyncFailures = 0;
+                if (!Array.isArray(payments)) return;
+
                 const currentPayments = new Map(payments.map(payment => [String(payment.id), payment]));
                 const historyBody = document.querySelector('.payment-history-table tbody');
                 document.querySelectorAll('tr[data-payment-id]').forEach(row => {
@@ -619,14 +641,34 @@ document.addEventListener('app:content-ready', function() {
                     historyBody.querySelectorAll('.payment-review-button').forEach(bindReviewButton);
                 }
             })
-                .catch(() => {})
-                .finally(() => { paymentSyncInProgress = false; });
+            .catch(() => {
+                paymentSyncFailures++;
+            })
+            .finally(() => { 
+                if (timeoutId) clearTimeout(timeoutId);
+                paymentSyncInProgress = false; 
+            });
     }
 
-            window.setInterval(synchronizePayments, 2000);
-            document.addEventListener('visibilitychange', function() {
-            if (!document.hidden) synchronizePayments();
-            });
+    // Limpiar temporizador previo si existía para evitar peticiones duplicadas
+    if (window.paymentSyncTimer) {
+        window.clearInterval(window.paymentSyncTimer);
+    }
+    // Sincronizar periódicamente cada 15 segundos
+    window.paymentSyncTimer = window.setInterval(synchronizePayments, 15000);
+
+    // Reanudar sincronización inmediata cuando el usuario vuelve a la pestaña o recupera la red
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            paymentSyncFailures = 0;
+            synchronizePayments();
+        }
+    });
+
+    window.addEventListener('online', function() {
+        paymentSyncFailures = 0;
+        synchronizePayments();
+    });
 
     function processPaymentAction(action, row, onSuccess) {
         action.classList.add('disabled');
