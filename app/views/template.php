@@ -640,6 +640,52 @@ select:focus option {
     </div>
 </div>
 
+<!-- Modal Vista Previa de PDF (Tamaño Carta) -->
+<div class="modal fade" id="pdfPreviewModal" tabindex="-1" aria-labelledby="pdfPreviewTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-secondary shadow-lg" style="height: 92vh;">
+            <div class="modal-header border-secondary d-flex justify-content-between align-items-center py-2 px-3">
+                <div class="d-flex align-items-center gap-2">
+                    <h5 class="modal-title fs-6 mb-0 d-flex align-items-center" id="pdfPreviewTitle">
+                        <i class="bi bi-file-earmark-pdf-fill text-danger me-2"></i>Vista previa PDF
+                    </h5>
+                    <span class="badge bg-primary text-white" style="font-size: 0.70rem;">
+                        <i class="bi bi-file-earmark-ruled me-1"></i>Tamaño Carta
+                    </span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="btn-group btn-group-sm" role="group" aria-label="Orientación Carta">
+                        <button type="button" class="btn btn-sm btn-outline-info active" id="btnPdfOrientationLandscape" title="Orientación Horizontal (Carta)">
+                            <i class="bi bi-layout-sidebar-reverse me-1"></i>Horizontal
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-info" id="btnPdfOrientationPortrait" title="Orientación Vertical (Carta)">
+                            <i class="bi bi-file-earmark me-1"></i>Vertical
+                        </button>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+            </div>
+            <div class="modal-body p-0 position-relative" style="background: #334155;">
+                <iframe id="pdfPreviewFrame" title="Vista previa del PDF" style="width: 100%; height: 100%; border: 0; background: #334155;"></iframe>
+            </div>
+            <div class="modal-footer border-secondary d-flex justify-content-between py-2 px-3">
+                <div class="text-white-50 small d-none d-sm-block">
+                    <i class="bi bi-info-circle me-1"></i>Optimizado en <strong>Tamaño Carta (8.5 × 11 pulg / 215.9 × 279.4 mm)</strong>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-sm btn-outline-light" id="btnPrintPdf" title="Imprimir documento">
+                        <i class="bi bi-printer me-1"></i>Imprimir
+                    </button>
+                    <a id="pdfDownloadLink" class="btn btn-sm btn-primary" download>
+                        <i class="bi bi-download me-1"></i>Descargar PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.11/js/jquery.dataTables.min.js"></script>
@@ -648,7 +694,33 @@ select:focus option {
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-function exportTableToPdf(table) {
+// Precarga de logo y variables del sistema para el reporte PDF
+const appPdfLogo = new Image();
+appPdfLogo.crossOrigin = 'Anonymous';
+appPdfLogo.src = '<?php echo htmlspecialchars(app_url("assets/Logo.png"), ENT_QUOTES, "UTF-8"); ?>';
+const currentAppUser = '<?php echo htmlspecialchars($_SESSION["user"] ?? "Usuario", ENT_QUOTES, "UTF-8"); ?>';
+
+let activePdfExportTable = null;
+let activePdfOrientation = 'landscape';
+
+function extractCleanCellText(td) {
+    if (!td) return '';
+    const clone = td.cloneNode(true);
+    // Eliminar botones interactivos, iconos decorativos y scripts
+    clone.querySelectorAll('.btn, button, a, .bi, script, noscript, [aria-hidden="true"]').forEach(el => el.remove());
+    // Convertir saltos y bloques a saltos de línea legibles
+    clone.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+    clone.querySelectorAll('p, div, li').forEach(el => el.prepend('\n'));
+
+    const text = clone.textContent || '';
+    return text
+        .split('\n')
+        .map(line => line.trim().replace(/[ \t]{2,}/g, ' '))
+        .filter(line => line.length > 0)
+        .join('\n');
+}
+
+function generateTablePdf(table, orientation = null) {
     if (!window.jspdf || typeof window.jspdf.jsPDF !== 'function') {
         Swal.fire({
             icon: 'error',
@@ -660,39 +732,204 @@ function exportTableToPdf(table) {
         return;
     }
 
-    const pdf = new window.jspdf.jsPDF({ orientation: 'landscape' });
-    const title = table.dataset.pdfTitle || 'Reporte';
-    const exportTable = table.cloneNode(true);
-    const headerCells = Array.from(exportTable.querySelectorAll('thead th'));
-    const excludedIndexes = headerCells.reduce((indexes, cell, index) => {
-        if (cell.textContent.trim().toLowerCase() === 'acciones') {
-            indexes.push(index);
+    activePdfExportTable = table;
+    const title = table.dataset.pdfTitle || 'Reporte del Sistema';
+
+    // Encabezados y detección de columnas a omitir (ej: 'Acciones')
+    const headerThs = Array.from(table.querySelectorAll('thead th'));
+    const excludedIndexes = [];
+    const headersData = [];
+
+    headerThs.forEach((th, index) => {
+        const text = th.textContent.trim();
+        const lower = text.toLowerCase();
+        if (lower === 'acciones' || lower === 'acción' || lower === 'accion' || text === '') {
+            excludedIndexes.push(index);
+        } else {
+            headersData.push(text);
         }
-        return indexes;
-    }, []);
+    });
 
-    exportTable.querySelectorAll('tr').forEach(row => {
-        Array.from(row.children).reverse().forEach((cell, reverseIndex) => {
-            const index = row.children.length - 1 - reverseIndex;
-            if (excludedIndexes.includes(index)) {
-                cell.remove();
-            }
+    // Determinar orientación si no se forzó:
+    // Si la tabla contiene más de 4 columnas, usar Horizontal (Carta) para mayor holgura; si no, Vertical (Carta)
+    if (!orientation) {
+        if (table.dataset.pdfOrientation) {
+            orientation = table.dataset.pdfOrientation;
+        } else {
+            orientation = headersData.length > 4 ? 'landscape' : 'portrait';
+        }
+    }
+    activePdfOrientation = orientation;
+
+    // Extraer filas:
+    // Si la tabla usa DataTables, extraer TODOS los registros (incluso los de páginas 2, 3, etc.)
+    const rowsData = [];
+    if (window.jQuery && $.fn.dataTable && $.fn.dataTable.isDataTable(table)) {
+        const dt = $(table).DataTable();
+        const trNodes = dt.rows({ search: 'applied' }).nodes();
+        Array.from(trNodes).forEach(tr => {
+            const row = [];
+            let colIndex = 0;
+            Array.from(tr.children).forEach(td => {
+                if (!excludedIndexes.includes(colIndex)) {
+                    row.push(extractCleanCellText(td));
+                }
+                colIndex++;
+            });
+            if (row.length > 0) rowsData.push(row);
         });
+    } else {
+        table.querySelectorAll('tbody tr').forEach(tr => {
+            if (tr.querySelector('.dataTables_empty')) return;
+            const row = [];
+            let colIndex = 0;
+            Array.from(tr.children).forEach(td => {
+                if (!excludedIndexes.includes(colIndex)) {
+                    row.push(extractCleanCellText(td));
+                }
+                colIndex++;
+            });
+            if (row.length > 0) rowsData.push(row);
+        });
+    }
+
+    // Inicializar jsPDF estrictamente en TAMAÑO CARTA (Letter)
+    const pdf = new window.jspdf.jsPDF({
+        orientation: orientation,
+        unit: 'mm',
+        format: 'letter' // 215.9 x 279.4 mm
     });
 
-    pdf.setFontSize(16);
-    pdf.text(title, 14, 15);
-    pdf.setFontSize(9);
-    pdf.text('Generado: ' + new Date().toLocaleString('es-VE'), 14, 22);
-    pdf.autoTable({
-        html: exportTable,
-        startY: 28,
-        theme: 'grid',
-        styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
-        headStyles: { fillColor: [13, 110, 253], textColor: [255, 255, 255] },
-        alternateRowStyles: { fillColor: [242, 246, 252] }
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    // 1. Franja superior decorativa corporativa (Cyan / Sky)
+    pdf.setFillColor(14, 165, 233); // #0ea5e9
+    pdf.rect(0, 0, pageWidth, 3, 'F');
+
+    // 2. Encabezado institucional de la página 1
+    let hasLogo = false;
+    if (appPdfLogo.complete && appPdfLogo.naturalWidth > 0) {
+        try {
+            const logoAspect = appPdfLogo.naturalWidth / appPdfLogo.naturalHeight;
+            const logoH = 11;
+            const logoW = logoH * logoAspect;
+            pdf.addImage(appPdfLogo, 'PNG', 14, 7.5, logoW, logoH);
+            hasLogo = true;
+        } catch (e) {
+            hasLogo = false;
+        }
+    }
+
+    if (!hasLogo) {
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(15);
+        pdf.setTextColor(15, 23, 42); // #0f172a
+        pdf.text('PCtronic', 14, 14);
+
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7.5);
+        pdf.setTextColor(100, 116, 139); // #64748b
+        pdf.text('STARLINK MANAGEMENT SYSTEM', 14, 19);
+    } else {
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(7.5);
+        pdf.setTextColor(100, 116, 139); // #64748b
+        pdf.text('STARLINK CONTROL & MANAGEMENT', 14, 22.5);
+    }
+
+    // Tarjeta de metadatos del reporte a la derecha
+    const metaX = pageWidth - 14;
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(13);
+    pdf.setTextColor(15, 23, 42);
+    pdf.text(title, metaX, 12.5, { align: 'right' });
+
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(7.8);
+    pdf.setTextColor(71, 85, 105); // #475569
+
+    const dateStr = new Date().toLocaleString('es-VE', {
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', hour12: true
     });
-    const filename = title.toLowerCase().replace(/[^a-z0-9]+/gi, '-') + '.pdf';
+
+    pdf.text('Fecha: ' + dateStr + '  |  Generado por: ' + currentAppUser, metaX, 17.5, { align: 'right' });
+    pdf.text('Total registros: ' + rowsData.length + '  |  Formato: Tamaño Carta (' + (orientation === 'landscape' ? 'Horizontal' : 'Vertical') + ')', metaX, 22, { align: 'right' });
+
+    // Línea divisoria elegante
+    pdf.setDrawColor(226, 232, 240); // #e2e8f0
+    pdf.setLineWidth(0.35);
+    pdf.line(14, 26, pageWidth - 14, 26);
+
+    // Detección automática de alineación por columna
+    const columnStyles = {};
+    headersData.forEach((h, idx) => {
+        const hLow = h.toLowerCase();
+        if (hLow.includes('monto') || hLow.includes('precio') || hLow.includes('deuda') || hLow.includes('valor')) {
+            columnStyles[idx] = { halign: 'right' };
+        } else if (hLow.includes('fecha') || hLow.includes('vence') || hLow.includes('moneda') || hLow.includes('estado') || hLow.includes('kit') || hLow.includes('serial')) {
+            columnStyles[idx] = { halign: 'center' };
+        }
+    });
+
+    // 3. Renderizado de tabla con jspdf-autotable
+    pdf.autoTable({
+        head: [headersData],
+        body: rowsData,
+        startY: 30,
+        margin: { top: 16, right: 14, bottom: 16, left: 14 },
+        theme: 'striped',
+        styles: {
+            font: 'helvetica',
+            fontSize: 7.5,
+            textColor: [30, 41, 59], // #1e293b
+            lineColor: [226, 232, 240], // #e2e8f0
+            lineWidth: 0.15,
+            cellPadding: { top: 2.2, right: 2, bottom: 2.2, left: 2 },
+            valign: 'middle',
+            overflow: 'linebreak'
+        },
+        headStyles: {
+            fillColor: [15, 23, 42], // Fondo Slate Navy elegante #0f172a
+            textColor: [255, 255, 255],
+            fontSize: 8,
+            fontStyle: 'bold',
+            valign: 'middle',
+            cellPadding: { top: 2.8, right: 2, bottom: 2.8, left: 2 }
+        },
+        alternateRowStyles: {
+            fillColor: [248, 250, 252] // #f8fafc
+        },
+        columnStyles: columnStyles,
+        didDrawPage: function(data) {
+            const pageCount = pdf.internal.getNumberOfPages();
+            const currentPage = data.pageNumber;
+            const pWidth = pdf.internal.pageSize.getWidth();
+            const pHeight = pdf.internal.pageSize.getHeight();
+
+            pdf.saveGraphicsState();
+
+            // Franja superior decorativa en todas las páginas
+            pdf.setFillColor(14, 165, 233);
+            pdf.rect(0, 0, pWidth, 2.5, 'F');
+
+            // Pie de página profesional
+            pdf.setDrawColor(226, 232, 240);
+            pdf.setLineWidth(0.3);
+            pdf.line(14, pHeight - 11, pWidth - 14, pHeight - 11);
+
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(7.5);
+            pdf.setTextColor(148, 163, 184); // #94a3b8
+            pdf.text('PCtronic Starlink • Reporte Oficial del Sistema • Tamaño Carta', 14, pHeight - 6);
+            pdf.text('Página ' + currentPage + ' de ' + pageCount, pWidth - 14, pHeight - 6, { align: 'right' });
+
+            pdf.restoreGraphicsState();
+        }
+    });
+
+    const filename = title.toLowerCase().replace(/[^a-z0-9]+/gi, '-') + '-carta.pdf';
     const pdfUrl = URL.createObjectURL(pdf.output('blob'));
     const previewFrame = document.getElementById('pdfPreviewFrame');
     const downloadLink = document.getElementById('pdfDownloadLink');
@@ -706,32 +943,86 @@ function exportTableToPdf(table) {
     previewFrame.src = pdfUrl;
     downloadLink.href = pdfUrl;
     downloadLink.download = filename;
-    previewTitle.textContent = 'Vista previa: ' + title;
+    previewTitle.innerHTML = '<i class="bi bi-file-earmark-pdf-fill text-danger me-2"></i>' + title + ' <span class="badge bg-secondary ms-2" style="font-size: 0.70rem;"><i class="bi bi-file-earmark-text me-1"></i>Carta (' + (orientation === 'landscape' ? 'Horizontal' : 'Vertical') + ')</span>';
+
+    // Reflejar la orientación activa en los botones del modal
+    const btnLandscape = document.getElementById('btnPdfOrientationLandscape');
+    const btnPortrait = document.getElementById('btnPdfOrientationPortrait');
+    if (btnLandscape && btnPortrait) {
+        if (orientation === 'landscape') {
+            btnLandscape.classList.add('active', 'btn-info', 'text-dark');
+            btnLandscape.classList.remove('btn-outline-info');
+            btnPortrait.classList.remove('active', 'btn-info', 'text-dark');
+            btnPortrait.classList.add('btn-outline-info');
+        } else {
+            btnPortrait.classList.add('active', 'btn-info', 'text-dark');
+            btnPortrait.classList.remove('btn-outline-info');
+            btnLandscape.classList.remove('active', 'btn-info', 'text-dark');
+            btnLandscape.classList.add('btn-outline-info');
+        }
+    }
+
     bootstrap.Modal.getOrCreateInstance(document.getElementById('pdfPreviewModal')).show();
 }
 
-const pdfPreviewModal = document.createElement('div');
-pdfPreviewModal.className = 'modal fade';
-pdfPreviewModal.id = 'pdfPreviewModal';
-pdfPreviewModal.tabIndex = -1;
-pdfPreviewModal.innerHTML = '<div class="modal-dialog modal-xl modal-dialog-centered"><div class="modal-content bg-dark text-white border-secondary" style="height: 90vh"><div class="modal-header border-secondary"><h5 class="modal-title" id="pdfPreviewTitle">Vista previa PDF</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button></div><div class="modal-body p-0"><iframe id="pdfPreviewFrame" title="Vista previa del PDF" style="width: 100%; height: 100%; border: 0; background: #525659"></iframe></div><div class="modal-footer border-secondary"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button><a id="pdfDownloadLink" class="btn btn-primary" download><i class="bi bi-download me-1"></i> Descargar PDF</a></div></div></div>';
-document.body.appendChild(pdfPreviewModal);
+function exportTableToPdf(table) {
+    generateTablePdf(table);
+}
 
-function initializePdfExportables() {
-document.querySelectorAll('.pdf-exportable').forEach(function (table) {
-    const wrapper = table.closest('.table-responsive') || table.parentElement;
-    if (!wrapper || wrapper.querySelector('.pdf-export-button')) {
-        return;
+// Inicialización de eventos para alternar orientación e imprimir en el modal
+document.addEventListener('DOMContentLoaded', function () {
+    const btnLandscape = document.getElementById('btnPdfOrientationLandscape');
+    const btnPortrait = document.getElementById('btnPdfOrientationPortrait');
+    const btnPrint = document.getElementById('btnPrintPdf');
+
+    if (btnLandscape) {
+        btnLandscape.addEventListener('click', function () {
+            if (activePdfExportTable && activePdfOrientation !== 'landscape') {
+                generateTablePdf(activePdfExportTable, 'landscape');
+            }
+        });
     }
 
-    const toolbar = document.createElement('div');
-    toolbar.className = 'd-flex justify-content-end mb-2';
-    toolbar.innerHTML = '<button type="button" class="btn btn-sm btn-outline-light pdf-export-button"><i class="bi bi-file-earmark-pdf me-1"></i> Exportar PDF</button>';
-    wrapper.parentNode.insertBefore(toolbar, wrapper);
-    toolbar.querySelector('button').addEventListener('click', function () {
-        exportTableToPdf(table);
-    });
+    if (btnPortrait) {
+        btnPortrait.addEventListener('click', function () {
+            if (activePdfExportTable && activePdfOrientation !== 'portrait') {
+                generateTablePdf(activePdfExportTable, 'portrait');
+            }
+        });
+    }
+
+    if (btnPrint) {
+        btnPrint.addEventListener('click', function () {
+            const frame = document.getElementById('pdfPreviewFrame');
+            if (frame && frame.contentWindow) {
+                frame.contentWindow.focus();
+                frame.contentWindow.print();
+            }
+        });
+    }
 });
+
+function initializePdfExportables() {
+    document.querySelectorAll('.pdf-exportable').forEach(function (table) {
+        const wrapper = table.closest('.table-responsive') || table.parentElement;
+        if (!wrapper) return;
+
+        // Evitar duplicar botones de exportación si ya existe en el contenedor
+        if (wrapper.previousElementSibling && wrapper.previousElementSibling.classList.contains('pdf-export-toolbar')) {
+            return;
+        }
+        if (wrapper.querySelector('.pdf-export-button')) {
+            return;
+        }
+
+        const toolbar = document.createElement('div');
+        toolbar.className = 'd-flex justify-content-end mb-2 pdf-export-toolbar';
+        toolbar.innerHTML = '<button type="button" class="btn btn-sm btn-outline-light pdf-export-button"><i class="bi bi-file-earmark-pdf me-1 text-danger"></i> Exportar PDF (Carta)</button>';
+        wrapper.parentNode.insertBefore(toolbar, wrapper);
+        toolbar.querySelector('button').addEventListener('click', function () {
+            exportTableToPdf(table);
+        });
+    });
 }
 
 function initializeDataTables() {
