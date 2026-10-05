@@ -16,20 +16,26 @@ class Router {
             exit();
         }
 
-        // CORRECCIÓN TÁCTICA: Mapeamos las rutas de acceso y los plurales a los controladores físicos
+        // Mapeamos las rutas de acceso, plurales y alias a los controladores físicos correspondientes
         $controllerName = $rawName;
         if ($rawName === 'login' || $rawName === 'register' || $rawName === 'logout') {
             $controllerName = 'auth';
-        } elseif ($rawName === 'clients') {
+        } elseif ($rawName === 'clients' || $rawName === 'client') {
             $controllerName = 'clients';
-        } elseif ($rawName === 'antenas') {
+        } elseif ($rawName === 'antenas' || $rawName === 'antena') {
             $controllerName = 'antena';
-        } elseif ($rawName === 'plans') {
+        } elseif ($rawName === 'plans' || $rawName === 'plan') {
             $controllerName = 'plan';
-        } elseif ($rawName === 'countries') {
+        } elseif ($rawName === 'countries' || $rawName === 'country' || $rawName === 'paises' || $rawName === 'pais') {
             $controllerName = 'country';
-        } elseif ($rawName === 'users') {
+        } elseif ($rawName === 'users' || $rawName === 'user' || $rawName === 'usuarios' || $rawName === 'usuario') {
             $controllerName = 'users';
+        } elseif ($rawName === 'accounts' || $rawName === 'account' || $rawName === 'cuentas' || $rawName === 'cuenta') {
+            $controllerName = 'accounts';
+        } elseif ($rawName === 'payments' || $rawName === 'payment' || $rawName === 'pagos' || $rawName === 'pago') {
+            $controllerName = 'payments';
+        } elseif ($rawName === 'database' || $rawName === 'bd' || $rawName === 'db' || $rawName === 'basededatos') {
+            $controllerName = 'database';
         } elseif ($rawName === 'registros' || $rawName === 'logs' || $rawName === 'auditoria') {
             $controllerName = 'logs';
         }

@@ -18,6 +18,19 @@ class Controller {
     }
 
     protected function getUserRole() {
+        if (empty($_SESSION['user_role']) && !empty($_SESSION['user_id'])) {
+            try {
+                $db = Database::connect();
+                $stmt = $db->prepare('SELECT l.user_role FROM `user` u LEFT JOIN `level` l ON u.id_level = l.id_level WHERE u.id_user = :id');
+                $stmt->execute([':id' => intval($_SESSION['user_id'])]);
+                $role = $stmt->fetchColumn();
+                if ($role) {
+                    $_SESSION['user_role'] = $role;
+                }
+            } catch (Throwable $e) {
+                // Silenciosamente ignorar fallo de conexión
+            }
+        }
         return isset($_SESSION['user_role']) ? $_SESSION['user_role'] : null;
     }
 
@@ -56,6 +69,20 @@ class Controller {
             session_unset();
             header('Location: index.php?url=login&status=session_revoked');
             exit();
+        }
+
+        // Sincronizar rol y datos del usuario en sesión si faltan
+        if (empty($_SESSION['user_role']) || empty($_SESSION['user'])) {
+            try {
+                $userStmt = $db->prepare('SELECT u.ci, u.name, u.surname, l.user_role FROM `user` u LEFT JOIN `level` l ON u.id_level = l.id_level WHERE u.id_user = :id');
+                $userStmt->execute([':id' => intval($_SESSION['user_id'])]);
+                $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
+                if ($userData) {
+                    $_SESSION['user_role'] = $userData['user_role'] ?? 'Expectador';
+                    if (empty($_SESSION['user_ci'])) $_SESSION['user_ci'] = $userData['ci'];
+                    if (empty($_SESSION['user'])) $_SESSION['user'] = trim(($userData['name'] ?? '') . ' ' . ($userData['surname'] ?? ''));
+                }
+            } catch (Throwable $e) {}
         }
 
         $stmt = $db->prepare('UPDATE user_sessions SET last_seen = CURRENT_TIMESTAMP WHERE user_id = :user_id AND session_id = :session_id');

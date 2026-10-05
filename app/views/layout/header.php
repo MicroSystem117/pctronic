@@ -16,11 +16,16 @@
             </span>
             <span class="d-none d-md-inline text-white fw-semibold">
                 <?php echo isset($user) ? htmlspecialchars($user) : (isset($_SESSION['user']) ? htmlspecialchars($_SESSION['user']) : 'Invitado'); ?>
+                <?php if (!empty($_SESSION['user_role'])): ?>
+                    <span class="badge bg-primary ms-1" style="font-size: 0.72rem;"><?php echo htmlspecialchars($_SESSION['user_role']); ?></span>
+                <?php endif; ?>
             </span>
         </button>
         <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end shadow-lg border-0 rounded-4 p-2">
             <li>
-                <span class="dropdown-item-text text-white-50 small px-2">Usuario activo</span>
+                <span class="dropdown-item-text text-white-50 small px-2">
+                    Rol: <strong class="text-white"><?php echo htmlspecialchars($_SESSION['user_role'] ?? 'Invitado'); ?></strong>
+                </span>
             </li>
             <li><hr class="dropdown-divider border-secondary"></li>
             <li>

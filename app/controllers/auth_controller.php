@@ -109,8 +109,9 @@ class AuthController extends Controller {
         $_SESSION['user_id'] = $user['id_user'];
         $_SESSION['user'] = trim($user['name'] . ' ' . $user['surname']);
         $_SESSION['user_ci'] = $user['ci'];
+        $_SESSION['user_role'] = $user['user_role'] ?? 'Expectador';
         $this->userModel->createSession($user['id_user'], session_id());
-        LogModel::log('LOGIN', 'Autenticación', 'Inicio de sesión exitoso', $user['id_user'], trim($user['name'] . ' ' . $user['surname']), $user['user_role']);
+        LogModel::log('LOGIN', 'Autenticación', 'Inicio de sesión exitoso', $user['id_user'], trim($user['name'] . ' ' . $user['surname']), $_SESSION['user_role']);
     }
 
     public function register() {
