@@ -66,6 +66,7 @@ class PaymentModel {
                         pay.status,
                         pay.reviewed_at,
                         GROUP_CONCAT(DISTINCT a.serial ORDER BY a.serial SEPARATOR ', ') AS serial,
+                        GROUP_CONCAT(DISTINCT NULLIF(TRIM(a.nickname), '') ORDER BY NULLIF(TRIM(a.nickname), '') SEPARATOR ', ') AS nickname,
                         GROUP_CONCAT(DISTINCT CONCAT(c.name, ' ', c.surname) ORDER BY c.name SEPARATOR ', ') AS cliente,
                         GROUP_CONCAT(DISTINCT p.plan ORDER BY p.plan SEPARATOR ', ') AS nombre_plan,
                         GROUP_CONCAT(DISTINCT co.country ORDER BY co.country SEPARATOR ', ') AS pais

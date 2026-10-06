@@ -211,6 +211,7 @@ class PaymentsController extends Controller {
                     'id' => (int) $payment['id_payment'],
                     'status' => $payment['status'] ?? 'Pendiente',
                     'serial' => $payment['serial'],
+                    'nickname' => $payment['nickname'] ?? '',
                     'client' => $payment['cliente'],
                     'amount' => $payment['amount'],
                     'currency' => $payment['currency'],

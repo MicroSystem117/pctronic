@@ -24,6 +24,7 @@ $canDelete = $canReview;
             <option value="all">Todos</option>
             <option value="cliente">Cliente</option>
             <option value="antena">Antena</option>
+            <option value="nickname">Nickname</option>
             <option value="plan">Plan</option>
             <option value="currency">Moneda</option>
             <option value="status">Estado</option>
@@ -92,11 +93,18 @@ $canDelete = $canReview;
                                     }
                                 ?>
                                 <tr data-serial="<?php echo htmlspecialchars($antena['serial'], ENT_QUOTES); ?>"
+                                    data-antena="<?php echo htmlspecialchars($antena['serial'], ENT_QUOTES); ?>"
+                                    data-nickname="<?php echo htmlspecialchars($antena['nickname'] ?? '', ENT_QUOTES); ?>"
                                     data-cliente="<?php echo htmlspecialchars($antena['cliente'], ENT_QUOTES); ?>"
                                     data-plan="<?php echo htmlspecialchars($antena['nombre_plan'], ENT_QUOTES); ?>"
                                     data-status="<?php echo strip_tags($statusLabel); ?>"
                                     data-pay="<?php echo htmlspecialchars($antena['due_day'] ?? $antena['pay'] ?? '', ENT_QUOTES); ?>">
-                                    <td data-label="Serial"><code><?php echo htmlspecialchars($antena['serial']); ?></code></td>
+                                    <td data-label="Serial">
+                                        <code><?php echo htmlspecialchars($antena['serial']); ?></code>
+                                        <?php if (!empty($antena['nickname'])): ?>
+                                            <div class="small text-info mt-1"><i class="bi bi-tag me-1"></i><?php echo htmlspecialchars($antena['nickname']); ?></div>
+                                        <?php endif; ?>
+                                    </td>
                                     <td data-label="Cliente"><span class="td-value"><?php echo htmlspecialchars($antena['cliente']); ?></span></td>
                                     <td data-label="Vence"><span class="td-value"><?php echo isset($antena['due_day']) && $antena['due_day'] !== null && $antena['due_day'] !== '' ? 'Día ' . htmlspecialchars(intval($antena['due_day'])) : '<span class="text-white-50">N/A</span>'; ?></span></td>
                                     <td data-label="Estado">
@@ -185,12 +193,19 @@ $canDelete = $canReview;
                             <?php foreach ($data['payments'] as $payment): ?>
                                 <tr data-payment-id="<?php echo (int) $payment['id_payment']; ?>"
                                     data-serial="<?php echo htmlspecialchars($payment['serial'], ENT_QUOTES); ?>"
+                                    data-antena="<?php echo htmlspecialchars($payment['serial'], ENT_QUOTES); ?>"
+                                    data-nickname="<?php echo htmlspecialchars($payment['nickname'] ?? '', ENT_QUOTES); ?>"
                                     data-cliente="<?php echo htmlspecialchars($payment['cliente'], ENT_QUOTES); ?>"
                                     data-plan="<?php echo htmlspecialchars($payment['nombre_plan'], ENT_QUOTES); ?>"
                                     data-currency="<?php echo htmlspecialchars($payment['currency'], ENT_QUOTES); ?>"
                                     data-status="<?php echo htmlspecialchars($payment['status'] ?? 'Pendiente', ENT_QUOTES); ?>"
                                     data-payment-date="<?php echo htmlspecialchars($payment['payment_date'], ENT_QUOTES); ?>">
-                                    <td data-label="Antena"><code><?php echo htmlspecialchars($payment['serial']); ?></code></td>
+                                    <td data-label="Antena">
+                                        <code><?php echo htmlspecialchars($payment['serial']); ?></code>
+                                        <?php if (!empty($payment['nickname'])): ?>
+                                            <div class="small text-info mt-1"><i class="bi bi-tag me-1"></i><?php echo htmlspecialchars($payment['nickname']); ?></div>
+                                        <?php endif; ?>
+                                    </td>
                                     <td data-label="Cliente"><span class="td-value"><?php echo htmlspecialchars($payment['cliente']); ?></span></td>
                                     <td data-label="Monto"><span class="td-value"><?php echo number_format($payment['amount'], 2, ',', '.'); ?></span></td>
                                     <td data-label="Moneda"><span class="td-value badge bg-secondary"><?php echo htmlspecialchars($payment['currency']); ?></span></td>
@@ -217,6 +232,7 @@ $canDelete = $canReview;
                                                             data-bs-toggle="modal" data-bs-target="#modalReviewPayment"
                                                         data-id="<?php echo $payment['id_payment']; ?>"
                                                             data-serial="<?php echo htmlspecialchars($payment['serial'], ENT_QUOTES); ?>"
+                                                            data-nickname="<?php echo htmlspecialchars($payment['nickname'] ?? '', ENT_QUOTES); ?>"
                                                             data-client="<?php echo htmlspecialchars($payment['cliente'], ENT_QUOTES); ?>"
                                                             data-amount="<?php echo htmlspecialchars(number_format($payment['amount'], 2, ',', '.'), ENT_QUOTES); ?>"
                                                             data-currency="<?php echo htmlspecialchars($payment['currency'], ENT_QUOTES); ?>"
@@ -256,7 +272,11 @@ $canDelete = $canReview;
             </div>
             <div class="modal-body">
                 <dl class="row mb-3">
-                    <dt class="col-sm-4">Antena</dt><dd class="col-sm-8" id="review_payment_serial"></dd>
+                    <dt class="col-sm-4">Antena</dt>
+                    <dd class="col-sm-8">
+                        <span id="review_payment_serial"></span>
+                        <span id="review_payment_nickname" class="badge bg-secondary-subtle text-info border border-info border-opacity-25 ms-2 d-none"></span>
+                    </dd>
                     <dt class="col-sm-4">Cliente</dt><dd class="col-sm-8" id="review_payment_client"></dd>
                     <dt class="col-sm-4">Monto</dt><dd class="col-sm-8" id="review_payment_amount"></dd>
                     <dt class="col-sm-4">Fecha</dt><dd class="col-sm-8" id="review_payment_date"></dd>
@@ -293,7 +313,7 @@ $canDelete = $canReview;
                                 <i class="bi bi-check2-square me-1"></i>Seleccionar todas
                             </button>
                         </div>
-                        <input type="search" class="form-control form-control-sm mb-2" id="payment_client_search" placeholder="Buscar antenas por cliente..." autocomplete="off">
+                        <input type="search" class="form-control form-control-sm mb-2" id="payment_client_search" placeholder="Buscar antenas por cliente, serial o nickname..." autocomplete="off">
                         <div class="border border-secondary rounded p-2" id="payment_antennas" style="max-height: 260px; overflow-y: auto;">
                             <?php foreach ($data['antennas'] as $antena): ?>
                                 <div class="form-check payment-antenna-option">
@@ -302,11 +322,17 @@ $canDelete = $canReview;
                                            name="antenna_ids[]"
                                            value="<?php echo $antena['id_starlink']; ?>"
                                            data-client="<?php echo htmlspecialchars($antena['cliente'], ENT_QUOTES); ?>"
+                                           data-serial="<?php echo htmlspecialchars($antena['serial'], ENT_QUOTES); ?>"
+                                           data-nickname="<?php echo htmlspecialchars($antena['nickname'] ?? '', ENT_QUOTES); ?>"
                                            data-payday="<?php echo htmlspecialchars($antena['pay'] ?? '', ENT_QUOTES); ?>"
                                            data-price="<?php echo htmlspecialchars($antena['plan_price'] ?? '0', ENT_QUOTES); ?>"
                                            id="payment_antenna_<?php echo $antena['id_starlink']; ?>">
                                     <label class="form-check-label" for="payment_antenna_<?php echo $antena['id_starlink']; ?>">
-                                        <?php echo htmlspecialchars($antena['serial']); ?> — <?php echo htmlspecialchars($antena['cliente']); ?>
+                                        <code><?php echo htmlspecialchars($antena['serial']); ?></code>
+                                        <?php if (!empty($antena['nickname'])): ?>
+                                            <span class="badge bg-secondary-subtle text-info border border-info border-opacity-25 ms-1"><?php echo htmlspecialchars($antena['nickname']); ?></span>
+                                        <?php endif; ?>
+                                         — <?php echo htmlspecialchars($antena['cliente']); ?>
                                     </label>
                                 </div>
                             <?php endforeach; ?>
@@ -471,10 +497,48 @@ document.addEventListener('app:content-ready', function() {
     function filterRows() {
         const q = searchInput.value.trim().toLowerCase();
         const type = searchType.value;
+        const allRows = document.querySelectorAll('.payments-panel .table tbody tr');
 
-        rows.forEach(row => {
-            const value = row.dataset[type] || row.textContent;
-            row.style.display = q === '' || value.toLowerCase().includes(q) ? '' : 'none';
+        allRows.forEach(row => {
+            if (row.querySelector('td[colspan]')) {
+                return;
+            }
+
+            let matches = false;
+            if (q === '') {
+                matches = true;
+            } else if (type === 'all') {
+                const combined = [
+                    row.textContent,
+                    row.dataset.nickname || '',
+                    row.dataset.serial || '',
+                    row.dataset.cliente || ''
+                ].join(' ').toLowerCase();
+                matches = combined.includes(q);
+            } else if (type === 'nickname') {
+                const nick = (row.dataset.nickname || '').toLowerCase();
+                matches = nick.includes(q);
+            } else if (type === 'cliente') {
+                const client = (row.dataset.cliente || '').toLowerCase();
+                matches = client.includes(q);
+            } else if (type === 'antena') {
+                const serial = (row.dataset.serial || row.dataset.antena || '').toLowerCase();
+                matches = serial.includes(q);
+            } else if (type === 'plan') {
+                const plan = (row.dataset.plan || '').toLowerCase();
+                matches = plan.includes(q);
+            } else if (type === 'currency') {
+                const curr = (row.dataset.currency || '').toLowerCase();
+                matches = curr.includes(q);
+            } else if (type === 'status') {
+                const status = (row.dataset.status || '').toLowerCase();
+                matches = status.includes(q);
+            } else {
+                const val = (row.dataset[type] || '').toLowerCase();
+                matches = val.includes(q);
+            }
+
+            row.style.display = matches ? '' : 'none';
         });
     }
 
@@ -537,7 +601,7 @@ document.addEventListener('app:content-ready', function() {
             : '<span class="text-white-50">-</span>';
                 const actions = <?php echo $canReview ? 'true' : 'false'; ?>
                         ? (payment.status === 'Pendiente'
-                                ? '<button type="button" class="btn btn-sm btn-outline-info payment-review-button" data-bs-toggle="modal" data-bs-target="#modalReviewPayment" data-id="' + payment.id + '" data-serial="' + escapePaymentValue(payment.serial) + '" data-client="' + escapePaymentValue(payment.client) + '" data-amount="' + escapePaymentValue(Number(payment.amount).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })) + '" data-currency="' + escapePaymentValue(payment.currency) + '" data-date="' + escapePaymentValue(payment.date) + '" data-receipt="' + escapePaymentValue(payment.receipt) + '" title="Revisar pago"><i class="bi bi-search me-1"></i>Revisar</button>' +
+                                ? '<button type="button" class="btn btn-sm btn-outline-info payment-review-button" data-bs-toggle="modal" data-bs-target="#modalReviewPayment" data-id="' + payment.id + '" data-serial="' + escapePaymentValue(payment.serial) + '" data-nickname="' + escapePaymentValue(payment.nickname || '') + '" data-client="' + escapePaymentValue(payment.client) + '" data-amount="' + escapePaymentValue(Number(payment.amount).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })) + '" data-currency="' + escapePaymentValue(payment.currency) + '" data-date="' + escapePaymentValue(payment.date) + '" data-receipt="' + escapePaymentValue(payment.receipt) + '" title="Revisar pago"><i class="bi bi-search me-1"></i>Revisar</button>' +
                                     '<a href="index.php?url=payments&action=approve&id=' + payment.id + '" class="btn btn-sm btn-success payment-action" title="Aprobar pago"><i class="bi bi-check-lg"></i></a>' +
                                     '<a href="index.php?url=payments&action=reject&id=' + payment.id + '" class="btn btn-sm btn-warning payment-action" title="Rechazar pago"><i class="bi bi-x-lg"></i></a>'
                                 : '') +
@@ -545,8 +609,18 @@ document.addEventListener('app:content-ready', function() {
                         : '';
         const row = document.createElement('tr');
         row.dataset.paymentId = payment.id;
+        row.dataset.serial = payment.serial || '';
+        row.dataset.antena = payment.serial || '';
+        row.dataset.nickname = payment.nickname || '';
+        row.dataset.cliente = payment.client || '';
+        row.dataset.currency = payment.currency || '';
         row.dataset.status = payment.status;
-        row.innerHTML = '<td data-label="Antena"><code>' + escapePaymentValue(payment.serial) + '</code></td>' +
+
+        const nicknameHtml = payment.nickname
+            ? '<div class="small text-info mt-1"><i class="bi bi-tag me-1"></i>' + escapePaymentValue(payment.nickname) + '</div>'
+            : '';
+
+        row.innerHTML = '<td data-label="Antena"><code>' + escapePaymentValue(payment.serial) + '</code>' + nicknameHtml + '</td>' +
             '<td data-label="Cliente"><span class="td-value">' + escapePaymentValue(payment.client) + '</span></td>' +
             '<td data-label="Monto"><span class="td-value">' + Number(payment.amount).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</span></td>' +
             '<td data-label="Moneda"><span class="td-value badge bg-secondary">' + escapePaymentValue(payment.currency) + '</span></td>' +
@@ -801,8 +875,11 @@ document.addEventListener('app:content-ready', function() {
             paymentClientSearch.addEventListener('input', function() {
                 const query = this.value.trim().toLowerCase();
                 document.querySelectorAll('.payment-antenna-option').forEach(option => {
-                    const client = option.querySelector('.payment-antenna').dataset.client.toLowerCase();
-                    option.style.display = query === '' || client.includes(query) ? '' : 'none';
+                    const cb = option.querySelector('.payment-antenna');
+                    const client = (cb.dataset.client || '').toLowerCase();
+                    const serial = (cb.dataset.serial || '').toLowerCase();
+                    const nickname = (cb.dataset.nickname || '').toLowerCase();
+                    option.style.display = query === '' || client.includes(query) || serial.includes(query) || nickname.includes(query) ? '' : 'none';
                 });
             });
         }
@@ -831,6 +908,16 @@ document.addEventListener('app:content-ready', function() {
         button.dataset.bound = 'true';
         button.addEventListener('click', function() {
             document.getElementById('review_payment_serial').textContent = this.dataset.serial;
+            const reviewNicknameEl = document.getElementById('review_payment_nickname');
+            if (reviewNicknameEl) {
+                if (this.dataset.nickname) {
+                    reviewNicknameEl.textContent = this.dataset.nickname;
+                    reviewNicknameEl.classList.remove('d-none');
+                } else {
+                    reviewNicknameEl.textContent = '';
+                    reviewNicknameEl.classList.add('d-none');
+                }
+            }
             document.getElementById('review_payment_client').textContent = this.dataset.client;
             document.getElementById('review_payment_amount').textContent = this.dataset.amount + ' ' + this.dataset.currency;
             document.getElementById('review_payment_date').textContent = this.dataset.date;
