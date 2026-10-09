@@ -183,7 +183,6 @@ $canDelete = $canReview;
                             <th class="text-nowrap">Moneda</th>
                             <th class="text-nowrap">Fecha Pago</th>
                             <th>Estado</th>
-                            <th>Comprobante</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -222,15 +221,11 @@ $canDelete = $canReview;
                                         ?>
                                         <span class="badge <?php echo $statusClass; ?>"><?php echo htmlspecialchars($paymentStatus); ?></span>
                                     </td>
-                                    <td data-label="Comprobante">
-                                        <?php if (!empty($payment['receipt_path'])): ?>
-                                            <a href="<?php echo htmlspecialchars($payment['receipt_path'], ENT_QUOTES); ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-info" title="Ver comprobante adjunto"><i class="bi bi-paperclip"></i></a>
-                                        <?php else: ?>
-                                            <span class="text-white-50">-</span>
-                                        <?php endif; ?>
-                                    </td>
                                     <td data-label="Acciones" class="text-nowrap">
                                         <div class="d-inline-flex align-items-center gap-1">
+                                            <?php if (!empty($payment['receipt_path'])): ?>
+                                                <a href="<?php echo htmlspecialchars($payment['receipt_path'], ENT_QUOTES); ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-info" title="Ver comprobante adjunto"><i class="bi bi-paperclip"></i></a>
+                                            <?php endif; ?>
                                             <button type="button" class="btn btn-sm btn-outline-info btn-generate-receipt"
                                                     data-id="<?php echo (int) $payment['id_payment']; ?>"
                                                     data-serial="<?php echo htmlspecialchars($payment['serial'], ENT_QUOTES); ?>"
@@ -303,7 +298,7 @@ $canDelete = $canReview;
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="8" class="text-center py-4 text-muted">No hay pagos registrados.</td>
+                                <td colspan="7" class="text-center py-4 text-muted">No hay pagos registrados.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -750,8 +745,12 @@ document.addEventListener('app:content-ready', function() {
             adminActions += '<a href="index.php?url=payments&action=delete&id=' + payment.id + '" class="btn btn-sm btn-danger payment-delete-action" title="Eliminar pago"><i class="bi bi-trash me-1"></i><span class="action-btn-text">Eliminar</span></a>';
         }
 
+        const voucherBtn = payment.receipt
+            ? '<a href="' + escapePaymentValue(payment.receipt) + '" target="_blank" rel="noopener" class="btn btn-sm btn-outline-info" title="Ver comprobante adjunto"><i class="bi bi-paperclip"></i></a>'
+            : '';
+
         const actionsHtml = '<td data-label="Acciones" class="text-nowrap"><div class="d-inline-flex align-items-center gap-1">' +
-            receiptBtn + (waBtn ? ' ' + waBtn : '') + (adminActions ? ' ' + adminActions : '') +
+            (voucherBtn ? voucherBtn + ' ' : '') + receiptBtn + (waBtn ? ' ' + waBtn : '') + (adminActions ? ' ' + adminActions : '') +
             '</div></td>';
 
         const row = document.createElement('tr');
@@ -773,7 +772,6 @@ document.addEventListener('app:content-ready', function() {
             '<td data-label="Moneda"><span class="td-value badge bg-secondary">' + escapePaymentValue(payment.currency) + '</span></td>' +
             '<td data-label="Fecha Pago"><span class="td-value">' + escapePaymentValue(payment.date) + '</span></td>' +
             '<td data-label="Estado"><span class="badge ' + statusClass + '">' + escapePaymentValue(payment.status) + '</span></td>' +
-            '<td data-label="Comprobante">' + receipt + '</td>' +
             actionsHtml;
         return row;
     }

@@ -714,7 +714,7 @@ small {
 }
 
 .payment-history-table {
-    min-width: 760px !important;
+    min-width: 680px !important;
 }
 
 .payment-history-table td[data-label="Cliente"],
