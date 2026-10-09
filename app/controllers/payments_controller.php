@@ -45,14 +45,18 @@ class PaymentsController extends Controller {
                     exit();
                 }
 
-                $mode = $_POST['exemption_mode'] ?? 'current_month';
                 $exemptUntil = null;
-                if ($mode === 'current_month') {
-                    $exemptUntil = date('Y-m-01');
-                } elseif ($mode === 'next_month') {
-                    $exemptUntil = date('Y-m-01', strtotime('+1 month'));
-                } elseif ($mode === 'custom') {
-                    $exemptUntil = !empty($_POST['custom_exempt_until']) ? trim($_POST['custom_exempt_until']) : null;
+                if (!empty($_POST['exempt_until'])) {
+                    $exemptUntil = trim($_POST['exempt_until']);
+                } elseif (!empty($_POST['custom_exempt_until'])) {
+                    $exemptUntil = trim($_POST['custom_exempt_until']);
+                } else {
+                    $mode = $_POST['exemption_mode'] ?? 'current_month';
+                    if ($mode === 'current_month') {
+                        $exemptUntil = date('Y-m-01');
+                    } elseif ($mode === 'next_month') {
+                        $exemptUntil = date('Y-m-01', strtotime('+1 month'));
+                    }
                 }
 
                 if (!$exemptUntil || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $exemptUntil)) {
@@ -142,6 +146,7 @@ class PaymentsController extends Controller {
                 }
             }
 
+            $monthsPaid   = isset($_POST['months_paid']) ? max(1, intval($_POST['months_paid'])) : 1;
             $amounts = $this->paymentModel->getAmountsForAntennas($antenna_ids);
             if (count($amounts) !== count($antenna_ids)) {
                 if ($isAjax) {
@@ -156,7 +161,7 @@ class PaymentsController extends Controller {
             // Si los planes no tienen precio configurado (0), prorratear el monto ingresado
             $totalCalculated = array_sum(array_map('floatval', $amounts));
             if ($totalCalculated <= 0 && floatval($amount) > 0) {
-                $splitAmount = floatval($amount) / count($antenna_ids);
+                $splitAmount = (floatval($amount) / count($antenna_ids)) / $monthsPaid;
                 foreach ($antenna_ids as $id) {
                     $amounts[$id] = $splitAmount;
                 }
@@ -169,7 +174,8 @@ class PaymentsController extends Controller {
                 $payment_date,
                 intval($_SESSION['user_id']),
                 $this->isExpectador() ? 'Pendiente' : 'Aprobado',
-                $receiptPath
+                $receiptPath,
+                $monthsPaid
             );
 
             if (!$saved) {
@@ -193,7 +199,8 @@ class PaymentsController extends Controller {
             }
 
             $status = $this->isExpectador() ? 'payment_pending' : 'payment_success';
-            LogModel::log('CREAR', 'Pagos', "Registró pago de $amount $currency para " . count($antenna_ids) . " antena(s)");
+            $monthsText = $monthsPaid > 1 ? " ($monthsPaid meses)" : "";
+            LogModel::log('CREAR', 'Pagos', "Registró pago de $amount $currency$monthsText para " . count($antenna_ids) . " antena(s)");
             if ($isAjax) {
                 header('Content-Type: application/json; charset=utf-8');
                 echo json_encode(['success' => true, 'status' => $status]);
@@ -212,13 +219,33 @@ class PaymentsController extends Controller {
                     'status' => $payment['status'] ?? 'Pendiente',
                     'serial' => $payment['serial'],
                     'nickname' => $payment['nickname'] ?? '',
+                    'pay_day' => $payment['pay_day'] ?? '',
                     'client' => $payment['cliente'],
+                    'client_ci' => $payment['client_ci'] ?? '',
+                    'client_phone' => $payment['client_phone'] ?? '',
+                    'plan' => $payment['nombre_plan'] ?? '',
+                    'plan_price' => $payment['plan_price'] ?? '',
+                    'country' => $payment['pais'] ?? '',
                     'amount' => $payment['amount'],
+                    'months_paid' => (int) ($payment['months_paid'] ?? 1),
                     'currency' => $payment['currency'],
                     'date' => date('d/m/Y', strtotime($payment['payment_date'])),
+                    'raw_date' => $payment['payment_date'],
                     'receipt' => $payment['receipt_path'] ?? ''
                 ];
             }, $payments));
+            exit();
+        }
+
+        if (isset($_GET['action']) && $_GET['action'] === 'receipt_data') {
+            $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+            $payment = $this->paymentModel->getById($id, $this->getUserRole(), $this->getUserCi());
+            header('Content-Type: application/json; charset=utf-8');
+            if (!$payment) {
+                echo json_encode(['success' => false, 'message' => 'Pago no encontrado o sin permisos suficientes.']);
+                exit();
+            }
+            echo json_encode(['success' => true, 'payment' => $payment]);
             exit();
         }
 

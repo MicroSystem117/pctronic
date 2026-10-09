@@ -28,6 +28,10 @@ class AntenaModel {
             if (!in_array('debt_exempt_at', $columns, true)) {
                 $this->db->exec("ALTER TABLE antenas ADD COLUMN debt_exempt_at DATETIME NULL DEFAULT NULL");
             }
+            $payCols = $this->db->query("SHOW COLUMNS FROM payments")->fetchAll(PDO::FETCH_COLUMN);
+            if (!in_array('months_paid', $payCols, true)) {
+                $this->db->exec("ALTER TABLE payments ADD COLUMN months_paid INT NOT NULL DEFAULT 1");
+            }
         } catch (Throwable $e) {
             error_log("AntenaModel::ensureSchema warning: " . $e->getMessage());
         }
@@ -57,14 +61,22 @@ class AntenaModel {
             if ($dueDay > 31) $dueDay = 31;
         }
 
-        // Iterar mes a mes desde el mes de inicio efectivo hasta el mes de hoy
+        $spanishMonths = [
+            1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
+            5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
+            9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+        ];
+
+        // Iterar mes a mes desde el mes de inicio efectivo hasta el mes siguiente al actual
         $curr = new DateTime($effectiveStartDate->format('Y-m-01'));
         $end = new DateTime($today->format('Y-m-01'));
+        $futureLimit = (new DateTime($today->format('Y-m-01')))->modify('+1 month');
         $maturedCycles = 0;
         $currentMonthMatured = false;
         $currentMonthDueDate = null;
+        $allCycles = [];
 
-        while ($curr <= $end) {
+        while ($curr <= $futureLimit) {
             $year = (int)$curr->format('Y');
             $month = (int)$curr->format('n');
             $maxDays = (int)$curr->format('t');
@@ -82,13 +94,34 @@ class AntenaModel {
                 $currentMonthDueDate = $cycleDueDate;
             }
 
-            // Si ya venció a la fecha de hoy
-            if ($cycleDueDate <= $today) {
+            // Solo los ciclos que vencen a la fecha de hoy o antes se consideran devengados
+            $isMatured = ($cycleDueDate <= $today);
+            if ($isMatured) {
                 $maturedCycles++;
                 if ($curr->format('Y-m') === $today->format('Y-m')) {
                     $currentMonthMatured = true;
                 }
             }
+
+            $isCurrent = ($curr->format('Y-m') === $today->format('Y-m'));
+            $isPast = ($cycleDueDate < $today && !$isCurrent);
+            $isNext = ($curr->format('Y-m') > $today->format('Y-m'));
+            $nextStart = (clone $curr)->modify('+1 month')->format('Y-m-01');
+
+            $allCycles[] = [
+                'ym' => $curr->format('Y-m'),
+                'year' => $year,
+                'month' => $month,
+                'label' => ($spanishMonths[$month] ?? '') . ' ' . $year,
+                'due_date' => $cycleDueDate->format('Y-m-d'),
+                'due_day' => $actualDay,
+                'next_start' => $nextStart,
+                'is_matured' => $isMatured,
+                'is_current' => $isCurrent,
+                'is_past' => $isPast,
+                'is_next' => $isNext,
+                'amount' => $planPrice
+            ];
 
             $curr->modify('+1 month');
         }
@@ -106,6 +139,7 @@ class AntenaModel {
         $lastApprovedDate = null;
         $lastPaymentAmount = null;
         $lastPaymentCurrency = null;
+        $paidCycles = 0;
 
         foreach ($payments as $p) {
             $pDate = $p['payment_date'] ?? null;
@@ -122,11 +156,22 @@ class AntenaModel {
             }
 
             $applicablePayments[] = $p;
+            $months = isset($p['months_paid']) && intval($p['months_paid']) > 0 ? intval($p['months_paid']) : 1;
+            $paidCycles += $months;
         }
 
-        $paidCount = count($applicablePayments);
+        $paidCount = $paidCycles;
         $overdueMonths = max(0, $maturedCycles - $paidCount);
         $overdueAmount = $overdueMonths * $planPrice;
+
+        // Construir lista de ciclos no pagados (pendientes de cobro / exonerables)
+        $unpaidCycles = [];
+        foreach ($allCycles as $idx => $cycle) {
+            if ($idx < $paidCount) {
+                continue; // Ya cubierto por un pago anterior
+            }
+            $unpaidCycles[] = $cycle;
+        }
 
         if ($overdueMonths > 0) {
             $statusLabel = 'Atrasado';
@@ -135,7 +180,8 @@ class AntenaModel {
         } elseif ($paidCount > $maturedCycles) {
             $statusLabel = 'Pagado';
             $statusBadgeClass = 'bg-success text-dark';
-            $statusBadgeText = 'Al día / Pagado';
+            $advanceMonths = $paidCount - $maturedCycles;
+            $statusBadgeText = 'Al día' . ($advanceMonths > 0 ? ' (+' . $advanceMonths . ($advanceMonths === 1 ? ' mes' : ' meses') . ')' : '');
         } else {
             if ($currentMonthMatured) {
                 $statusLabel = 'Pagado';
@@ -159,6 +205,7 @@ class AntenaModel {
             'paid_cycles' => $paidCount,
             'overdue_months' => $overdueMonths,
             'overdue_amount' => $overdueAmount,
+            'unpaid_cycles' => $unpaidCycles,
             'status_label' => $statusLabel,
             'status_badge_class' => $statusBadgeClass,
             'status_badge_text' => $statusBadgeText,
@@ -214,14 +261,14 @@ class AntenaModel {
             $antenas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             // Obtener todos los pagos aprobados para cruzarlos con las antenas
-            $paymentsSql = "SELECT antenna_id, payment_date, amount, currency, status 
+            $paymentsSql = "SELECT antenna_id, payment_date, amount, currency, status, months_paid 
                             FROM (
-                                SELECT pa.antenna_id, p.payment_date, p.amount, p.currency, p.status
+                                SELECT pa.antenna_id, p.payment_date, p.amount, p.currency, p.status, COALESCE(p.months_paid, 1) AS months_paid
                                 FROM payments p
                                 INNER JOIN payment_antennas pa ON p.id_payment = pa.payment_id
                                 WHERE p.status = 'Aprobado'
                                 UNION ALL
-                                SELECT p.antenna_id, p.payment_date, p.amount, p.currency, p.status
+                                SELECT p.antenna_id, p.payment_date, p.amount, p.currency, p.status, COALESCE(p.months_paid, 1) AS months_paid
                                 FROM payments p
                                 LEFT JOIN payment_antennas pa ON p.id_payment = pa.payment_id
                                 WHERE p.status = 'Aprobado' AND pa.payment_id IS NULL AND p.antenna_id IS NOT NULL

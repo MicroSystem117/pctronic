@@ -147,6 +147,7 @@ $canDelete = $canReview;
                                                     data-is-exempt="<?php echo !empty($antena['is_exempt']) ? '1' : '0'; ?>"
                                                     data-exempt-until="<?php echo htmlspecialchars($antena['debt_exempt_until'] ?? '', ENT_QUOTES); ?>"
                                                     data-exempt-note="<?php echo htmlspecialchars($antena['debt_exempt_note'] ?? '', ENT_QUOTES); ?>"
+                                                    data-unpaid-cycles="<?php echo htmlspecialchars(json_encode($antena['unpaid_cycles'] ?? []), ENT_QUOTES); ?>"
                                                     data-bs-toggle="modal" 
                                                     data-bs-target="#modalExonerateDebt"
                                                     title="<?php echo !empty($antena['is_exempt']) ? 'Gestionar exoneración de deuda' : 'Exonerar deuda pasada'; ?>">
@@ -181,11 +182,8 @@ $canDelete = $canReview;
                             <th>Monto</th>
                             <th>Moneda</th>
                             <th>Fecha Pago</th>
-                            <th>Estado</th>
                             <th>Comprobante</th>
-                            <?php if ($canDelete || $canReview): ?>
-                                <th>Acciones</th>
-                            <?php endif; ?>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -207,7 +205,13 @@ $canDelete = $canReview;
                                         <?php endif; ?>
                                     </td>
                                     <td data-label="Cliente"><span class="td-value"><?php echo htmlspecialchars($payment['cliente']); ?></span></td>
-                                    <td data-label="Monto"><span class="td-value"><?php echo number_format($payment['amount'], 2, ',', '.'); ?></span></td>
+                                    <td data-label="Monto">
+                                        <span class="td-value"><?php echo number_format($payment['amount'], 2, ',', '.'); ?></span>
+                                        <?php $mPaid = intval($payment['months_paid'] ?? 1); ?>
+                                        <?php if ($mPaid > 1): ?>
+                                            <div class="small text-info mt-1"><i class="bi bi-calendar-check me-1"></i><?php echo $mPaid; ?> meses</div>
+                                        <?php endif; ?>
+                                    </td>
                                     <td data-label="Moneda"><span class="td-value badge bg-secondary"><?php echo htmlspecialchars($payment['currency']); ?></span></td>
                                     <td data-label="Fecha Pago"><span class="td-value"><?php echo date('d/m/Y', strtotime($payment['payment_date'])); ?></span></td>
                                     <td data-label="Estado">
@@ -219,42 +223,88 @@ $canDelete = $canReview;
                                     </td>
                                     <td data-label="Comprobante">
                                         <?php if (!empty($payment['receipt_path'])): ?>
-                                            <a href="<?php echo htmlspecialchars($payment['receipt_path'], ENT_QUOTES); ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-info" title="Ver comprobante"><i class="bi bi-paperclip"></i></a>
+                                            <a href="<?php echo htmlspecialchars($payment['receipt_path'], ENT_QUOTES); ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-info" title="Ver comprobante adjunto"><i class="bi bi-paperclip"></i></a>
                                         <?php else: ?>
                                             <span class="text-white-50">-</span>
                                         <?php endif; ?>
                                     </td>
-                                    <?php if ($canDelete || $canReview): ?>
-                                        <td data-label="Acciones" class="text-nowrap">
-                                            <div class="d-inline-flex align-items-center gap-1">
-                                                <?php if ($canReview && ($payment['status'] ?? '') === 'Pendiente'): ?>
-                                                    <button type="button" class="btn btn-sm btn-outline-info payment-review-button"
-                                                            data-bs-toggle="modal" data-bs-target="#modalReviewPayment"
+                                    <td data-label="Acciones" class="text-nowrap">
+                                        <div class="d-inline-flex align-items-center gap-1">
+                                            <button type="button" class="btn btn-sm btn-outline-info btn-generate-receipt"
+                                                    data-id="<?php echo (int) $payment['id_payment']; ?>"
+                                                    data-serial="<?php echo htmlspecialchars($payment['serial'], ENT_QUOTES); ?>"
+                                                    data-nickname="<?php echo htmlspecialchars($payment['nickname'] ?? '', ENT_QUOTES); ?>"
+                                                    data-client="<?php echo htmlspecialchars($payment['cliente'], ENT_QUOTES); ?>"
+                                                    data-ci="<?php echo htmlspecialchars($payment['client_ci'] ?? '', ENT_QUOTES); ?>"
+                                                    data-phone="<?php echo htmlspecialchars($payment['client_phone'] ?? '', ENT_QUOTES); ?>"
+                                                    data-plan="<?php echo htmlspecialchars($payment['nombre_plan'] ?? '', ENT_QUOTES); ?>"
+                                                    data-plan-price="<?php echo htmlspecialchars($payment['plan_price'] ?? '', ENT_QUOTES); ?>"
+                                                    data-country="<?php echo htmlspecialchars($payment['pais'] ?? '', ENT_QUOTES); ?>"
+                                                    data-pay-day="<?php echo htmlspecialchars($payment['pay_day'] ?? '', ENT_QUOTES); ?>"
+                                                    data-amount="<?php echo htmlspecialchars($payment['amount'], ENT_QUOTES); ?>"
+                                                    data-months="<?php echo intval($payment['months_paid'] ?? 1); ?>"
+                                                    data-currency="<?php echo htmlspecialchars($payment['currency'], ENT_QUOTES); ?>"
+                                                    data-date="<?php echo htmlspecialchars(date('d/m/Y', strtotime($payment['payment_date'])), ENT_QUOTES); ?>"
+                                                    data-receipt="<?php echo htmlspecialchars($payment['receipt_path'] ?? '', ENT_QUOTES); ?>"
+                                                    data-status="<?php echo htmlspecialchars($payment['status'] ?? 'Pendiente', ENT_QUOTES); ?>"
+                                                    title="Ver / Descargar Recibo Digital">
+                                                <i class="bi bi-file-earmark-text me-1"></i><span class="action-btn-text">Recibo</span>
+                                            </button>
+                                            <?php if (!empty($payment['client_phone'])): ?>
+                                                <?php
+                                                    $waReceiptUrl = build_whatsapp_receipt_url(
+                                                        $payment['cliente'],
+                                                        $payment['client_phone'],
+                                                        $payment['id_payment'],
+                                                        $payment['serial'],
+                                                        $payment['nickname'] ?? '',
+                                                        $payment['nombre_plan'] ?? '',
+                                                        $payment['amount'],
+                                                        $payment['currency'],
+                                                        $payment['payment_date'],
+                                                        $payment['months_paid'] ?? 1,
+                                                        $payment['status'] ?? 'Aprobado'
+                                                    );
+                                                ?>
+                                                <a href="<?php echo htmlspecialchars($waReceiptUrl, ENT_QUOTES); ?>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success" title="Enviar comprobante por WhatsApp">
+                                                    <i class="bi bi-whatsapp"></i>
+                                                </a>
+                                            <?php endif; ?>
+                                            <?php if ($canReview && ($payment['status'] ?? '') === 'Pendiente'): ?>
+                                                <button type="button" class="btn btn-sm btn-outline-info payment-review-button"
+                                                        data-bs-toggle="modal" data-bs-target="#modalReviewPayment"
                                                         data-id="<?php echo $payment['id_payment']; ?>"
-                                                            data-serial="<?php echo htmlspecialchars($payment['serial'], ENT_QUOTES); ?>"
-                                                            data-nickname="<?php echo htmlspecialchars($payment['nickname'] ?? '', ENT_QUOTES); ?>"
-                                                            data-client="<?php echo htmlspecialchars($payment['cliente'], ENT_QUOTES); ?>"
-                                                            data-amount="<?php echo htmlspecialchars(number_format($payment['amount'], 2, ',', '.'), ENT_QUOTES); ?>"
-                                                            data-currency="<?php echo htmlspecialchars($payment['currency'], ENT_QUOTES); ?>"
-                                                            data-date="<?php echo htmlspecialchars(date('d/m/Y', strtotime($payment['payment_date'])), ENT_QUOTES); ?>"
-                                                            data-receipt="<?php echo htmlspecialchars($payment['receipt_path'] ?? '', ENT_QUOTES); ?>"
-                                                            title="Revisar pago"><i class="bi bi-search me-1"></i><span class="action-btn-text">Revisar</span></button>
-                                                    <a href="index.php?url=payments&action=approve&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-success payment-action" title="Aprobar pago"><i class="bi bi-check-lg me-1"></i><span class="action-btn-text">Aprobar</span></a>
-                                                    <a href="index.php?url=payments&action=reject&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-warning payment-action" title="Rechazar pago"><i class="bi bi-x-lg me-1"></i><span class="action-btn-text">Rechazar</span></a>
-                                                <?php endif; ?>
-                                                <?php if ($canDelete): ?>
-                                                    <a href="index.php?url=payments&action=delete&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-danger payment-delete-action" title="Eliminar pago"><i class="bi bi-trash me-1"></i><span class="action-btn-text">Eliminar</span></a>
-                                                <?php endif; ?>
-                                            </div>
-                                        </td>
-                                    <?php endif; ?>
+                                                        data-serial="<?php echo htmlspecialchars($payment['serial'], ENT_QUOTES); ?>"
+                                                        data-nickname="<?php echo htmlspecialchars($payment['nickname'] ?? '', ENT_QUOTES); ?>"
+                                                        data-client="<?php echo htmlspecialchars($payment['cliente'], ENT_QUOTES); ?>"
+                                                        data-amount="<?php echo htmlspecialchars(number_format($payment['amount'], 2, ',', '.'), ENT_QUOTES); ?>"
+                                                        data-months="<?php echo intval($payment['months_paid'] ?? 1); ?>"
+                                                        data-currency="<?php echo htmlspecialchars($payment['currency'], ENT_QUOTES); ?>"
+                                                        data-date="<?php echo htmlspecialchars(date('d/m/Y', strtotime($payment['payment_date'])), ENT_QUOTES); ?>"
+                                                        data-receipt="<?php echo htmlspecialchars($payment['receipt_path'] ?? '', ENT_QUOTES); ?>"
+                                                        data-ci="<?php echo htmlspecialchars($payment['client_ci'] ?? '', ENT_QUOTES); ?>"
+                                                        data-phone="<?php echo htmlspecialchars($payment['client_phone'] ?? '', ENT_QUOTES); ?>"
+                                                        data-plan="<?php echo htmlspecialchars($payment['nombre_plan'] ?? '', ENT_QUOTES); ?>"
+                                                        data-plan-price="<?php echo htmlspecialchars($payment['plan_price'] ?? '', ENT_QUOTES); ?>"
+                                                        data-country="<?php echo htmlspecialchars($payment['pais'] ?? '', ENT_QUOTES); ?>"
+                                                        data-pay-day="<?php echo htmlspecialchars($payment['pay_day'] ?? '', ENT_QUOTES); ?>"
+                                                        data-status="<?php echo htmlspecialchars($payment['status'] ?? 'Pendiente', ENT_QUOTES); ?>"
+                                                        title="Revisar pago"><i class="bi bi-search me-1"></i><span class="action-btn-text">Revisar</span></button>
+                                                <a href="index.php?url=payments&action=approve&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-success payment-action" title="Aprobar pago"><i class="bi bi-check-lg me-1"></i><span class="action-btn-text">Aprobar</span></a>
+                                                <a href="index.php?url=payments&action=reject&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-warning payment-action" title="Rechazar pago"><i class="bi bi-x-lg me-1"></i><span class="action-btn-text">Rechazar</span></a>
+                                            <?php endif; ?>
+                                            <?php if ($canDelete): ?>
+                                                <a href="index.php?url=payments&action=delete&id=<?php echo $payment['id_payment']; ?>" class="btn btn-sm btn-danger payment-delete-action" title="Eliminar pago"><i class="bi bi-trash me-1"></i><span class="action-btn-text">Eliminar</span></a>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="<?php echo ($canDelete || $canReview) ? 8 : 7; ?>" class="text-center py-4 text-muted">No hay pagos registrados.</td>
+                                <td colspan="8" class="text-center py-4 text-muted">No hay pagos registrados.</td>
                             </tr>
-                        <?php endif; ?>
+                        <?php endif; ?> ?>
                     </tbody>
                 </table>
             </div>
@@ -278,7 +328,11 @@ $canDelete = $canReview;
                         <span id="review_payment_nickname" class="badge bg-secondary-subtle text-info border border-info border-opacity-25 ms-2 d-none"></span>
                     </dd>
                     <dt class="col-sm-4">Cliente</dt><dd class="col-sm-8" id="review_payment_client"></dd>
-                    <dt class="col-sm-4">Monto</dt><dd class="col-sm-8" id="review_payment_amount"></dd>
+                    <dt class="col-sm-4">Monto</dt>
+                    <dd class="col-sm-8">
+                        <span id="review_payment_amount" class="fw-bold"></span>
+                        <span id="review_payment_months" class="badge bg-info text-dark ms-2 d-none"></span>
+                    </dd>
                     <dt class="col-sm-4">Fecha</dt><dd class="col-sm-8" id="review_payment_date"></dd>
                 </dl>
                 <div id="review_payment_receipt_container" class="d-none">
@@ -287,9 +341,14 @@ $canDelete = $canReview;
                 </div>
                 <p id="review_payment_no_receipt" class="text-white-50 mb-0">Este pago no tiene comprobante adjunto.</p>
             </div>
-            <div class="modal-footer border-secondary">
-                <a id="review_payment_reject" class="btn btn-warning" href="#"><i class="bi bi-x-lg me-1"></i>Rechazar</a>
-                <a id="review_payment_approve" class="btn btn-success" href="#"><i class="bi bi-check-lg me-1"></i>Aprobar</a>
+            <div class="modal-footer border-secondary d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-info" id="review_payment_btn_receipt">
+                    <i class="bi bi-file-earmark-text me-1"></i>Ver Recibo Digital
+                </button>
+                <div class="d-flex gap-2">
+                    <a id="review_payment_reject" class="btn btn-warning" href="#"><i class="bi bi-x-lg me-1"></i>Rechazar</a>
+                    <a id="review_payment_approve" class="btn btn-success" href="#"><i class="bi bi-check-lg me-1"></i>Aprobar</a>
+                </div>
             </div>
         </div>
     </div>
@@ -339,11 +398,26 @@ $canDelete = $canReview;
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Monto por antena <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" min="0" class="form-control" id="payment_amount" name="amount" placeholder="Se calcula según el plan" readonly required>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label" for="payment_months">Meses a abonar <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="number" min="1" max="60" class="form-control text-center fw-bold" id="payment_months" name="months_paid" value="1" required>
+                                <span class="input-group-text bg-secondary text-white border-secondary">mes(es)</span>
+                            </div>
+                            <div class="d-flex gap-1 mt-1 flex-wrap">
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 btn-month-preset active" data-months="1" style="font-size: 0.75rem;">1m</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 btn-month-preset" data-months="2" style="font-size: 0.75rem;">2m</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 btn-month-preset" data-months="3" style="font-size: 0.75rem;">3m</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 btn-month-preset" data-months="6" style="font-size: 0.75rem;">6m</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 btn-month-preset" data-months="12" style="font-size: 0.75rem;">1 año</button>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label" for="payment_amount">Total a pagar <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" min="0" class="form-control fw-bold text-success" id="payment_amount" name="amount" placeholder="Se calcula según el plan" readonly required>
+                            <div class="small text-white-50 mt-1" id="payment_amount_breakdown"></div>
+                        </div>
+                        <div class="col-md-4 mb-3">
                             <label class="form-label">Moneda <span class="text-danger">*</span></label>
                             <select class="form-select" name="currency" required>
                                 <option value="USD" selected>USD</option>
@@ -387,13 +461,14 @@ $canDelete = $canReview;
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content card-custom text-white">
             <div class="modal-header border-secondary">
-                <h5 class="modal-title"><i class="bi bi-shield-check text-warning me-2"></i>Exonerar Deuda Pasada</h5>
+                <h5 class="modal-title"><i class="bi bi-shield-check text-warning me-2"></i>Exonerar Deuda por Mes</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="formExonerateDebt" action="index.php?url=payments" method="POST">
                 <input type="hidden" name="action" value="save_debt_exemption">
                 <input type="hidden" name="id_starlink" id="exonerate_id_starlink" value="0">
                 <input type="hidden" name="remove_exemption" id="exonerate_remove_input" value="0">
+                <input type="hidden" name="exempt_until" id="exonerate_exempt_until_input" value="">
 
                 <div class="modal-body">
                     <!-- Resumen del equipo y estado de deuda -->
@@ -422,49 +497,65 @@ $canDelete = $canReview;
                     <!-- Alerta de exoneración activa previa si existe -->
                     <div id="exonerate_active_alert" class="alert alert-info border-info d-none mb-3 py-2">
                         <i class="bi bi-info-circle-fill me-1"></i>
-                        <span>Esta antena tiene una exoneración activa registrada hasta el </span>
+                        <span>Esta antena tiene una exoneración activa previa registrada hasta </span>
                         <strong id="exonerate_active_date"></strong>.
                         <div class="small mt-1 text-white-50" id="exonerate_active_note_wrap">
                             Motivo: <span id="exonerate_active_note" class="fst-italic text-white"></span>
                         </div>
                     </div>
 
+                    <!-- Selector visual mes por mes -->
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Selecciona hasta qué fecha exonerar la deuda:</label>
-                        <div class="d-flex flex-column gap-2">
-                            <div class="form-check p-3 rounded border border-secondary border-opacity-50 bg-black bg-opacity-20">
-                                <input class="form-check-input" type="radio" name="exemption_mode" id="mode_current_month" value="current_month" checked>
-                                <label class="form-check-label w-100" for="mode_current_month">
-                                    <div class="fw-bold text-white">Exonerar meses pasados (Iniciar cobro desde este mes: <?php echo date('m/Y'); ?>)</div>
-                                    <div class="small text-white-50">Condonará todas las cuotas de meses anteriores. El cliente queda al día con el pasado y solo se le cobrará a partir del ciclo en curso (01/<?php echo date('m/Y'); ?>). Ideal para antenas viejas agregadas recientemente.</div>
-                                </label>
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                            <label class="form-label fw-bold mb-0">
+                                <i class="bi bi-check2-square text-warning me-1"></i>Selecciona los meses que deseas perdonar / exonerar:
+                            </label>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-warning py-0 px-2" id="btn_select_overdue_only" style="font-size: 0.75rem;">
+                                    <i class="bi bi-calendar-x me-1"></i>Perdonar vencidos
+                                </button>
+                                <button type="button" class="btn btn-outline-success py-0 px-2" id="btn_select_all_months" style="font-size: 0.75rem;">
+                                    <i class="bi bi-shield-fill-check me-1"></i>Paz y salvo total
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary py-0 px-2" id="btn_unselect_all_months" style="font-size: 0.75rem;">
+                                    <i class="bi bi-dash-square me-1"></i>Desmarcar
+                                </button>
                             </div>
+                        </div>
 
-                            <div class="form-check p-3 rounded border border-secondary border-opacity-50 bg-black bg-opacity-20">
-                                <input class="form-check-input" type="radio" name="exemption_mode" id="mode_next_month" value="next_month">
-                                <label class="form-check-label w-100" for="mode_next_month">
-                                    <div class="fw-bold text-white">Exonerar totalmente hasta el próximo mes (Paz y salvo total: <?php echo date('m/Y', strtotime('+1 month')); ?>)</div>
-                                    <div class="small text-white-50">Exonera tanto meses pasados como el mes en curso. Su primer ciclo a cobrar empezará a partir del día 01/<?php echo date('m/Y', strtotime('+1 month')); ?>.</div>
-                                </label>
+                        <!-- Lista interactiva de meses -->
+                        <div class="border border-secondary rounded p-2 bg-black bg-opacity-20" id="exonerate_months_container" style="max-height: 250px; overflow-y: auto;">
+                            <!-- Elementos inyectados dinámicamente -->
+                        </div>
+                        <div class="small text-white-50 mt-1">
+                            <i class="bi bi-info-circle me-1"></i>Al marcar un mes, se exoneran automáticamente todos los meses anteriores a ese.
+                        </div>
+                    </div>
+
+                    <!-- Resumen en vivo de la exoneración -->
+                    <div class="card bg-black bg-opacity-40 border-secondary p-3 mb-3">
+                        <div class="row text-center g-2 align-items-center">
+                            <div class="col-4 border-end border-secondary">
+                                <div class="text-white-50 small">Meses a perdonar</div>
+                                <div class="fw-bold fs-5 text-warning" id="exonerate_preview_count">0 meses</div>
+                                <div class="small text-success fw-semibold" id="exonerate_preview_amount">$0.00 perdonado</div>
                             </div>
-
-                            <div class="form-check p-3 rounded border border-secondary border-opacity-50 bg-black bg-opacity-20">
-                                <input class="form-check-input" type="radio" name="exemption_mode" id="mode_custom" value="custom">
-                                <label class="form-check-label w-100" for="mode_custom">
-                                    <div class="fw-bold text-white">Personalizar fecha de corte / inicio de cobro</div>
-                                    <div class="small text-white-50">Ingresa manualmente la fecha a partir de la cual se empezará a contabilizar la deuda. Los períodos anteriores a esta fecha no generarán atraso.</div>
-                                    <div class="mt-2" id="custom_exempt_date_wrap" style="display: none;">
-                                        <input type="date" class="form-control" name="custom_exempt_until" id="custom_exempt_until" value="<?php echo date('Y-m-01'); ?>">
-                                    </div>
-                                </label>
+                            <div class="col-4 border-end border-secondary">
+                                <div class="text-white-50 small">Deuda restante</div>
+                                <div class="fw-bold fs-5" id="exonerate_preview_remaining_count">0 meses</div>
+                                <div class="small text-danger fw-semibold" id="exonerate_preview_remaining_amount">$0.00 pendiente</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-white-50 small">Empezará a cobrar en</div>
+                                <div class="fw-bold fs-6 text-info mt-1" id="exonerate_preview_start_label">-</div>
                             </div>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Motivo u observación (opcional)</label>
-                        <input type="text" class="form-control" name="debt_exempt_note" id="exonerate_note" placeholder="Ej: Antena antigua incorporada al sistema, condonación acordada, etc.">
-                        <div class="form-text text-white-50">Quedará registrado como justificación de la exoneración.</div>
+                        <label class="form-label" for="exonerate_note">Motivo u observación (opcional)</label>
+                        <input type="text" class="form-control" name="debt_exempt_note" id="exonerate_note" placeholder="Ej: Condonación acordada, equipo viejo añadido recientemente, etc.">
+                        <div class="form-text text-white-50">Quedará registrado en el historial como justificación.</div>
                     </div>
                 </div>
 
@@ -476,7 +567,7 @@ $canDelete = $canReview;
                     </div>
                     <div class="d-flex gap-2">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-warning text-dark fw-bold">
+                        <button type="submit" class="btn btn-warning text-dark fw-bold" id="btn_submit_exonerate">
                             <i class="bi bi-shield-check me-1"></i>Aplicar Exoneración
                         </button>
                     </div>
@@ -553,6 +644,8 @@ document.addEventListener('app:content-ready', function() {
     const paymentCheckboxes = document.querySelectorAll('.payment-antenna');
     const paymentClientSearch = document.getElementById('payment_client_search');
     const paymentAmount = document.getElementById('payment_amount');
+    const paymentMonths = document.getElementById('payment_months');
+    const paymentAmountBreakdown = document.getElementById('payment_amount_breakdown');
     const paymentClient = document.getElementById('payment_client');
     const paymentPayday = document.getElementById('payment_payday');
     const paymentSelectAll = document.getElementById('payment_select_all');
@@ -597,16 +690,69 @@ document.addEventListener('app:content-ready', function() {
     function createPaymentRow(payment) {
         const statusClass = payment.status === 'Aprobado' ? 'bg-success text-dark' : (payment.status === 'Rechazado' ? 'bg-danger text-white' : 'bg-warning text-dark');
         const receipt = payment.receipt
-            ? '<a href="' + escapePaymentValue(payment.receipt) + '" target="_blank" rel="noopener" class="btn btn-sm btn-outline-info" title="Ver comprobante"><i class="bi bi-paperclip"></i></a>'
+            ? '<a href="' + escapePaymentValue(payment.receipt) + '" target="_blank" rel="noopener" class="btn btn-sm btn-outline-info" title="Ver comprobante adjunto"><i class="bi bi-paperclip"></i></a>'
             : '<span class="text-white-50">-</span>';
-                const actions = <?php echo $canReview ? 'true' : 'false'; ?>
-                        ? (payment.status === 'Pendiente'
-                                ? '<button type="button" class="btn btn-sm btn-outline-info payment-review-button" data-bs-toggle="modal" data-bs-target="#modalReviewPayment" data-id="' + payment.id + '" data-serial="' + escapePaymentValue(payment.serial) + '" data-nickname="' + escapePaymentValue(payment.nickname || '') + '" data-client="' + escapePaymentValue(payment.client) + '" data-amount="' + escapePaymentValue(Number(payment.amount).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })) + '" data-currency="' + escapePaymentValue(payment.currency) + '" data-date="' + escapePaymentValue(payment.date) + '" data-receipt="' + escapePaymentValue(payment.receipt) + '" title="Revisar pago"><i class="bi bi-search me-1"></i>Revisar</button>' +
-                                    '<a href="index.php?url=payments&action=approve&id=' + payment.id + '" class="btn btn-sm btn-success payment-action" title="Aprobar pago"><i class="bi bi-check-lg"></i></a>' +
-                                    '<a href="index.php?url=payments&action=reject&id=' + payment.id + '" class="btn btn-sm btn-warning payment-action" title="Rechazar pago"><i class="bi bi-x-lg"></i></a>'
-                                : '') +
-                            '<a href="index.php?url=payments&action=delete&id=' + payment.id + '" class="btn btn-sm btn-danger payment-delete-action" title="Eliminar pago"><i class="bi bi-trash"></i></a>'
-                        : '';
+        const monthsPaidVal = Number(payment.months_paid || 1);
+        const monthsBadge = monthsPaidVal > 1
+            ? '<div class="small text-info mt-1"><i class="bi bi-calendar-check me-1"></i>' + escapePaymentValue(monthsPaidVal) + ' meses</div>'
+            : '';
+
+        let receiptBtn = '<button type="button" class="btn btn-sm btn-outline-info btn-generate-receipt" ' +
+            'data-id="' + payment.id + '" ' +
+            'data-serial="' + escapePaymentValue(payment.serial) + '" ' +
+            'data-nickname="' + escapePaymentValue(payment.nickname || '') + '" ' +
+            'data-client="' + escapePaymentValue(payment.client) + '" ' +
+            'data-ci="' + escapePaymentValue(payment.client_ci || '') + '" ' +
+            'data-phone="' + escapePaymentValue(payment.client_phone || '') + '" ' +
+            'data-plan="' + escapePaymentValue(payment.plan || '') + '" ' +
+            'data-plan-price="' + escapePaymentValue(payment.plan_price || '') + '" ' +
+            'data-country="' + escapePaymentValue(payment.country || '') + '" ' +
+            'data-pay-day="' + escapePaymentValue(payment.pay_day || '') + '" ' +
+            'data-amount="' + escapePaymentValue(payment.amount) + '" ' +
+            'data-months="' + escapePaymentValue(monthsPaidVal) + '" ' +
+            'data-currency="' + escapePaymentValue(payment.currency) + '" ' +
+            'data-date="' + escapePaymentValue(payment.date) + '" ' +
+            'data-receipt="' + escapePaymentValue(payment.receipt || '') + '" ' +
+            'data-status="' + escapePaymentValue(payment.status) + '" ' +
+            'title="Ver / Descargar Recibo Digital"><i class="bi bi-file-earmark-text me-1"></i><span class="action-btn-text">Recibo</span></button>';
+
+        let waBtn = '';
+        if (payment.client_phone) {
+            const waUrl = buildReceiptWhatsAppUrl(payment, String(payment.id).padStart(6, '0'));
+            waBtn = '<a href="' + escapePaymentValue(waUrl) + '" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success" title="Enviar comprobante por WhatsApp"><i class="bi bi-whatsapp"></i></a>';
+        }
+
+        let adminActions = '';
+        if (<?php echo $canReview ? 'true' : 'false'; ?> && payment.status === 'Pendiente') {
+            adminActions += '<button type="button" class="btn btn-sm btn-outline-info payment-review-button" data-bs-toggle="modal" data-bs-target="#modalReviewPayment" ' +
+                'data-id="' + payment.id + '" ' +
+                'data-serial="' + escapePaymentValue(payment.serial) + '" ' +
+                'data-nickname="' + escapePaymentValue(payment.nickname || '') + '" ' +
+                'data-client="' + escapePaymentValue(payment.client) + '" ' +
+                'data-amount="' + escapePaymentValue(Number(payment.amount).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })) + '" ' +
+                'data-months="' + escapePaymentValue(monthsPaidVal) + '" ' +
+                'data-currency="' + escapePaymentValue(payment.currency) + '" ' +
+                'data-date="' + escapePaymentValue(payment.date) + '" ' +
+                'data-receipt="' + escapePaymentValue(payment.receipt || '') + '" ' +
+                'data-ci="' + escapePaymentValue(payment.client_ci || '') + '" ' +
+                'data-phone="' + escapePaymentValue(payment.client_phone || '') + '" ' +
+                'data-plan="' + escapePaymentValue(payment.plan || '') + '" ' +
+                'data-plan-price="' + escapePaymentValue(payment.plan_price || '') + '" ' +
+                'data-country="' + escapePaymentValue(payment.country || '') + '" ' +
+                'data-pay-day="' + escapePaymentValue(payment.pay_day || '') + '" ' +
+                'data-status="' + escapePaymentValue(payment.status) + '" ' +
+                'title="Revisar pago"><i class="bi bi-search me-1"></i><span class="action-btn-text">Revisar</span></button>' +
+                '<a href="index.php?url=payments&action=approve&id=' + payment.id + '" class="btn btn-sm btn-success payment-action" title="Aprobar pago"><i class="bi bi-check-lg me-1"></i><span class="action-btn-text">Aprobar</span></a>' +
+                '<a href="index.php?url=payments&action=reject&id=' + payment.id + '" class="btn btn-sm btn-warning payment-action" title="Rechazar pago"><i class="bi bi-x-lg me-1"></i><span class="action-btn-text">Rechazar</span></a>';
+        }
+        if (<?php echo $canDelete ? 'true' : 'false'; ?>) {
+            adminActions += '<a href="index.php?url=payments&action=delete&id=' + payment.id + '" class="btn btn-sm btn-danger payment-delete-action" title="Eliminar pago"><i class="bi bi-trash me-1"></i><span class="action-btn-text">Eliminar</span></a>';
+        }
+
+        const actionsHtml = '<td data-label="Acciones" class="text-nowrap"><div class="d-inline-flex align-items-center gap-1">' +
+            receiptBtn + (waBtn ? ' ' + waBtn : '') + (adminActions ? ' ' + adminActions : '') +
+            '</div></td>';
+
         const row = document.createElement('tr');
         row.dataset.paymentId = payment.id;
         row.dataset.serial = payment.serial || '';
@@ -622,12 +768,12 @@ document.addEventListener('app:content-ready', function() {
 
         row.innerHTML = '<td data-label="Antena"><code>' + escapePaymentValue(payment.serial) + '</code>' + nicknameHtml + '</td>' +
             '<td data-label="Cliente"><span class="td-value">' + escapePaymentValue(payment.client) + '</span></td>' +
-            '<td data-label="Monto"><span class="td-value">' + Number(payment.amount).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</span></td>' +
+            '<td data-label="Monto"><span class="td-value">' + Number(payment.amount).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</span>' + monthsBadge + '</td>' +
             '<td data-label="Moneda"><span class="td-value badge bg-secondary">' + escapePaymentValue(payment.currency) + '</span></td>' +
             '<td data-label="Fecha Pago"><span class="td-value">' + escapePaymentValue(payment.date) + '</span></td>' +
             '<td data-label="Estado"><span class="badge ' + statusClass + '">' + escapePaymentValue(payment.status) + '</span></td>' +
             '<td data-label="Comprobante">' + receipt + '</td>' +
-            (actions ? '<td data-label="Acciones">' + actions + '</td>' : '');
+            actionsHtml;
         return row;
     }
 
@@ -713,6 +859,7 @@ document.addEventListener('app:content-ready', function() {
                         }
                     });
                     historyBody.querySelectorAll('.payment-review-button').forEach(bindReviewButton);
+                    historyBody.querySelectorAll('.btn-generate-receipt').forEach(bindReceiptButton);
                 }
             })
             .catch(() => {
@@ -844,18 +991,73 @@ document.addEventListener('app:content-ready', function() {
             paymentCheckboxes.forEach(checkbox => {
                 checkbox.closest('.payment-antenna-option').classList.toggle('payment-antenna-selected', checkbox.checked);
             });
-            const total = selected.reduce((sum, option) => sum + (parseFloat(option.dataset.price) || 0), 0);
+            const subtotalPerMonth = selected.reduce((sum, option) => sum + (parseFloat(option.dataset.price) || 0), 0);
             const clients = [...new Set(selected.map(option => option.dataset.client || 'Cliente no identificado'))];
+            const months = paymentMonths ? Math.max(1, parseInt(paymentMonths.value || '1', 10)) : 1;
+            const total = subtotalPerMonth * months;
+
             paymentAmount.value = selected.length ? total.toFixed(2) : '';
+            if (paymentAmountBreakdown) {
+                if (selected.length && months > 1) {
+                    paymentAmountBreakdown.textContent = '$' + subtotalPerMonth.toFixed(2) + '/mes × ' + months + ' meses = $' + total.toFixed(2);
+                } else if (selected.length) {
+                    paymentAmountBreakdown.textContent = '$' + subtotalPerMonth.toFixed(2) + ' (1 mes)';
+                } else {
+                    paymentAmountBreakdown.textContent = '';
+                }
+            }
+
             paymentClient.value = selected.length
                 ? clients.join(', ')
                 : 'Selecciona una o varias antenas';
             paymentPayday.value = selected.length
                 ? selected.map(option => option.dataset.payday ? 'Día ' + option.dataset.payday : 'No configurado').join(', ')
                 : 'Selecciona una o varias antenas';
-            }
+        }
 
-            paymentCheckboxes.forEach(checkbox => checkbox.addEventListener('change', updatePaymentSummary));
+        paymentCheckboxes.forEach(checkbox => checkbox.addEventListener('change', updatePaymentSummary));
+
+        if (paymentMonths) {
+            paymentMonths.addEventListener('input', function() {
+                const val = parseInt(this.value, 10);
+                if (val < 1 || isNaN(val)) {
+                    this.value = 1;
+                }
+                updatePaymentSummary();
+                highlightPreset(this.value);
+            });
+            paymentMonths.addEventListener('change', function() {
+                const val = parseInt(this.value, 10);
+                if (val < 1 || isNaN(val)) {
+                    this.value = 1;
+                }
+                updatePaymentSummary();
+                highlightPreset(this.value);
+            });
+        }
+
+        function highlightPreset(mVal) {
+            document.querySelectorAll('.btn-month-preset').forEach(b => {
+                if (b.dataset.months === String(mVal)) {
+                    b.classList.remove('btn-outline-secondary');
+                    b.classList.add('btn-primary', 'active');
+                } else {
+                    b.classList.remove('active', 'btn-primary');
+                    b.classList.add('btn-outline-secondary');
+                }
+            });
+        }
+
+        document.querySelectorAll('.btn-month-preset').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const m = parseInt(this.dataset.months, 10) || 1;
+                if (paymentMonths) {
+                    paymentMonths.value = m;
+                    updatePaymentSummary();
+                    highlightPreset(m);
+                }
+            });
+        });
 
         if (paymentSelectAll) {
             paymentSelectAll.addEventListener('click', function() {
@@ -893,6 +1095,13 @@ document.addEventListener('app:content-ready', function() {
                     paymentClientSearch.value = '';
                     paymentCheckboxes.forEach(checkbox => checkbox.closest('.payment-antenna-option').style.display = '');
                 }
+                if (paymentMonths) {
+                    paymentMonths.value = 1;
+                    highlightPreset(1);
+                }
+                if (paymentAmountBreakdown) {
+                    paymentAmountBreakdown.textContent = '';
+                }
                 paymentClient.value = 'Selecciona una o varias antenas';
                 paymentPayday.value = 'Selecciona una o varias antenas';
                 paymentAmount.value = '';
@@ -903,10 +1112,30 @@ document.addEventListener('app:content-ready', function() {
         }
     }
 
+    let currentReviewPaymentData = null;
+
     function bindReviewButton(button) {
         if (button.dataset.bound) return;
         button.dataset.bound = 'true';
         button.addEventListener('click', function() {
+            currentReviewPaymentData = {
+                id: this.dataset.id,
+                serial: this.dataset.serial,
+                nickname: this.dataset.nickname,
+                client: this.dataset.client,
+                client_ci: this.dataset.ci,
+                client_phone: this.dataset.phone,
+                plan: this.dataset.plan,
+                plan_price: this.dataset.planPrice,
+                country: this.dataset.country,
+                pay_day: this.dataset.payDay,
+                amount: this.dataset.amount ? parseFloat(this.dataset.amount.replace(/\./g, '').replace(',', '.')) : 0,
+                months_paid: parseInt(this.dataset.months || '1', 10),
+                currency: this.dataset.currency || 'USD',
+                date: this.dataset.date,
+                status: this.dataset.status || 'Pendiente'
+            };
+
             document.getElementById('review_payment_serial').textContent = this.dataset.serial;
             const reviewNicknameEl = document.getElementById('review_payment_nickname');
             if (reviewNicknameEl) {
@@ -920,6 +1149,17 @@ document.addEventListener('app:content-ready', function() {
             }
             document.getElementById('review_payment_client').textContent = this.dataset.client;
             document.getElementById('review_payment_amount').textContent = this.dataset.amount + ' ' + this.dataset.currency;
+            const reviewMonthsEl = document.getElementById('review_payment_months');
+            if (reviewMonthsEl) {
+                const months = parseInt(this.dataset.months || '1', 10);
+                if (months > 1) {
+                    reviewMonthsEl.textContent = months + ' meses abonados';
+                    reviewMonthsEl.classList.remove('d-none');
+                } else {
+                    reviewMonthsEl.textContent = '';
+                    reviewMonthsEl.classList.add('d-none');
+                }
+            }
             document.getElementById('review_payment_date').textContent = this.dataset.date;
 
             if (this.dataset.receipt) {
@@ -951,7 +1191,663 @@ document.addEventListener('app:content-ready', function() {
 
     reviewButtons.forEach(bindReviewButton);
 
-    // Modal de exoneración de deuda por antena
+    const reviewBtnReceipt = document.getElementById('review_payment_btn_receipt');
+    if (reviewBtnReceipt) {
+        reviewBtnReceipt.addEventListener('click', function() {
+            if (currentReviewPaymentData) {
+                generatePaymentReceiptPdf(currentReviewPaymentData);
+            }
+        });
+    }
+
+    function buildReceiptWhatsAppUrl(payment, numRecibo) {
+        const phone = payment.client_phone || payment.phone || '';
+        let digits = String(phone).replace(/\D+/g, '');
+        if (digits.startsWith('0')) {
+            digits = '58' + digits.substring(1);
+        } else if (digits.length === 10 && digits.startsWith('4')) {
+            digits = '58' + digits;
+        }
+
+        const clientName = payment.client || 'Estimado/a cliente';
+        const serial = payment.serial || 'N/A';
+        const nickname = payment.nickname ? ' (' + payment.nickname + ')' : '';
+        const plan = payment.plan || payment.nombre_plan || '';
+        const months = parseInt(payment.months_paid || 1, 10);
+        const monthsText = months > 1 ? (months + ' meses') : '1 mes';
+        const amount = Number(payment.amount || 0).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + (payment.currency || 'USD');
+        const date = payment.date || payment.payment_date || '';
+        const status = payment.status || 'Aprobado';
+        const statusText = status === 'Aprobado' ? '✅ Pagado / Aprobado' : (status === 'Rechazado' ? '❌ Rechazado' : '⏳ Pendiente');
+
+        let msg = `Hola *${clientName}*, le hacemos entrega de su comprobante de pago de *PCTRONIC* 🛰️📄\n\n`;
+        msg += `🧾 *COMPROBANTE DE PAGO:* #REC-${numRecibo}\n`;
+        msg += `📅 *Fecha de Pago:* ${date}\n`;
+        msg += `👤 *Cliente:* ${clientName}\n`;
+        msg += `📡 *Antena Starlink:* \`${serial}\`${nickname}\n`;
+        if (plan) msg += `📦 *Plan:* ${plan}\n`;
+        msg += `🗓️ *Periodo cubierto:* ${monthsText}\n`;
+        msg += `💰 *Total cancelado:* *${amount}*\n`;
+        msg += `📌 *Estado:* *${statusText}*\n\n`;
+        msg += `¡Muchas gracias por su puntualidad y confianza! Su servicio se encuentra debidamente registrado. ✨\n\n`;
+        msg += `_PCTRONIC C.A. • Soluciones en Telecomunicaciones_`;
+
+        const encoded = encodeURIComponent(msg);
+        return digits ? `https://wa.me/${digits}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
+    }
+
+    function generatePaymentReceiptPdf(payment) {
+        if (!window.jspdf || typeof window.jspdf.jsPDF !== 'function') {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de exportación',
+                    text: 'No se pudo cargar el módulo de exportación PDF.',
+                    customClass: { popup: 'swal-custom-dark' }
+                });
+            } else {
+                alert('No se pudo cargar el módulo de exportación PDF.');
+            }
+            return;
+        }
+
+        const pdf = new window.jspdf.jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'letter' // 215.9 x 279.4 mm
+        });
+
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const margin = 14;
+
+        // 1. Franja superior decorativa corporativa (Cyan / Sky)
+        pdf.setFillColor(14, 165, 233); // #0ea5e9
+        pdf.rect(0, 0, pageWidth, 4, 'F');
+
+        // Barra secundaria delgada oscura
+        pdf.setFillColor(15, 23, 42); // #0f172a
+        pdf.rect(0, 4, pageWidth, 1.2, 'F');
+
+        // 2. Encabezado institucional
+        let textX = margin;
+        if (typeof appPdfLogo !== 'undefined' && appPdfLogo.complete && appPdfLogo.naturalWidth > 0) {
+            try {
+                const logoAspect = appPdfLogo.naturalWidth / appPdfLogo.naturalHeight;
+                const logoH = 13;
+                const logoW = logoH * logoAspect;
+                pdf.addImage(appPdfLogo, 'PNG', margin, 9, logoW, logoH);
+                textX = margin + logoW + 5;
+            } catch (e) {
+                textX = margin;
+            }
+        }
+
+        // Datos de la empresa emisora
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(15);
+        pdf.setTextColor(15, 23, 42); // #0f172a
+        pdf.text('PCTRONIC C.A.', textX, 15);
+
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7.5);
+        pdf.setTextColor(100, 116, 139); // #64748b
+        pdf.text('Soluciones Integrales en Telecomunicaciones & Conectividad Starlink', textX, 19.5);
+        pdf.text('Soporte Técnico Especializado • Gestión Satelital', textX, 23.5);
+
+        // 3. Recuadro / Tarjeta de identificación del recibo (lado derecho)
+        const cardW = 74;
+        const cardH = 28;
+        const cardX = pageWidth - margin - cardW;
+        const cardY = 8.5;
+
+        pdf.setFillColor(248, 250, 252); // #f8fafc
+        pdf.setDrawColor(203, 213, 225); // #cbd5e1
+        pdf.setLineWidth(0.3);
+        pdf.roundedRect(cardX, cardY, cardW, cardH, 2, 2, 'FD');
+
+        const numRecibo = String(payment.id || '').padStart(6, '0');
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(9.5);
+        pdf.setTextColor(14, 165, 233); // #0ea5e9
+        pdf.text('COMPROBANTE DE PAGO', cardX + cardW / 2, cardY + 5.5, { align: 'center' });
+
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(11);
+        pdf.setTextColor(15, 23, 42);
+        pdf.text('REC-#' + numRecibo, cardX + cardW / 2, cardY + 10.5, { align: 'center' });
+
+        pdf.setDrawColor(226, 232, 240);
+        pdf.line(cardX + 4, cardY + 12.5, cardX + cardW - 4, cardY + 12.5);
+
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7.5);
+        pdf.setTextColor(71, 85, 105);
+        const dateFormatted = payment.date || payment.payment_date || '';
+        pdf.text('Fecha de Pago: ' + dateFormatted, cardX + 5, cardY + 16.5);
+        pdf.text('Emisión: ' + new Date().toLocaleDateString('es-VE'), cardX + 5, cardY + 20.5);
+
+        // Badge de estado dentro de la tarjeta
+        const isApproved = (payment.status || '') === 'Aprobado';
+        const isRejected = (payment.status || '') === 'Rechazado';
+        const badgeColor = isApproved ? [16, 185, 129] : (isRejected ? [239, 68, 68] : [245, 158, 11]);
+        const badgeText = isApproved ? 'PAGADO / APROBADO' : (isRejected ? 'RECHAZADO' : 'PENDIENTE');
+
+        pdf.setFillColor(...badgeColor);
+        pdf.roundedRect(cardX + cardW - 38, cardY + 22, 34, 4.5, 1, 1, 'F');
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(6.8);
+        pdf.setTextColor(255, 255, 255);
+        pdf.text(badgeText, cardX + cardW - 21, cardY + 25.2, { align: 'center' });
+
+        // Línea divisoria elegante
+        pdf.setDrawColor(226, 232, 240);
+        pdf.setLineWidth(0.4);
+        pdf.line(margin, 39, pageWidth - margin, 39);
+
+        // 4. Bloques de Información: DATOS DEL CLIENTE y DATOS DEL SERVICIO
+        const boxY = 42;
+        const boxW = (pageWidth - (margin * 2) - 6) / 2;
+        const boxH = 33;
+
+        // --- Caja Izquierda: DATOS DEL CLIENTE ---
+        pdf.setFillColor(248, 250, 252);
+        pdf.setDrawColor(226, 232, 240);
+        pdf.roundedRect(margin, boxY, boxW, boxH, 2, 2, 'FD');
+
+        pdf.setFillColor(241, 245, 249);
+        pdf.rect(margin, boxY, boxW, 6.5, 'F');
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(8);
+        pdf.setTextColor(15, 23, 42);
+        pdf.text('DATOS DEL CLIENTE', margin + 4, boxY + 4.8);
+
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(7);
+        pdf.setTextColor(100, 116, 139);
+        pdf.text('Titular / Cliente:', margin + 4, boxY + 11);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(8.5);
+        pdf.setTextColor(15, 23, 42);
+        pdf.text(payment.client || 'Cliente General', margin + 4, boxY + 15);
+
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(7);
+        pdf.setTextColor(100, 116, 139);
+        pdf.text('Cédula / RIF:', margin + 4, boxY + 20.5);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(8);
+        pdf.setTextColor(30, 41, 59);
+        pdf.text(payment.client_ci || payment.ci || 'No registrada', margin + 4, boxY + 24.5);
+
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(7);
+        pdf.setTextColor(100, 116, 139);
+        pdf.text('Teléfono / WhatsApp:', margin + boxW / 2, boxY + 20.5);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(8);
+        pdf.setTextColor(30, 41, 59);
+        pdf.text(payment.client_phone || payment.phone || 'No registrado', margin + boxW / 2, boxY + 24.5);
+
+        // --- Caja Derecha: DATOS DEL SERVICIO STARLINK ---
+        const rightBoxX = margin + boxW + 6;
+        pdf.setFillColor(248, 250, 252);
+        pdf.roundedRect(rightBoxX, boxY, boxW, boxH, 2, 2, 'FD');
+
+        pdf.setFillColor(241, 245, 249);
+        pdf.rect(rightBoxX, boxY, boxW, 6.5, 'F');
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(8);
+        pdf.setTextColor(15, 23, 42);
+        pdf.text('DATOS DEL SERVICIO STARLINK', rightBoxX + 4, boxY + 4.8);
+
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(7);
+        pdf.setTextColor(100, 116, 139);
+        pdf.text('Terminal(es) / Serial:', rightBoxX + 4, boxY + 11);
+        pdf.setFont('courier', 'bold');
+        pdf.setFontSize(8.5);
+        pdf.setTextColor(15, 23, 42);
+        pdf.text(payment.serial || 'N/A', rightBoxX + 4, boxY + 15);
+
+        if (payment.nickname) {
+            pdf.setFont('helvetica', 'italic');
+            pdf.setFontSize(7.5);
+            pdf.setTextColor(14, 165, 233);
+            pdf.text('(' + payment.nickname + ')', rightBoxX + 4, boxY + 19);
+        }
+
+        const planY = payment.nickname ? 23.5 : 21.5;
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(7);
+        pdf.setTextColor(100, 116, 139);
+        pdf.text('Plan Contratado:', rightBoxX + 4, boxY + planY);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(8);
+        pdf.setTextColor(30, 41, 59);
+        const planText = (payment.plan || payment.nombre_plan || 'Estándar') + (payment.country ? ' (' + payment.country + ')' : '');
+        pdf.text(planText, rightBoxX + 4, boxY + planY + 4);
+
+        if (payment.pay_day) {
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(7);
+            pdf.setTextColor(100, 116, 139);
+            pdf.text('Día de Corte:', rightBoxX + boxW / 2 + 5, boxY + planY);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(8);
+            pdf.setTextColor(30, 41, 59);
+            pdf.text('Día ' + payment.pay_day + ' de cada mes', rightBoxX + boxW / 2 + 5, boxY + planY + 4);
+        }
+
+        // 5. Tabla de Conceptos / Detalle del Pago (usando jsPDF AutoTable)
+        const monthsPaid = Math.max(1, parseInt(payment.months_paid || 1, 10));
+        const totalAmount = parseFloat(payment.amount || 0);
+        const unitPrice = monthsPaid > 0 ? (totalAmount / monthsPaid) : totalAmount;
+        const curr = payment.currency || 'USD';
+
+        const formatCurrency = (val) => Number(val).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + curr;
+
+        let conceptDescription = 'Suscripción de Servicio de Internet Satelital Starlink\nPlan: ' + (payment.plan || payment.nombre_plan || 'Estándar');
+        if (payment.nickname) {
+            conceptDescription += '\nIdentificador: ' + payment.nickname;
+        }
+        if (payment.serial) {
+            conceptDescription += '\nTerminal Serial: ' + payment.serial;
+        }
+
+        const tableRows = [
+            [
+                '1',
+                conceptDescription,
+                monthsPaid === 1 ? '1 mes' : (monthsPaid + ' meses'),
+                formatCurrency(unitPrice),
+                formatCurrency(totalAmount)
+            ]
+        ];
+
+        pdf.autoTable({
+            startY: boxY + boxH + 6,
+            head: [['ÍTEM', 'CONCEPTO / DESCRIPCIÓN DEL SERVICIO', 'PERIODO / MESES', 'TARIFA MENSUAL', 'SUBTOTAL']],
+            body: tableRows,
+            margin: { left: margin, right: margin },
+            theme: 'grid',
+            headStyles: {
+                fillColor: [15, 23, 42], // #0f172a
+                textColor: [255, 255, 255],
+                fontStyle: 'bold',
+                fontSize: 8,
+                halign: 'center',
+                cellPadding: 3
+            },
+            columnStyles: {
+                0: { cellWidth: 14, halign: 'center' },
+                1: { cellWidth: 'auto', halign: 'left' },
+                2: { cellWidth: 32, halign: 'center' },
+                3: { cellWidth: 32, halign: 'right' },
+                4: { cellWidth: 34, halign: 'right', fontStyle: 'bold' }
+            },
+            styles: {
+                fontSize: 8,
+                textColor: [30, 41, 59],
+                lineColor: [226, 232, 240],
+                lineWidth: 0.2,
+                cellPadding: 3.5
+            }
+        });
+
+        const finalY = pdf.lastAutoTable.finalY || (boxY + boxH + 35);
+
+        // 6. Resumen de Totales y Notas
+        const summaryW = 76;
+        const summaryX = pageWidth - margin - summaryW;
+        const summaryY = finalY + 4;
+
+        pdf.setFillColor(248, 250, 252);
+        pdf.setDrawColor(226, 232, 240);
+        pdf.roundedRect(summaryX, summaryY, summaryW, 25, 2, 2, 'FD');
+
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7.5);
+        pdf.setTextColor(100, 116, 139);
+        pdf.text('Subtotal:', summaryX + 4, summaryY + 5.5);
+        pdf.setTextColor(15, 23, 42);
+        pdf.text(formatCurrency(totalAmount), summaryX + summaryW - 4, summaryY + 5.5, { align: 'right' });
+
+        pdf.setTextColor(100, 116, 139);
+        pdf.text('Periodo cancelado:', summaryX + 4, summaryY + 10.5);
+        pdf.setTextColor(14, 165, 233);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(monthsPaid === 1 ? '1 Mes' : (monthsPaid + ' Meses continuos'), summaryX + summaryW - 4, summaryY + 10.5, { align: 'right' });
+
+        // Franja destacada para el TOTAL CANCELADO
+        pdf.setFillColor(14, 165, 233); // #0ea5e9
+        pdf.roundedRect(summaryX + 2, summaryY + 14, summaryW - 4, 8.5, 1.5, 1.5, 'F');
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(8.5);
+        pdf.setTextColor(255, 255, 255);
+        pdf.text('TOTAL PAGADO:', summaryX + 4.5, summaryY + 19.5);
+        pdf.setFontSize(9.5);
+        pdf.text(formatCurrency(totalAmount), summaryX + summaryW - 4.5, summaryY + 19.5, { align: 'right' });
+
+        // --- Lado izquierdo: Información de la transacción y términos ---
+        const notesW = pageWidth - (margin * 2) - summaryW - 6;
+        const notesX = margin;
+        const notesY = summaryY;
+
+        pdf.setFillColor(248, 250, 252);
+        pdf.setDrawColor(226, 232, 240);
+        pdf.roundedRect(notesX, notesY, notesW, 25, 2, 2, 'FD');
+
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(7.5);
+        pdf.setTextColor(15, 23, 42);
+        pdf.text('CONDICIONES Y OBSERVACIONES:', notesX + 4, notesY + 5.5);
+
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7);
+        pdf.setTextColor(71, 85, 105);
+        const notesText = '• Comprobante emitido electrónicamente como constancia de recepción de fondos.\n' +
+                          '• El pago cubre ' + (monthsPaid === 1 ? '1 mensualidad' : (monthsPaid + ' mensualidades continuas')) + ' del servicio Starlink.\n' +
+                          '• La confirmación mantiene el servicio satelital debidamente activo y al día.\n' +
+                          '• Conserve este recibo para cualquier gestión de soporte o control contable.';
+        pdf.text(notesText, notesX + 4, notesY + 9.5);
+
+        // 7. Sello y Certificación Digital (Box inferior)
+        const stampY = summaryY + 29;
+        pdf.setDrawColor(203, 213, 225);
+        pdf.setLineDashPattern([1.5, 1.5], 0);
+        pdf.roundedRect(margin, stampY, pageWidth - (margin * 2), 16, 2, 2, 'D');
+        pdf.setLineDashPattern([], 0);
+
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(8);
+        pdf.setTextColor(14, 165, 233);
+        pdf.text('CERTIFICACIÓN Y ESTADO DE LA CUENTA', margin + 5, stampY + 5);
+
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7.2);
+        pdf.setTextColor(71, 85, 105);
+        pdf.text('Estado del servicio: CUENTA AL DÍA • Validación de cobro registrada en sistema PCTRONIC.', margin + 5, stampY + 9.5);
+        pdf.text('Emisor autorizado: PCTRONIC C.A. • Verificación digital de pago #' + numRecibo + ' • Soporte Técnico Especializado.', margin + 5, stampY + 13.5);
+
+        // 8. Pie de página decorativo corporativo
+        const footerY = pageHeight - 12;
+        pdf.setDrawColor(226, 232, 240);
+        pdf.setLineWidth(0.4);
+        pdf.line(margin, footerY, pageWidth - margin, footerY);
+
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(7);
+        pdf.setTextColor(148, 163, 184);
+        pdf.text('PCTRONIC C.A. • Sistema de Gestión de Conectividad Satelital Starlink • Emitido: ' + new Date().toLocaleString('es-VE'), margin, footerY + 4.5);
+        pdf.text('Página 1 de 1', pageWidth - margin, footerY + 4.5, { align: 'right' });
+
+        pdf.setFillColor(14, 165, 233);
+        pdf.rect(0, pageHeight - 2, pageWidth, 2, 'F');
+
+        // 9. Abrir en el Modal de Vista Previa (#pdfPreviewModal)
+        const filename = 'recibo-pctronic-REC-' + numRecibo + '.pdf';
+        const pdfBlobUrl = URL.createObjectURL(pdf.output('blob'));
+
+        const previewFrame = document.getElementById('pdfPreviewFrame');
+        const downloadLink = document.getElementById('pdfDownloadLink');
+        const previewTitle = document.getElementById('pdfPreviewTitle');
+        const waLink = document.getElementById('pdfWhatsAppLink');
+
+        if (window.receiptPreviewUrl) {
+            URL.revokeObjectURL(window.receiptPreviewUrl);
+        }
+        window.receiptPreviewUrl = pdfBlobUrl;
+
+        if (previewFrame) previewFrame.src = pdfBlobUrl;
+        if (downloadLink) {
+            downloadLink.href = pdfBlobUrl;
+            downloadLink.download = filename;
+        }
+        if (previewTitle) {
+            previewTitle.innerHTML = '<i class="bi bi-receipt text-info me-2"></i>Recibo de Pago <span class="badge bg-info text-dark ms-2">REC-' + numRecibo + '</span>';
+        }
+
+        // Configurar botón de WhatsApp en el modal
+        if (waLink) {
+            waLink.classList.remove('d-none');
+            waLink.href = buildReceiptWhatsAppUrl(payment, numRecibo);
+        }
+
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('pdfPreviewModal')).show();
+    }
+
+    function bindReceiptButton(button) {
+        if (button.dataset.receiptBound) return;
+        button.dataset.receiptBound = 'true';
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const data = {
+                id: this.dataset.id,
+                serial: this.dataset.serial,
+                nickname: this.dataset.nickname,
+                client: this.dataset.client,
+                client_ci: this.dataset.ci,
+                client_phone: this.dataset.phone,
+                plan: this.dataset.plan,
+                plan_price: this.dataset.planPrice,
+                country: this.dataset.country,
+                pay_day: this.dataset.payDay,
+                amount: this.dataset.amount ? parseFloat(this.dataset.amount) : 0,
+                months_paid: parseInt(this.dataset.months || '1', 10),
+                currency: this.dataset.currency || 'USD',
+                date: this.dataset.date,
+                status: this.dataset.status || 'Pendiente'
+            };
+            generatePaymentReceiptPdf(data);
+        });
+    }
+
+    document.querySelectorAll('.btn-generate-receipt').forEach(bindReceiptButton);
+
+    // Modal de exoneración de deuda por antena (tipo por mes)
+    let currentExonerateCycles = [];
+    let currentAntennaPrice = 0;
+    let currentAntennaIsExempt = false;
+
+    function renderExonerateMonthsList(cycles, planPrice) {
+        const container = document.getElementById('exonerate_months_container');
+        if (!container) return;
+        container.innerHTML = '';
+
+        if (!cycles || cycles.length === 0) {
+            container.innerHTML = '<div class="text-center py-3 text-white-50"><i class="bi bi-info-circle me-1"></i>No hay meses adeudados ni pendientes para esta antena.</div>';
+            updateExoneratePreview(0, cycles, planPrice);
+            return;
+        }
+
+        cycles.forEach((cycle, index) => {
+            const item = document.createElement('div');
+            item.className = 'd-flex justify-content-between align-items-center p-2 mb-1 rounded border border-secondary border-opacity-25 bg-black bg-opacity-30 exonerate-cycle-item';
+            item.style.cursor = 'pointer';
+            item.dataset.index = index;
+
+            let badgeHtml = '';
+            if (cycle.is_past) {
+                badgeHtml = '<span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 ms-1" style="font-size: 0.70rem;">Mes vencido (día ' + cycle.due_day + ')</span>';
+            } else if (cycle.is_current) {
+                badgeHtml = '<span class="badge bg-warning-subtle text-warning border border-warning border-opacity-25 ms-1" style="font-size: 0.70rem;">Mes en curso (día ' + cycle.due_day + ')</span>';
+            } else {
+                badgeHtml = '<span class="badge bg-secondary-subtle text-info border border-info border-opacity-25 ms-1" style="font-size: 0.70rem;">Próximo mes</span>';
+            }
+
+            item.innerHTML = `
+                <div class="d-flex align-items-center gap-2">
+                    <input class="form-check-input exonerate-cycle-check m-0" type="checkbox" data-index="${index}" id="cycle_check_${index}">
+                    <label class="form-check-label mb-0 fw-semibold text-white" for="cycle_check_${index}" style="cursor: pointer;">
+                        ${escapePaymentValue(cycle.label)}
+                    </label>
+                    ${badgeHtml}
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-white-50 small">$${Number(cycle.amount || planPrice).toFixed(2)}</span>
+                    <span class="badge bg-secondary text-white-50 cycle-action-badge" style="font-size: 0.72rem;">Al cobro</span>
+                </div>
+            `;
+
+            item.addEventListener('click', function(e) {
+                if (e.target.tagName && e.target.tagName.toLowerCase() === 'input') return;
+                const checkbox = this.querySelector('.exonerate-cycle-check');
+                if (checkbox) {
+                    checkbox.checked = !checkbox.checked;
+                    handleCycleCheckChange(index, checkbox.checked);
+                }
+            });
+
+            container.appendChild(item);
+        });
+
+        container.querySelectorAll('.exonerate-cycle-check').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const idx = parseInt(this.dataset.index, 10);
+                handleCycleCheckChange(idx, this.checked);
+            });
+        });
+
+        // Por defecto preseleccionar todos los meses vencidos pasados
+        let defaultOverdueCount = 0;
+        cycles.forEach((c, idx) => {
+            if (c.is_past) defaultOverdueCount = idx + 1;
+        });
+
+        if (defaultOverdueCount > 0) {
+            selectCyclesUpTo(defaultOverdueCount - 1);
+        } else {
+            updateExoneratePreview(0, cycles, planPrice);
+        }
+    }
+
+    function handleCycleCheckChange(idx, isChecked) {
+        if (isChecked) {
+            selectCyclesUpTo(idx);
+        } else {
+            unselectCyclesFrom(idx);
+        }
+    }
+
+    function selectCyclesUpTo(targetIdx) {
+        const checkboxes = document.querySelectorAll('.exonerate-cycle-check');
+        checkboxes.forEach((cb, i) => {
+            cb.checked = (i <= targetIdx);
+        });
+        updateExoneratePreview(targetIdx + 1, currentExonerateCycles, currentAntennaPrice);
+    }
+
+    function unselectCyclesFrom(targetIdx) {
+        const checkboxes = document.querySelectorAll('.exonerate-cycle-check');
+        checkboxes.forEach((cb, i) => {
+            if (i >= targetIdx) {
+                cb.checked = false;
+            }
+        });
+        const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+        updateExoneratePreview(checkedCount, currentExonerateCycles, currentAntennaPrice);
+    }
+
+    function updateExoneratePreview(checkedCount, cycles, planPrice) {
+        const previewCount = document.getElementById('exonerate_preview_count');
+        const previewAmount = document.getElementById('exonerate_preview_amount');
+        const previewRemainingCount = document.getElementById('exonerate_preview_remaining_count');
+        const previewRemainingAmount = document.getElementById('exonerate_preview_remaining_amount');
+        const previewStartLabel = document.getElementById('exonerate_preview_start_label');
+        const hiddenInput = document.getElementById('exonerate_exempt_until_input');
+
+        document.querySelectorAll('.exonerate-cycle-item').forEach((item, i) => {
+            const badge = item.querySelector('.cycle-action-badge');
+            if (badge) {
+                if (i < checkedCount) {
+                    badge.className = 'badge bg-warning text-dark cycle-action-badge';
+                    badge.innerHTML = '<i class="bi bi-shield-check me-1"></i>Exonerar';
+                    item.classList.add('border-warning', 'border-opacity-50');
+                } else {
+                    badge.className = 'badge bg-secondary text-white-50 cycle-action-badge';
+                    badge.innerHTML = '<i class="bi bi-cash me-1"></i>Al cobro';
+                    item.classList.remove('border-warning', 'border-opacity-50');
+                }
+            }
+        });
+
+        const totalCycles = cycles ? cycles.length : 0;
+        const remainingCycles = Math.max(0, totalCycles - checkedCount);
+
+        if (previewCount) {
+            previewCount.textContent = checkedCount + (checkedCount === 1 ? ' mes' : ' meses');
+        }
+        if (previewAmount) {
+            const exemptAmt = checkedCount * planPrice;
+            previewAmount.textContent = '$' + exemptAmt.toFixed(2) + ' perdonado';
+        }
+
+        if (previewRemainingCount) {
+            previewRemainingCount.textContent = remainingCycles + (remainingCycles === 1 ? ' mes' : ' meses');
+        }
+        if (previewRemainingAmount) {
+            const remainingAmt = remainingCycles * planPrice;
+            previewRemainingAmount.textContent = '$' + remainingAmt.toFixed(2) + ' pendiente';
+        }
+
+        if (checkedCount > 0 && cycles && cycles[checkedCount - 1]) {
+            const targetCycle = cycles[checkedCount - 1];
+            if (hiddenInput) {
+                hiddenInput.value = targetCycle.next_start;
+            }
+            if (previewStartLabel) {
+                if (checkedCount < totalCycles && cycles[checkedCount]) {
+                    previewStartLabel.innerHTML = '<span class="text-info">' + escapePaymentValue(cycles[checkedCount].label) + '</span>';
+                } else {
+                    previewStartLabel.innerHTML = '<span class="text-success"><i class="bi bi-check-all me-1"></i>Paz y salvo total</span>';
+                }
+            }
+        } else {
+            if (hiddenInput) {
+                hiddenInput.value = '';
+            }
+            if (previewStartLabel) {
+                if (totalCycles > 0 && cycles[0]) {
+                    previewStartLabel.textContent = cycles[0].label + ' (Sin cambios)';
+                } else {
+                    previewStartLabel.textContent = '-';
+                }
+            }
+        }
+    }
+
+    const btnSelectOverdue = document.getElementById('btn_select_overdue_only');
+    if (btnSelectOverdue) {
+        btnSelectOverdue.addEventListener('click', function() {
+            let lastOverdueIdx = -1;
+            currentExonerateCycles.forEach((c, idx) => {
+                if (c.is_past) lastOverdueIdx = idx;
+            });
+            if (lastOverdueIdx >= 0) {
+                selectCyclesUpTo(lastOverdueIdx);
+            } else {
+                showPaymentMessage('No hay meses anteriores vencidos.', 'info');
+            }
+        });
+    }
+
+    const btnSelectAllMonths = document.getElementById('btn_select_all_months');
+    if (btnSelectAllMonths) {
+        btnSelectAllMonths.addEventListener('click', function() {
+            if (currentExonerateCycles.length > 0) {
+                selectCyclesUpTo(currentExonerateCycles.length - 1);
+            }
+        });
+    }
+
+    const btnUnselectAllMonths = document.getElementById('btn_unselect_all_months');
+    if (btnUnselectAllMonths) {
+        btnUnselectAllMonths.addEventListener('click', function() {
+            unselectCyclesFrom(0);
+        });
+    }
+
     document.querySelectorAll('.btn-exonerate-debt').forEach(btn => {
         btn.addEventListener('click', function() {
             const id = this.getAttribute('data-id');
@@ -965,6 +1861,17 @@ document.addEventListener('app:content-ready', function() {
             const isExempt = this.getAttribute('data-is-exempt') === '1';
             const exemptUntil = this.getAttribute('data-exempt-until') || '';
             const exemptNote = this.getAttribute('data-exempt-note') || '';
+            let unpaidCycles = [];
+
+            try {
+                unpaidCycles = JSON.parse(this.getAttribute('data-unpaid-cycles') || '[]');
+            } catch (e) {
+                unpaidCycles = [];
+            }
+
+            currentExonerateCycles = unpaidCycles;
+            currentAntennaPrice = price;
+            currentAntennaIsExempt = isExempt;
 
             const idInput = document.getElementById('exonerate_id_starlink');
             if (idInput) idInput.value = id;
@@ -984,7 +1891,7 @@ document.addEventListener('app:content-ready', function() {
                 if (overdueMonths > 0) {
                     debtContainer.innerHTML = '<span class="badge bg-danger text-white"><i class="bi bi-exclamation-triangle-fill me-1"></i>' + overdueMonths + (overdueMonths === 1 ? ' mes atrasado' : ' meses atrasados') + '</span> <span class="text-danger fw-bold ms-1">($' + overdueAmount.toFixed(2) + ')</span>';
                 } else {
-                    debtContainer.innerHTML = '<span class="badge bg-success text-dark"><i class="bi bi-check-circle-fill me-1"></i>Al día (Sin deuda pendiente)</span>';
+                    debtContainer.innerHTML = '<span class="badge bg-success text-dark"><i class="bi bi-check-circle-fill me-1"></i>Al día (Sin deuda vencida)</span>';
                 }
             }
 
@@ -1018,22 +1925,50 @@ document.addEventListener('app:content-ready', function() {
                 if (btnRemove) btnRemove.classList.add('d-none');
             }
 
-            const modeCurrent = document.getElementById('mode_current_month');
-            if (modeCurrent) modeCurrent.checked = true;
-            const customWrap = document.getElementById('custom_exempt_date_wrap');
-            if (customWrap) customWrap.style.display = 'none';
+            // Renderizar la lista de meses
+            renderExonerateMonthsList(unpaidCycles, price);
         });
     });
 
-    const radioModes = document.querySelectorAll('#modalExonerateDebt input[name="exemption_mode"]');
-    const customWrap = document.getElementById('custom_exempt_date_wrap');
-    radioModes.forEach(radio => {
-        radio.addEventListener('change', function() {
-            if (customWrap) {
-                customWrap.style.display = (this.value === 'custom') ? 'block' : 'none';
+    const formExonerate = document.getElementById('formExonerateDebt');
+    if (formExonerate) {
+        formExonerate.addEventListener('submit', function(e) {
+            const hiddenUntil = document.getElementById('exonerate_exempt_until_input');
+            const removeInput = document.getElementById('exonerate_remove_input');
+            if (removeInput && removeInput.value === '1') {
+                return;
+            }
+
+            if (!hiddenUntil || !hiddenUntil.value) {
+                e.preventDefault();
+                if (currentAntennaIsExempt) {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            title: '¿Quitar la exoneración?',
+                            text: 'No has seleccionado ningún mes para exonerar. ¿Deseas eliminar la exoneración previa y restablecer la deuda original?',
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonColor: '#dc3545',
+                            cancelButtonColor: '#6c757d',
+                            confirmButtonText: 'Sí, quitar exoneración',
+                            cancelButtonText: 'Cancelar',
+                            customClass: { popup: 'swal-custom-dark' }
+                        }).then(res => {
+                            if (res.isConfirmed) {
+                                if (removeInput) removeInput.value = '1';
+                                formExonerate.submit();
+                            }
+                        });
+                    } else if (confirm('¿Deseas quitar la exoneración existente?')) {
+                        if (removeInput) removeInput.value = '1';
+                        formExonerate.submit();
+                    }
+                } else {
+                    showPaymentMessage('Selecciona al menos un mes para exonerar o pulsa Cancelar.', 'warning');
+                }
             }
         });
-    });
+    }
 
     const btnRemoveExemption = document.getElementById('btn_remove_exemption');
     if (btnRemoveExemption) {

@@ -88,3 +88,37 @@ function build_whatsapp_reminder_url($clientName, $phone, $serial, $nickname = '
     }
     return 'https://wa.me/?text=' . rawurlencode($msg);
 }
+
+/**
+ * Genera el enlace de WhatsApp con el recibo o comprobante de pago digital para el cliente.
+ */
+function build_whatsapp_receipt_url($clientName, $phone, $paymentId, $serial, $nickname = '', $planName = '', $amount = 0, $currency = 'USD', $paymentDate = '', $monthsPaid = 1, $status = 'Aprobado') {
+    $cleanPhone = format_whatsapp_phone($phone);
+    $nombreCliente = trim((string) $clientName) ?: 'Estimado/a cliente';
+    $numRecibo = str_pad((int) $paymentId, 6, '0', STR_PAD_LEFT);
+    $fechaFmt = !empty($paymentDate) ? date('d/m/Y', strtotime($paymentDate)) : date('d/m/Y');
+    $montoFmt = number_format((float) $amount, 2, ',', '.') . ' ' . $currency;
+    $mesesPaid = max(1, intval($monthsPaid));
+    $mesesTexto = $mesesPaid > 1 ? "{$mesesPaid} meses" : "1 mes";
+
+    $statusEmoji = ($status === 'Aprobado') ? '✅ Pagado / Aprobado' : (($status === 'Rechazado') ? '❌ Rechazado' : '⏳ Pendiente de revisión');
+
+    $msg = "Hola *{$nombreCliente}*, le hacemos entrega de su comprobante de pago de *PCTRONIC* 🛰️📄\n\n";
+    $msg .= "🧾 *COMPROBANTE DE PAGO:* #REC-{$numRecibo}\n";
+    $msg .= "📅 *Fecha de Pago:* {$fechaFmt}\n";
+    $msg .= "👤 *Cliente:* {$nombreCliente}\n";
+    $msg .= "📡 *Antena Starlink:* `{$serial}`" . (!empty($nickname) ? " ({$nickname})" : "") . "\n";
+    if (!empty($planName)) {
+        $msg .= "📦 *Plan:* {$planName}\n";
+    }
+    $msg .= "🗓️ *Periodo cubierto:* {$mesesTexto}\n";
+    $msg .= "💰 *Total cancelado:* *{$montoFmt}*\n";
+    $msg .= "📌 *Estado:* *{$statusEmoji}*\n\n";
+    $msg .= "¡Muchas gracias por su puntualidad y confianza! Su servicio se encuentra debidamente registrado. ✨\n\n";
+    $msg .= "_PCTRONIC C.A. • Soluciones en Telecomunicaciones_";
+
+    if (!empty($cleanPhone)) {
+        return 'https://wa.me/' . $cleanPhone . '?text=' . rawurlencode($msg);
+    }
+    return 'https://wa.me/?text=' . rawurlencode($msg);
+}

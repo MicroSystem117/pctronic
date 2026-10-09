@@ -46,6 +46,9 @@ class PaymentModel {
             if (!in_array('reviewed_at', $columns, true)) {
                 $this->db->exec("ALTER TABLE payments ADD COLUMN reviewed_at DATETIME NULL");
             }
+            if (!in_array('months_paid', $columns, true)) {
+                $this->db->exec("ALTER TABLE payments ADD COLUMN months_paid INT NOT NULL DEFAULT 1");
+            }
         } catch (Throwable $e) {
             error_log("PaymentModel::ensureSchema warning: " . $e->getMessage());
         }
@@ -65,10 +68,15 @@ class PaymentModel {
                         pay.receipt_path,
                         pay.status,
                         pay.reviewed_at,
+                        COALESCE(pay.months_paid, 1) AS months_paid,
                         GROUP_CONCAT(DISTINCT a.serial ORDER BY a.serial SEPARATOR ', ') AS serial,
                         GROUP_CONCAT(DISTINCT NULLIF(TRIM(a.nickname), '') ORDER BY NULLIF(TRIM(a.nickname), '') SEPARATOR ', ') AS nickname,
+                        GROUP_CONCAT(DISTINCT a.pay ORDER BY a.pay SEPARATOR ', ') AS pay_day,
                         GROUP_CONCAT(DISTINCT CONCAT(c.name, ' ', c.surname) ORDER BY c.name SEPARATOR ', ') AS cliente,
+                        GROUP_CONCAT(DISTINCT c.ci ORDER BY c.ci SEPARATOR ', ') AS client_ci,
+                        GROUP_CONCAT(DISTINCT c.phone ORDER BY c.phone SEPARATOR ', ') AS client_phone,
                         GROUP_CONCAT(DISTINCT p.plan ORDER BY p.plan SEPARATOR ', ') AS nombre_plan,
+                        GROUP_CONCAT(DISTINCT p.price ORDER BY p.price SEPARATOR ', ') AS plan_price,
                         GROUP_CONCAT(DISTINCT co.country ORDER BY co.country SEPARATOR ', ') AS pais
                     FROM payments pay
                     INNER JOIN payment_antennas pa ON pay.id_payment = pa.payment_id
@@ -94,7 +102,7 @@ class PaymentModel {
             if (!empty($where)) {
                 $sql .= " WHERE " . implode(' AND ', $where);
             }
-            $sql .= " GROUP BY pay.id_payment, pay.payment_date, pay.amount, pay.currency, pay.created_at, pay.receipt_path, pay.status, pay.reviewed_at";
+            $sql .= " GROUP BY pay.id_payment, pay.payment_date, pay.amount, pay.currency, pay.created_at, pay.receipt_path, pay.status, pay.reviewed_at, pay.months_paid";
             $sql .= " ORDER BY pay.payment_date DESC, pay.id_payment DESC";
 
             $stmt = $this->db->prepare($sql);
@@ -104,6 +112,54 @@ class PaymentModel {
             $this->lastError = $e->getMessage();
             error_log("Error en PaymentModel::getAll -> " . $e->getMessage());
             return [];
+        }
+    }
+
+    /**
+     * Obtener un pago específico con todos sus datos detallados para recibo o factura.
+     */
+    public function getById($id, $userRole = 'Administrador', $ci = null) {
+        try {
+            $sql = "SELECT 
+                        pay.id_payment,
+                        pay.payment_date,
+                        pay.amount,
+                        pay.currency,
+                        pay.created_at,
+                        pay.receipt_path,
+                        pay.status,
+                        pay.reviewed_at,
+                        COALESCE(pay.months_paid, 1) AS months_paid,
+                        GROUP_CONCAT(DISTINCT a.serial ORDER BY a.serial SEPARATOR ', ') AS serial,
+                        GROUP_CONCAT(DISTINCT NULLIF(TRIM(a.nickname), '') ORDER BY NULLIF(TRIM(a.nickname), '') SEPARATOR ', ') AS nickname,
+                        GROUP_CONCAT(DISTINCT a.pay ORDER BY a.pay SEPARATOR ', ') AS pay_day,
+                        GROUP_CONCAT(DISTINCT CONCAT(c.name, ' ', c.surname) ORDER BY c.name SEPARATOR ', ') AS cliente,
+                        GROUP_CONCAT(DISTINCT c.ci ORDER BY c.ci SEPARATOR ', ') AS client_ci,
+                        GROUP_CONCAT(DISTINCT c.phone ORDER BY c.phone SEPARATOR ', ') AS client_phone,
+                        GROUP_CONCAT(DISTINCT p.plan ORDER BY p.plan SEPARATOR ', ') AS nombre_plan,
+                        GROUP_CONCAT(DISTINCT p.price ORDER BY p.price SEPARATOR ', ') AS plan_price,
+                        GROUP_CONCAT(DISTINCT co.country ORDER BY co.country SEPARATOR ', ') AS pais
+                    FROM payments pay
+                    INNER JOIN payment_antennas pa ON pay.id_payment = pa.payment_id
+                    INNER JOIN antenas a ON pa.antenna_id = a.id_starlink
+                    LEFT JOIN client c ON a.client = c.id_client
+                    LEFT JOIN plan p ON a.plan = p.id_plan
+                    LEFT JOIN country co ON a.country = co.id_country
+                    WHERE pay.id_payment = :id";
+            $params = [':id' => (int) $id];
+            if ($userRole === 'Expectador' && $ci !== null) {
+                $sql .= " AND c.ci = :ci";
+                $params[':ci'] = $ci;
+            }
+            $sql .= " GROUP BY pay.id_payment, pay.payment_date, pay.amount, pay.currency, pay.created_at, pay.receipt_path, pay.status, pay.reviewed_at, pay.months_paid";
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            $this->lastError = $e->getMessage();
+            error_log("Error en PaymentModel::getById -> " . $e->getMessage());
+            return null;
         }
     }
 
@@ -151,14 +207,14 @@ class PaymentModel {
             $antenas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             // Obtener pagos aprobados para calcular estado
-            $paymentsSql = "SELECT antenna_id, payment_date, amount, currency, status 
+            $paymentsSql = "SELECT antenna_id, payment_date, amount, currency, status, months_paid 
                             FROM (
-                                SELECT pa.antenna_id, p.payment_date, p.amount, p.currency, p.status
+                                SELECT pa.antenna_id, p.payment_date, p.amount, p.currency, p.status, COALESCE(p.months_paid, 1) AS months_paid
                                 FROM payments p
                                 INNER JOIN payment_antennas pa ON p.id_payment = pa.payment_id
                                 WHERE p.status = 'Aprobado'
                                 UNION ALL
-                                SELECT p.antenna_id, p.payment_date, p.amount, p.currency, p.status
+                                SELECT p.antenna_id, p.payment_date, p.amount, p.currency, p.status, COALESCE(p.months_paid, 1) AS months_paid
                                 FROM payments p
                                 LEFT JOIN payment_antennas pa ON p.id_payment = pa.payment_id
                                 WHERE p.status = 'Aprobado' AND pa.payment_id IS NULL AND p.antenna_id IS NOT NULL
@@ -207,7 +263,7 @@ class PaymentModel {
     /**
      * Registrar un nuevo pago para una antena.
      */
-    public function register($antenna_id, $amount, $currency, $payment_date, $submittedBy, $status, $receiptPath = null) {
+    public function register($antenna_id, $amount, $currency, $payment_date, $submittedBy, $status, $receiptPath = null, $monthsPaid = 1) {
         try {
             $stmt = $this->db->prepare("SELECT client FROM antenas WHERE id_starlink = :id");
             $stmt->bindParam(':id', $antenna_id, PDO::PARAM_INT);
@@ -219,9 +275,10 @@ class PaymentModel {
             }
 
             $client_id = $antenna['client'] ?? null;
+            $monthsPaid = max(1, intval($monthsPaid));
 
-                $sql = "INSERT INTO payments (antenna_id, client_id, amount, currency, payment_date, submitted_by, status, receipt_path)
-                    VALUES (:antenna_id, :client_id, :amount, :currency, :payment_date, :submitted_by, :status, :receipt_path)";
+            $sql = "INSERT INTO payments (antenna_id, client_id, amount, currency, payment_date, submitted_by, status, receipt_path, months_paid)
+                    VALUES (:antenna_id, :client_id, :amount, :currency, :payment_date, :submitted_by, :status, :receipt_path, :months_paid)";
             $stmt = $this->db->prepare($sql);
             $stmt->bindParam(':antenna_id', $antenna_id, PDO::PARAM_INT);
 
@@ -237,6 +294,7 @@ class PaymentModel {
             $stmt->bindParam(':submitted_by', $submittedBy, PDO::PARAM_INT);
             $stmt->bindParam(':status', $status, PDO::PARAM_STR);
             $stmt->bindValue(':receipt_path', $receiptPath, $receiptPath === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+            $stmt->bindParam(':months_paid', $monthsPaid, PDO::PARAM_INT);
 
             return $stmt->execute();
         } catch (PDOException $e) {
@@ -245,26 +303,32 @@ class PaymentModel {
         }
     }
 
-    public function registerMany($antennaIds, $amounts, $currency, $paymentDate, $submittedBy, $status, $receiptPath = null) {
+    public function registerMany($antennaIds, $amounts, $currency, $paymentDate, $submittedBy, $status, $receiptPath = null, $monthsPaid = 1) {
+        $isNested = $this->db->inTransaction();
         try {
-            $this->db->beginTransaction();
+            if (!$isNested) {
+                $this->db->beginTransaction();
+            }
 
             $firstAntennaId = (int) $antennaIds[0];
             $antennaStmt = $this->db->prepare('SELECT client FROM antenas WHERE id_starlink = :id');
             $antennaStmt->execute([':id' => $firstAntennaId]);
             $antenna = $antennaStmt->fetch(PDO::FETCH_ASSOC);
             if (!$antenna) {
-                $this->db->rollBack();
+                if (!$isNested && $this->db->inTransaction()) {
+                    $this->db->rollBack();
+                }
                 $this->lastError = 'La antena seleccionada no existe en la base de datos.';
                 return false;
             }
 
             $clientId = !empty($antenna['client']) ? (int)$antenna['client'] : null;
-            $totalAmount = array_sum(array_map('floatval', $amounts));
+            $monthsPaid = max(1, intval($monthsPaid));
+            $totalAmount = array_sum(array_map('floatval', $amounts)) * $monthsPaid;
 
             $stmt = $this->db->prepare(
-                'INSERT INTO payments (antenna_id, client_id, amount, currency, payment_date, submitted_by, status, receipt_path)
-                 VALUES (:antenna_id, :client_id, :amount, :currency, :payment_date, :submitted_by, :status, :receipt_path)'
+                'INSERT INTO payments (antenna_id, client_id, amount, currency, payment_date, submitted_by, status, receipt_path, months_paid)
+                 VALUES (:antenna_id, :client_id, :amount, :currency, :payment_date, :submitted_by, :status, :receipt_path, :months_paid)'
             );
             $stmt->execute([
                 ':antenna_id' => $firstAntennaId,
@@ -274,7 +338,8 @@ class PaymentModel {
                 ':payment_date' => $paymentDate,
                 ':submitted_by' => $submittedBy > 0 ? $submittedBy : null,
                 ':status' => $status,
-                ':receipt_path' => $receiptPath
+                ':receipt_path' => $receiptPath,
+                ':months_paid' => $monthsPaid
             ]);
 
             $paymentId = $this->db->lastInsertId();
@@ -283,10 +348,12 @@ class PaymentModel {
                 $linkStmt->execute([':payment_id' => $paymentId, ':antenna_id' => $antennaId]);
             }
 
-            $this->db->commit();
+            if (!$isNested) {
+                $this->db->commit();
+            }
             return true;
         } catch (PDOException $e) {
-            if ($this->db->inTransaction()) {
+            if (!$isNested && $this->db->inTransaction()) {
                 $this->db->rollBack();
             }
             $this->lastError = $e->getMessage();

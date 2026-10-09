@@ -676,6 +676,9 @@ select:focus option {
                 </div>
                 <div class="d-flex gap-2">
                     <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <a id="pdfWhatsAppLink" class="btn btn-sm btn-success d-none" target="_blank" rel="noopener" title="Compartir por WhatsApp">
+                        <i class="bi bi-whatsapp me-1"></i>Enviar WhatsApp
+                    </a>
                     <button type="button" class="btn btn-sm btn-outline-light" id="btnPrintPdf" title="Imprimir documento">
                         <i class="bi bi-printer me-1"></i>Imprimir
                     </button>
@@ -945,6 +948,8 @@ function generateTablePdf(table, orientation = null) {
     previewFrame.src = pdfUrl;
     downloadLink.href = pdfUrl;
     downloadLink.download = filename;
+    const waLink = document.getElementById('pdfWhatsAppLink');
+    if (waLink) waLink.classList.add('d-none');
     previewTitle.innerHTML = '<i class="bi bi-file-earmark-pdf-fill text-danger me-2"></i>' + title + ' <span class="badge bg-secondary ms-2" style="font-size: 0.70rem;"><i class="bi bi-file-earmark-text me-1"></i>Carta (' + (orientation === 'landscape' ? 'Horizontal' : 'Vertical') + ')</span>';
 
     // Reflejar la orientación activa en los botones del modal
