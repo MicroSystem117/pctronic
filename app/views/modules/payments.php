@@ -179,9 +179,9 @@ $canDelete = $canReview;
                         <tr>
                             <th>Antena</th>
                             <th>Cliente</th>
-                            <th>Monto</th>
-                            <th>Moneda</th>
-                            <th>Fecha Pago</th>
+                            <th class="text-nowrap">Monto</th>
+                            <th class="text-nowrap">Moneda</th>
+                            <th class="text-nowrap">Fecha Pago</th>
                             <th>Comprobante</th>
                             <th>Acciones</th>
                         </tr>
@@ -205,15 +205,15 @@ $canDelete = $canReview;
                                         <?php endif; ?>
                                     </td>
                                     <td data-label="Cliente"><span class="td-value"><?php echo htmlspecialchars($payment['cliente']); ?></span></td>
-                                    <td data-label="Monto">
+                                    <td data-label="Monto" class="text-nowrap">
                                         <span class="td-value"><?php echo number_format($payment['amount'], 2, ',', '.'); ?></span>
                                         <?php $mPaid = intval($payment['months_paid'] ?? 1); ?>
                                         <?php if ($mPaid > 1): ?>
                                             <div class="small text-info mt-1"><i class="bi bi-calendar-check me-1"></i><?php echo $mPaid; ?> meses</div>
                                         <?php endif; ?>
                                     </td>
-                                    <td data-label="Moneda"><span class="td-value badge bg-secondary"><?php echo htmlspecialchars($payment['currency']); ?></span></td>
-                                    <td data-label="Fecha Pago"><span class="td-value"><?php echo date('d/m/Y', strtotime($payment['payment_date'])); ?></span></td>
+                                    <td data-label="Moneda" class="text-nowrap"><span class="td-value badge bg-secondary"><?php echo htmlspecialchars($payment['currency']); ?></span></td>
+                                    <td data-label="Fecha Pago" class="text-nowrap"><span class="td-value"><?php echo date('d/m/Y', strtotime($payment['payment_date'])); ?></span></td>
                                     <td data-label="Estado">
                                         <?php
                                             $paymentStatus = $payment['status'] ?? 'Pendiente';
@@ -302,9 +302,9 @@ $canDelete = $canReview;
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="8" class="text-center py-4 text-muted">No hay pagos registrados.</td>
+                                <td colspan="7" class="text-center py-4 text-muted">No hay pagos registrados.</td>
                             </tr>
-                        <?php endif; ?> ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
