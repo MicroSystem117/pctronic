@@ -253,7 +253,7 @@ $isAdmin = $userRole === 'Administrador';
 <?php if ($isAdmin): ?>
 <!-- Modal Depurar Registros Antiguos -->
 <div class="modal fade" id="modalCleanLogs" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content bg-dark text-white border-secondary">
             <div class="modal-header border-secondary">
                 <h5 class="modal-title">

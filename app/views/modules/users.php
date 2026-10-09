@@ -82,7 +82,7 @@ $canEdit = $canManage || $userRole === 'Moderador';
 
 <?php if ($canManage): ?>
 <div class="modal fade" id="modalUser" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content text-white">
             <div class="modal-header border-secondary">
                 <h5 class="modal-title" id="modalUserTitle"><i class="bi bi-person-plus-fill"></i> Nuevo Usuario</h5>

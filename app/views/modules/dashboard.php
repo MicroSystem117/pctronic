@@ -202,7 +202,7 @@ $hasSecQuestions = isset($data['has_sec_questions']) ? $data['has_sec_questions'
 
             <!-- Modales -->
             <div class="modal fade" id="dayModal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
                     <div class="modal-content bg-dark text-white">
                         <div class="modal-header">
                             <h5 class="modal-title" id="dayModalTitle">Detalles</h5>
@@ -214,7 +214,7 @@ $hasSecQuestions = isset($data['has_sec_questions']) ? $data['has_sec_questions'
             </div>
 
             <div class="modal fade" id="legendModal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-sm modal-dialog-centered">
+                <div class="modal-dialog modal-sm modal-dialog-centered modal-dialog-scrollable">
                     <div class="modal-content bg-dark text-white">
                         <div class="modal-header">
                             <h5 class="modal-title">Leyenda</h5>

@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <link href="<?php echo htmlspecialchars(app_url('css/style.css?v=20261001-7'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
+    <link href="<?php echo htmlspecialchars(app_url('css/style.css?v=20261009-1'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
 
     <style>
         /* ==========================================================================
@@ -644,8 +644,8 @@ select:focus option {
 
 <!-- Modal Vista Previa de PDF (Tamaño Carta) -->
 <div class="modal fade" id="pdfPreviewModal" tabindex="-1" aria-labelledby="pdfPreviewTitle" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content bg-dark text-white border-secondary shadow-lg" style="height: 92vh;">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content bg-dark text-white border-secondary shadow-lg pdf-preview-content">
             <div class="modal-header border-secondary d-flex justify-content-between align-items-center py-2 px-3">
                 <div class="d-flex align-items-center gap-2">
                     <h5 class="modal-title fs-6 mb-0 d-flex align-items-center" id="pdfPreviewTitle">
@@ -670,7 +670,7 @@ select:focus option {
             <div class="modal-body p-0 position-relative" style="background: #334155;">
                 <iframe id="pdfPreviewFrame" title="Vista previa del PDF" style="width: 100%; height: 100%; border: 0; background: #334155;"></iframe>
             </div>
-            <div class="modal-footer border-secondary d-flex justify-content-between py-2 px-3">
+            <div class="modal-footer border-secondary d-flex justify-content-between align-items-center flex-wrap gap-2 py-2 px-3">
                 <div class="text-white-50 small d-none d-sm-block">
                     <i class="bi bi-info-circle me-1"></i>Optimizado en <strong>Tamaño Carta (8.5 × 11 pulg / 215.9 × 279.4 mm)</strong>
                 </div>

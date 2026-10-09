@@ -89,7 +89,7 @@ $isAdmin = $userRole === 'Administrador';
 
 <?php if ($isAdmin): ?>
 <div class="modal fade" id="modalAccount" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content card-custom text-white">
             <div class="modal-header border-secondary">
                 <h5 class="modal-title"><i class="bi bi-person-plus-fill"></i> Registrar Cuenta Starlink</h5>
@@ -143,7 +143,7 @@ $isAdmin = $userRole === 'Administrador';
 <?php endif; ?>
 
 <div class="modal fade" id="modalAccountStarlinks" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content bg-dark text-white border-secondary">
             <div class="modal-header border-secondary">
                 <h5 class="modal-title" id="modalAccountStarlinksTitle"><i class="bi bi-broadcast me-2 text-primary"></i>Starlink asociadas</h5>

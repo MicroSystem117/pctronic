@@ -67,7 +67,7 @@ $isAdmin = $userRole === 'Administrador';
 
 <?php if ($isAdmin): ?>
 <div class="modal fade" id="modalPlan" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content bg-dark text-white border-secondary">
             <div class="modal-header border-secondary">
                 <h5 class="modal-title"><i class="bi bi-plus-circle-fill"></i> Plan</h5>

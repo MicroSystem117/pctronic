@@ -314,7 +314,7 @@ $canDelete = $canReview;
 
 <?php if ($canReview): ?>
 <div class="modal fade" id="modalReviewPayment" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg payments-review-dialog">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg payments-review-dialog">
         <div class="modal-content card-custom text-white">
             <div class="modal-header border-secondary">
                 <h5 class="modal-title"><i class="bi bi-search me-2"></i>Revisar pago</h5>
@@ -337,7 +337,7 @@ $canDelete = $canReview;
                 </dl>
                 <div id="review_payment_receipt_container" class="d-none">
                     <h6>Comprobante</h6>
-                    <iframe id="review_payment_receipt" class="w-100 border border-secondary rounded" style="height: 420px;" title="Comprobante del pago"></iframe>
+                    <iframe id="review_payment_receipt" class="w-100 border border-secondary rounded" style="height: 320px; max-height: 40vh;" title="Comprobante del pago"></iframe>
                 </div>
                 <p id="review_payment_no_receipt" class="text-white-50 mb-0">Este pago no tiene comprobante adjunto.</p>
             </div>
@@ -357,7 +357,7 @@ $canDelete = $canReview;
 
 <?php if ($isLoggedIn): ?>
 <div class="modal fade" id="modalPayment" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg payments-form-dialog">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg payments-form-dialog">
         <div class="modal-content card-custom text-white">
             <div class="modal-header border-secondary">
                 <h5 class="modal-title"><i class="bi bi-wallet2 me-2"></i> Registrar Pago</h5>
@@ -458,7 +458,7 @@ $canDelete = $canReview;
 
 <?php if ($canReview): ?>
 <div class="modal fade" id="modalExonerateDebt" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
         <div class="modal-content card-custom text-white">
             <div class="modal-header border-secondary">
                 <h5 class="modal-title"><i class="bi bi-shield-check text-warning me-2"></i>Exonerar Deuda por Mes</h5>

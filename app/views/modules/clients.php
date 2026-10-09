@@ -92,7 +92,7 @@ $isAdmin = $userRole === 'Administrador';
 
 <?php if ($isAdmin): ?>
 <div class="modal fade" id="modalClient" data-bs-backdrop="static" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content bg-dark text-white border-secondary">
             <div class="modal-header border-secondary">
                 <h5 class="modal-title" id="modalLabel"><i class="bi bi-person-plus-fill me-2 text-primary"></i>Registrar Nuevo Cliente</h5>
@@ -100,23 +100,24 @@ $isAdmin = $userRole === 'Administrador';
             </div>
             <form action="index.php?url=clients" method="POST">
                 <input type="hidden" id="id_client" name="id_client" value="0">
-
-<div class="mb-3">
-    <label class="form-label">Nombre <span class="text-danger">*</span></label>
-    <input type="text" class="form-control" id="client_name" name="name" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜüÀ-ÿ' -]+" oninput="this.value = this.value.replace(/[0-9]/g, '')" title="No se permiten números" required>
-</div>
-<div class="mb-3">
-    <label class="form-label">Apellido <span class="text-danger">*</span></label>
-    <input type="text" class="form-control" id="client_surname" name="surname" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜüÀ-ÿ' -]+" oninput="this.value = this.value.replace(/[0-9]/g, '')" title="No se permiten números" required>
-</div>
-<div class="mb-3">
-    <label class="form-label">Cédula (Opcional)</label>
-    <input type="text" class="form-control" id="client_ci" name="ci" inputmode="numeric" pattern="[0-9]+" oninput="this.value = this.value.replace(/[^0-9]/g, '')" title="Solo se permiten números">
-</div>
-<div class="mb-3">
-    <label class="form-label">Teléfono <span class="text-danger">*</span></label>
-    <input type="text" class="form-control" id="client_phone" name="phone" required>
-</div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="client_name" name="name" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜüÀ-ÿ' -]+" oninput="this.value = this.value.replace(/[0-9]/g, '')" title="No se permiten números" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Apellido <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="client_surname" name="surname" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜüÀ-ÿ' -]+" oninput="this.value = this.value.replace(/[0-9]/g, '')" title="No se permiten números" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Cédula (Opcional)</label>
+                        <input type="text" class="form-control" id="client_ci" name="ci" inputmode="numeric" pattern="[0-9]+" oninput="this.value = this.value.replace(/[^0-9]/g, '')" title="Solo se permiten números">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Teléfono <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="client_phone" name="phone" required>
+                    </div>
+                </div>
                 <div class="modal-footer border-secondary">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Guardar Cliente</button>
@@ -128,7 +129,7 @@ $isAdmin = $userRole === 'Administrador';
 <?php endif; ?>
 
 <div class="modal fade" id="modalClientStarlinks" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content bg-dark text-white border-secondary">
             <div class="modal-header border-secondary">
                 <h5 class="modal-title" id="modalClientStarlinksTitle"><i class="bi bi-broadcast me-2 text-primary"></i>Starlink del cliente</h5>

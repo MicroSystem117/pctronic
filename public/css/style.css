@@ -74,13 +74,15 @@ small {
     z-index: 2002 !important;
 }
 
-/* Todos los modales comparten centrado, capa y estructura visual. */
+/* Todos los modales comparten centrado, capa y estructura visual responsiva */
 .modal.show {
     z-index: 4000 !important;
     display: flex !important;
     align-items: center;
     justify-content: center;
     padding: 0.75rem !important;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 .modal-backdrop.show {
@@ -99,31 +101,103 @@ small {
     z-index: 1000000 !important;
 }
 
+/* Modal Dialog & Content: limitados a la altura visible del viewport (100dvh) */
+.modal .modal-dialog,
 .modal.show .modal-dialog {
     display: flex;
     align-items: center;
     width: 100%;
     max-height: calc(100vh - 1.5rem);
+    max-height: calc(100dvh - 1.5rem);
     margin: auto !important;
+    min-height: 0;
 }
 
+.modal .modal-content,
 .modal.show .modal-content {
+    display: flex;
+    flex-direction: column;
     width: 100%;
     max-height: calc(100vh - 1.5rem);
+    max-height: calc(100dvh - 1.5rem);
+    min-height: 0;
     overflow: hidden;
-    background: rgba(16, 20, 28, 0.96) !important;
+    background: rgba(16, 20, 28, 0.98) !important;
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
     border-radius: 18px !important;
     box-shadow: 0 18px 45px rgba(0, 0, 0, 0.5) !important;
 }
 
-.modal.show .modal-body {
-    overflow-y: auto;
+/* Si el modal contiene un <form>, convertir el form en contenedor flex vertical */
+.modal-content > form,
+.modal.show .modal-content > form {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+    width: 100%;
+    overflow: hidden;
 }
 
+/* Header y Footer siempre fijos y visibles en pantalla */
+.modal-content .modal-header,
 .modal.show .modal-header,
+.modal-content .modal-footer,
 .modal.show .modal-footer {
     flex: 0 0 auto;
+}
+
+/* El cuerpo del modal es la única sección con scroll interno */
+.modal-content .modal-body,
+.modal.show .modal-body,
+.modal-content > form > .modal-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
+
+/* Adaptación universal de modales para móviles y pantallas reducidas */
+@media (max-width: 767.98px) {
+    .modal.show {
+        padding: 0.35rem !important;
+    }
+
+    .modal .modal-dialog,
+    .modal.show .modal-dialog {
+        max-height: calc(100dvh - 0.7rem);
+        margin: 0.35rem auto !important;
+    }
+
+    .modal .modal-content,
+    .modal.show .modal-content {
+        max-height: calc(100dvh - 0.7rem);
+        border-radius: 14px !important;
+    }
+
+    .modal-content .modal-header {
+        padding: 0.75rem 0.85rem !important;
+    }
+
+    .modal-content .modal-body {
+        padding: 0.85rem !important;
+    }
+
+    .modal-content .modal-footer {
+        padding: 0.65rem 0.85rem !important;
+        gap: 0.5rem;
+    }
+
+    /* Prevenir auto-zoom molesto en iOS al tocar campos del formulario */
+    .modal-content input,
+    .modal-content select,
+    .modal-content textarea,
+    .modal-content .form-control,
+    .modal-content .form-select {
+        font-size: 16px !important;
+    }
 }
 
 @media (max-width: 767.98px) {
@@ -553,11 +627,11 @@ small {
 
     .antenas-page .antenas-form-dialog {
         max-width: none;
-        min-height: calc(100% - 1rem);
+        max-height: calc(100dvh - 0.7rem);
     }
 
     .antenas-page .antenas-form-dialog .modal-content {
-        min-height: calc(100dvh - 1rem);
+        max-height: calc(100dvh - 0.7rem);
     }
 
     .antenas-page .modal-footer {
@@ -1287,32 +1361,90 @@ select:focus {
     .payments-page .payments-form-dialog,
     .payments-page .payments-review-dialog {
         max-width: none;
-        min-height: calc(100% - 1rem);
+        max-height: calc(100dvh - 0.7rem);
     }
 
     .payments-page .payments-form-dialog .modal-content,
     .payments-page .payments-review-dialog .modal-content {
-        min-height: calc(100dvh - 1rem);
+        max-height: calc(100dvh - 0.7rem);
     }
 
     .payments-page #payment_antennas {
-        max-height: 34dvh !important;
+        max-height: 28dvh !important;
     }
 
     .payments-page #payment_select_all {
         white-space: nowrap;
     }
 
-    .payments-page .modal-footer {
+    .payments-page .payments-form-dialog .modal-footer {
         display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+    }
+
+    .payments-page .payments-review-dialog .modal-footer {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .payments-page .payments-review-dialog .modal-footer #review_payment_btn_receipt {
+        width: 100%;
+    }
+
+    .payments-page .payments-review-dialog .modal-footer .d-flex {
+        width: 100%;
+        display: grid !important;
         grid-template-columns: 1fr 1fr;
         gap: 0.5rem;
     }
 
     .payments-page .modal-footer .btn {
         margin: 0;
-        min-height: 2.75rem;
+        min-height: 2.5rem;
     }
+}
+
+/* Limitadores de altura para comprobantes de pago e iframe de vista previa */
+#review_payment_receipt {
+    height: 320px;
+    max-height: 40vh;
+}
+
+@media (max-width: 767.98px) {
+    #review_payment_receipt {
+        height: 220px;
+        max-height: 30vh;
+    }
+}
+
+#pdfPreviewModal .modal-dialog {
+    max-height: calc(100vh - 1.5rem);
+    max-height: calc(100dvh - 1.5rem);
+    height: calc(100vh - 1.5rem);
+    height: calc(100dvh - 1.5rem);
+}
+
+#pdfPreviewModal .modal-content,
+.pdf-preview-content {
+    height: 100% !important;
+    max-height: calc(100vh - 1.5rem) !important;
+    max-height: calc(100dvh - 1.5rem) !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+#pdfPreviewModal .modal-body {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+}
+
+#pdfPreviewModal .modal-footer {
+    flex: 0 0 auto !important;
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
 
 @media (max-width: 420px) {

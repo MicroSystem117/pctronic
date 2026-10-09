@@ -181,7 +181,7 @@ $isExpectador = $userRole === 'Expectador';
 
 <?php if ($isAdmin): ?>
 <div class="modal fade" id="modalAntena" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg antenas-form-dialog">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg antenas-form-dialog">
         <div class="modal-content card-custom text-white">
             <div class="modal-header border-secondary">
                 <h5 class="modal-title"><i class="bi bi-plus-circle-fill"></i> Registrar Nueva Antena</h5>
