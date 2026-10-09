@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <link href="<?php echo htmlspecialchars(app_url('css/style.css?v=20261009-1'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
+    <link href="<?php echo htmlspecialchars(app_url('css/style.css?v=20261009-2'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
 
     <style>
         /* ==========================================================================
@@ -651,30 +651,30 @@ select:focus option {
                     <h5 class="modal-title fs-6 mb-0 d-flex align-items-center" id="pdfPreviewTitle">
                         <i class="bi bi-file-earmark-pdf-fill text-danger me-2"></i>Vista previa PDF
                     </h5>
-                    <span class="badge bg-primary text-white" style="font-size: 0.70rem;">
+                    <span class="badge bg-primary text-white d-none d-sm-inline-flex align-items-center" style="font-size: 0.70rem;">
                         <i class="bi bi-file-earmark-ruled me-1"></i>Tamaño Carta
                     </span>
                 </div>
-                <div class="d-flex align-items-center gap-2">
+                <div class="d-flex align-items-center gap-1 gap-sm-2">
                     <div class="btn-group btn-group-sm" role="group" aria-label="Orientación Carta">
                         <button type="button" class="btn btn-sm btn-outline-info active" id="btnPdfOrientationLandscape" title="Orientación Horizontal (Carta)">
-                            <i class="bi bi-layout-sidebar-reverse me-1"></i>Horizontal
+                            <i class="bi bi-layout-sidebar-reverse me-1"></i><span class="d-none d-sm-inline">Horizontal</span>
                         </button>
                         <button type="button" class="btn btn-sm btn-outline-info" id="btnPdfOrientationPortrait" title="Orientación Vertical (Carta)">
-                            <i class="bi bi-file-earmark me-1"></i>Vertical
+                            <i class="bi bi-file-earmark me-1"></i><span class="d-none d-sm-inline">Vertical</span>
                         </button>
                     </div>
-                    <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    <button type="button" class="btn-close btn-close-white ms-1 ms-sm-2" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
             </div>
             <div class="modal-body p-0 position-relative" style="background: #334155;">
-                <iframe id="pdfPreviewFrame" title="Vista previa del PDF" style="width: 100%; height: 100%; border: 0; background: #334155;"></iframe>
+                <iframe id="pdfPreviewFrame" title="Vista previa del PDF" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; background: #334155;"></iframe>
             </div>
             <div class="modal-footer border-secondary d-flex justify-content-between align-items-center flex-wrap gap-2 py-2 px-3">
-                <div class="text-white-50 small d-none d-sm-block">
+                <div class="text-white-50 small d-none d-md-block">
                     <i class="bi bi-info-circle me-1"></i>Optimizado en <strong>Tamaño Carta (8.5 × 11 pulg / 215.9 × 279.4 mm)</strong>
                 </div>
-                <div class="d-flex gap-2">
+                <div class="d-flex gap-2 flex-wrap ms-auto">
                     <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
                     <a id="pdfWhatsAppLink" class="btn btn-sm btn-success d-none" target="_blank" rel="noopener" title="Compartir por WhatsApp">
                         <i class="bi bi-whatsapp me-1"></i>Enviar WhatsApp

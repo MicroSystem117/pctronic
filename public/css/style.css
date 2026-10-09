@@ -105,7 +105,8 @@ small {
 .modal .modal-dialog,
 .modal.show .modal-dialog {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    justify-content: center;
     width: 100%;
     max-height: calc(100vh - 1.5rem);
     max-height: calc(100dvh - 1.5rem);
