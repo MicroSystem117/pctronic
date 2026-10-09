@@ -182,6 +182,7 @@ $canDelete = $canReview;
                             <th class="text-nowrap">Monto</th>
                             <th class="text-nowrap">Moneda</th>
                             <th class="text-nowrap">Fecha Pago</th>
+                            <th>Estado</th>
                             <th>Comprobante</th>
                             <th>Acciones</th>
                         </tr>
@@ -302,7 +303,7 @@ $canDelete = $canReview;
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="7" class="text-center py-4 text-muted">No hay pagos registrados.</td>
+                                <td colspan="8" class="text-center py-4 text-muted">No hay pagos registrados.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>

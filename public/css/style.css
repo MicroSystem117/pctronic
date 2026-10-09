@@ -709,8 +709,22 @@ small {
 .table-responsive th,
 .table-responsive td {
     vertical-align: middle;
-    white-space: normal;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+    word-break: normal;
+}
+
+.payment-history-table {
+    min-width: 760px !important;
+}
+
+.payment-history-table td[data-label="Cliente"],
+.payment-history-table th:nth-child(2) {
+    min-width: 130px;
+    white-space: nowrap;
+}
+
+.payment-history-table td[data-label="Antena"] {
+    min-width: 140px;
 }
 
 @media (max-width: 576px) {
