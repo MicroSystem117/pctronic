@@ -52,6 +52,12 @@ class Controller {
 
     protected function requireAdmin() {
         if (!$this->isAdmin()) {
+            $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+            if ($isAjax) {
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(['success' => false, 'message' => 'Acceso denegado. Se requiere nivel de Administrador.']);
+                exit();
+            }
             header('Location: index.php?url=dashboard&status=access_denied');
             exit();
         }
@@ -67,6 +73,12 @@ class Controller {
         $stmt->execute([':user_id' => $_SESSION['user_id'], ':session_id' => session_id()]);
         if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
             session_unset();
+            $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+            if ($isAjax) {
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(['success' => false, 'message' => 'Tu sesión ha sido revocada o ha expirado. Por favor inicia sesión nuevamente.']);
+                exit();
+            }
             header('Location: index.php?url=login&status=session_revoked');
             exit();
         }

@@ -12,6 +12,12 @@ class Router {
 
         $publicRoutes = ['login', 'register', 'logout', 'auth'];
         if (!isset($_SESSION['user_id']) && !in_array($rawName, $publicRoutes, true)) {
+            $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+            if ($isAjax) {
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(['success' => false, 'message' => 'Sesión expirada o no autorizada. Por favor inicia sesión nuevamente.']);
+                exit();
+            }
             header('Location: index.php?url=login');
             exit();
         }
