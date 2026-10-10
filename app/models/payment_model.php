@@ -240,6 +240,15 @@ class PaymentModel {
             }
             unset($antena);
 
+            usort($antenas, function($a, $b) {
+                $dayA = (int)($a['due_day'] ?? 0);
+                $dayB = (int)($b['due_day'] ?? 0);
+                if ($dayA === $dayB) {
+                    return $b['id_starlink'] <=> $a['id_starlink'];
+                }
+                return $dayA <=> $dayB;
+            });
+
             return $antenas;
         } catch (PDOException $e) {
             $this->lastError = $e->getMessage();
