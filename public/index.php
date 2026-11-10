@@ -20,6 +20,7 @@ if (empty($_SESSION['csrf_token'])) {
 
 require_once "../config/database.php";
 require_once "../core/controller.php";
+require_once "../core/totp.php";
 require_once "../core/router.php";
 require_once "../core/url.php";
 

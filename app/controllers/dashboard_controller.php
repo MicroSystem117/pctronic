@@ -19,6 +19,15 @@ class DashboardController extends Controller {
             $antenaModel = new AntenaModel();
             $clientModel = new ClientModel();
             $accountModel = new AccountModel();
+            $paymentModel = new PaymentModel();
+
+            $mrr = 0.0;
+            $debtOverview = ['total_activas' => 0, 'al_dia' => 0, 'con_deuda' => 0, 'total_deuda' => 0.0];
+            $collectedThisMonth = 0.0;
+            $collectionTrend = [];
+            $paymentStatusSummary = [];
+            $upcomingExpirations = [];
+            $clientSummary = null;
 
             if (!$isExpectador) {
                 // 1. Contar total de clientes registrados
@@ -40,9 +49,20 @@ class DashboardController extends Controller {
 
                 // 4. Contar total de cuentas administrativas registradas
                 $totalAccounts = $accountModel->count();
+
+                // 5. Métricas financieras avanzadas (MRR, Morosidad, Recaudación)
+                $mrr = $antenaModel->getMRR();
+                $debtOverview = $antenaModel->getDebtOverview();
+                $collectedThisMonth = $paymentModel->getMonthlyApprovedSum($year, $month);
+                $collectionTrend = $paymentModel->getCollectionTrend(6);
+                $paymentStatusSummary = $paymentModel->getPaymentStatusCounts($month, $year);
+                $upcomingExpirations = $paymentModel->getUpcomingExpirations(7);
+            } else {
+                // Portal de autogestión de cliente
+                $clientSummary = $paymentModel->getClientSummary($this->getUserCi());
             }
 
-            // 5. Verificar si el usuario tiene preguntas de seguridad
+            // 6. Verificar si el usuario tiene preguntas de seguridad
             $hasSecQuestions = false;
             if ($userId) {
                 $secModel = new SecQuestionModel();
@@ -56,6 +76,13 @@ class DashboardController extends Controller {
             $totalAccounts = 0;
             $antenasByPlan = [];
             $hasSecQuestions = false;
+            $mrr = 0.0;
+            $debtOverview = ['total_activas' => 0, 'al_dia' => 0, 'con_deuda' => 0, 'total_deuda' => 0.0];
+            $collectedThisMonth = 0.0;
+            $collectionTrend = [];
+            $paymentStatusSummary = [];
+            $upcomingExpirations = [];
+            $clientSummary = null;
         }
 
         // 5. Obtener días de pago por antena (para calendario)
@@ -122,10 +149,17 @@ class DashboardController extends Controller {
             'antenas_by_plan' => $antenasByPlan,
             'active_antennas' => isset($activeAntennas) ? $activeAntennas : 0,
             'pay_days'        => $payDays,
-            'calendar_month'  => date('n'),
-            'calendar_year'   => date('Y'),
+            'calendar_month'  => $month,
+            'calendar_year'   => $year,
             'has_sec_questions' => isset($hasSecQuestions) ? $hasSecQuestions : false,
-            'isExpectador'    => $isExpectador
+            'isExpectador'    => $isExpectador,
+            'mrr'             => $mrr ?? 0.0,
+            'debt_overview'   => $debtOverview ?? [],
+            'collected_this_month' => $collectedThisMonth ?? 0.0,
+            'collection_trend'=> $collectionTrend ?? [],
+            'status_summary'  => $paymentStatusSummary ?? [],
+            'upcoming_expirations' => $upcomingExpirations ?? [],
+            'client_summary'  => $clientSummary ?? null
         ];
 
         // Renderizamos la vista del inicio (puedes llamarla dashboard o home según tu enrutador)

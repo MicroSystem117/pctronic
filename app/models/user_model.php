@@ -149,4 +149,63 @@ class UserModel {
         $stmt = $db->prepare('UPDATE user_sessions SET active = 0, ended_at = CURRENT_TIMESTAMP WHERE session_id = :session_id AND active = 1');
         return $stmt->execute([':session_id' => $sessionId]);
     }
+
+    /**
+     * Asegura la existencia de columnas 2FA en la tabla user
+     */
+    public function ensure2FaSchema() {
+        try {
+            $db = Database::connect();
+            $cols = $db->query("SHOW COLUMNS FROM `user`")->fetchAll(PDO::FETCH_COLUMN);
+            if (!in_array('totp_secret', $cols, true)) {
+                $db->exec("ALTER TABLE `user` ADD COLUMN `totp_secret` VARCHAR(64) NULL");
+            }
+            if (!in_array('totp_enabled', $cols, true)) {
+                $db->exec("ALTER TABLE `user` ADD COLUMN `totp_enabled` TINYINT(1) NOT NULL DEFAULT 0");
+            }
+        } catch (Throwable $e) {
+            error_log("UserModel::ensure2FaSchema warning -> " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Guardar clave secreta TOTP para un usuario
+     */
+    public function set2FaSecret($userId, $secret) {
+        $this->ensure2FaSchema();
+        $db = Database::connect();
+        $stmt = $db->prepare('UPDATE `user` SET totp_secret = :secret WHERE id_user = :id');
+        return $stmt->execute([':secret' => $secret, ':id' => $userId]);
+    }
+
+    /**
+     * Habilitar 2FA tras verificación exitosa del código
+     */
+    public function enable2Fa($userId) {
+        $this->ensure2FaSchema();
+        $db = Database::connect();
+        $stmt = $db->prepare('UPDATE `user` SET totp_enabled = 1 WHERE id_user = :id');
+        return $stmt->execute([':id' => $userId]);
+    }
+
+    /**
+     * Deshabilitar 2FA
+     */
+    public function disable2Fa($userId) {
+        $this->ensure2FaSchema();
+        $db = Database::connect();
+        $stmt = $db->prepare('UPDATE `user` SET totp_enabled = 0, totp_secret = NULL WHERE id_user = :id');
+        return $stmt->execute([':id' => $userId]);
+    }
+
+    /**
+     * Obtener configuración 2FA del usuario
+     */
+    public function get2FaInfo($userId) {
+        $this->ensure2FaSchema();
+        $db = Database::connect();
+        $stmt = $db->prepare('SELECT totp_secret, totp_enabled FROM `user` WHERE id_user = :id');
+        $stmt->execute([':id' => $userId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: ['totp_secret' => null, 'totp_enabled' => 0];
+    }
 }

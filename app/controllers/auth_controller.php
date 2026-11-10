@@ -77,6 +77,14 @@ class AuthController extends Controller {
                 exit();
             }
 
+            // Verificación de Autenticación en Dos Pasos (2FA)
+            $twoFa = $this->userModel->get2FaInfo($user['id_user']);
+            if (!empty($twoFa['totp_enabled']) && !empty($twoFa['totp_secret'])) {
+                $_SESSION['2fa_pending_user'] = $user;
+                header('Location: index.php?url=auth/verify_2fa');
+                exit();
+            }
+
             $sessionId = session_id();
             if ($this->userModel->hasActiveSession($user['id_user'], $sessionId)) {
                 if ($this->secQuestionModel->hasSecurityQuestions($user['id_user'])) {
@@ -313,6 +321,39 @@ class AuthController extends Controller {
         $this->render('modules/reset_password', $data);
     }
 
+    public function verify_2fa() {
+        if (!isset($_SESSION['2fa_pending_user'])) {
+            header('Location: index.php?url=login');
+            exit();
+        }
+
+        $user = $_SESSION['2fa_pending_user'];
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->validateCsrfToken();
+            $code = isset($_POST['code']) ? trim($_POST['code']) : '';
+            $twoFa = $this->userModel->get2FaInfo($user['id_user']);
+
+            if (!empty($twoFa['totp_secret']) && TOTP::verifyCode($twoFa['totp_secret'], $code)) {
+                unset($_SESSION['2fa_pending_user']);
+                $this->startUserSession($user);
+                header('Location: index.php?url=dashboard&status=login_success');
+                exit();
+            }
+
+            header('Location: index.php?url=auth/verify_2fa&status=2fa_invalid');
+            exit();
+        }
+
+        $data = [
+            'page_title' => 'Verificación 2FA - Starlink Control',
+            'hideLayout' => true,
+            'user' => $user
+        ];
+
+        $this->render('modules/verify_2fa', $data);
+    }
+
     public function manage_security() {
         if (!isset($_SESSION['user_id'])) {
             header('Location: index.php?url=login');
@@ -321,9 +362,44 @@ class AuthController extends Controller {
 
         $userId = $_SESSION['user_id'];
         $secData = $this->secQuestionModel->getByUserId($userId);
+        $twoFa = $this->userModel->get2FaInfo($userId);
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->validateCsrfToken();
+            $action = isset($_POST['action']) ? trim($_POST['action']) : 'save_questions';
+
+            if ($action === 'enable_2fa') {
+                $code = isset($_POST['code']) ? trim($_POST['code']) : '';
+                $secret = $_SESSION['2fa_setup_secret'] ?? '';
+
+                if (empty($secret) || !TOTP::verifyCode($secret, $code)) {
+                    header('Location: index.php?url=auth/manage_security&status=2fa_setup_failed');
+                    exit();
+                }
+
+                $this->userModel->set2FaSecret($userId, $secret);
+                $this->userModel->enable2Fa($userId);
+                unset($_SESSION['2fa_setup_secret']);
+                LogModel::log('SECURITY', 'Autenticación', 'Activó autenticación en dos pasos (2FA)', $userId, $_SESSION['user'], $_SESSION['user_role'] ?? 'Usuario');
+                header('Location: index.php?url=auth/manage_security&status=2fa_enabled');
+                exit();
+            }
+
+            if ($action === 'disable_2fa') {
+                $password = isset($_POST['password']) ? $_POST['password'] : '';
+                $currentUser = $this->userModel->findById($userId);
+
+                if (!$currentUser || !password_verify($password, $currentUser['pass'])) {
+                    header('Location: index.php?url=auth/manage_security&status=2fa_disable_wrong_pass');
+                    exit();
+                }
+
+                $this->userModel->disable2Fa($userId);
+                LogModel::log('SECURITY', 'Autenticación', 'Desactivó autenticación en dos pasos (2FA)', $userId, $_SESSION['user'], $_SESSION['user_role'] ?? 'Usuario');
+                header('Location: index.php?url=auth/manage_security&status=2fa_disabled');
+                exit();
+            }
+
             $q1 = isset($_POST['question1']) ? trim($_POST['question1']) : '';
             $a1 = isset($_POST['answer1']) ? trim($_POST['answer1']) : '';
             $q2 = isset($_POST['question2']) ? trim($_POST['question2']) : '';
@@ -337,14 +413,30 @@ class AuthController extends Controller {
             }
 
             $this->secQuestionModel->save($userId, $q1, $a1, $q2, $a2, $q3, $a3);
-            header('Location: index.php?url=dashboard&status=security_saved');
+            header('Location: index.php?url=auth/manage_security&status=security_saved');
             exit();
         }
 
+        // Si 2FA no está activo, generar un secreto para la vista de configuración
+        if (empty($twoFa['totp_enabled'])) {
+            if (empty($_SESSION['2fa_setup_secret'])) {
+                $_SESSION['2fa_setup_secret'] = TOTP::generateSecret();
+            }
+            $setupSecret = $_SESSION['2fa_setup_secret'];
+            $otpAuthUrl = TOTP::getOtpAuthUrl($_SESSION['user_ci'] ?? 'Usuario', $setupSecret);
+            $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . rawurlencode($otpAuthUrl);
+        } else {
+            $setupSecret = null;
+            $qrUrl = null;
+        }
+
         $data = [
-            'page_title' => 'Preguntas de Seguridad - Starlink Control',
+            'page_title' => 'Seguridad de la Cuenta - Starlink Control',
             'activeTab' => 'security',
-            'sec' => $secData ?: []
+            'sec' => $secData ?: [],
+            'two_fa' => $twoFa,
+            'setup_secret' => $setupSecret,
+            'qr_url' => $qrUrl
         ];
 
         $this->render('modules/manage_security', $data);

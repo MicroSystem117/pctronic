@@ -482,4 +482,56 @@ class AntenaModel {
             return [];
         }
     }
+
+    /**
+     * Calcular MRR (Monthly Recurring Revenue / Facturación mensual proyectada)
+     */
+    public function getMRR() {
+        try {
+            $sql = "SELECT COALESCE(SUM(p.price), 0) AS mrr
+                    FROM antenas a
+                    INNER JOIN plan p ON a.plan = p.id_plan
+                    WHERE p.plan NOT IN ('Inactive', 'Standby')";
+            $stmt = $this->db->query($sql);
+            return $stmt ? (float)$stmt->fetchColumn() : 0.0;
+        } catch (PDOException $e) {
+            error_log("Error en AntenaModel::getMRR -> " . $e->getMessage());
+            return 0.0;
+        }
+    }
+
+    /**
+     * Resumen de salud de cartera (Antenas al día vs Antenas en mora)
+     */
+    public function getDebtOverview() {
+        try {
+            $antenas = $this->getAll('Administrador');
+            $alDia = 0;
+            $conDeuda = 0;
+            $totalDeuda = 0.0;
+
+            foreach ($antenas as $ant) {
+                if (in_array($ant['nombre_plan'] ?? '', ['Inactive', 'Standby'], true)) {
+                    continue;
+                }
+                $debt = $ant['debt_info'] ?? null;
+                if ($debt && !empty($debt['is_in_debt'])) {
+                    $conDeuda++;
+                    $totalDeuda += (float)($debt['total_debt'] ?? 0.0);
+                } else {
+                    $alDia++;
+                }
+            }
+
+            return [
+                'total_activas' => $alDia + $conDeuda,
+                'al_dia' => $alDia,
+                'con_deuda' => $conDeuda,
+                'total_deuda' => $totalDeuda
+            ];
+        } catch (Throwable $e) {
+            error_log("Error en AntenaModel::getDebtOverview -> " . $e->getMessage());
+            return ['total_activas' => 0, 'al_dia' => 0, 'con_deuda' => 0, 'total_deuda' => 0.0];
+        }
+    }
 }

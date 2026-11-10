@@ -433,4 +433,199 @@ class PaymentModel {
             return false;
         }
     }
+
+    /**
+     * Total recaudado en un mes específico (pagos aprobados)
+     */
+    public function getMonthlyApprovedSum($year, $month) {
+        try {
+            $stmt = $this->db->prepare("SELECT COALESCE(SUM(amount), 0) AS total FROM payments WHERE status = 'Aprobado' AND YEAR(payment_date) = :year AND MONTH(payment_date) = :month");
+            $stmt->execute([':year' => $year, ':month' => $month]);
+            return (float)$stmt->fetchColumn();
+        } catch (PDOException $e) {
+            error_log("Error en PaymentModel::getMonthlyApprovedSum -> " . $e->getMessage());
+            return 0.0;
+        }
+    }
+
+    /**
+     * Tendencia de recaudación de los últimos N meses (para gráficos)
+     */
+    public function getCollectionTrend($months = 6) {
+        try {
+            $trend = [];
+            $spanishMonths = [
+                1 => 'Ene', 2 => 'Feb', 3 => 'Mar', 4 => 'Abr',
+                5 => 'May', 6 => 'Jun', 7 => 'Jul', 8 => 'Ago',
+                9 => 'Sep', 10 => 'Oct', 11 => 'Nov', 12 => 'Dic'
+            ];
+
+            for ($i = $months - 1; $i >= 0; $i--) {
+                $targetTime = strtotime("-{$i} month");
+                $m = (int)date('n', $targetTime);
+                $y = (int)date('Y', $targetTime);
+                $label = $spanishMonths[$m] . ' ' . $y;
+
+                $total = $this->getMonthlyApprovedSum($y, $m);
+                $trend[] = [
+                    'year' => $y,
+                    'month' => $m,
+                    'label' => $label,
+                    'total' => $total
+                ];
+            }
+            return $trend;
+        } catch (Throwable $e) {
+            error_log("Error en PaymentModel::getCollectionTrend -> " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Conteos de pagos por estado (Aprobado, Pendiente, Rechazado)
+     */
+    public function getPaymentStatusCounts($month = null, $year = null) {
+        try {
+            $sql = "SELECT status, COUNT(*) AS count, COALESCE(SUM(amount), 0) AS total FROM payments";
+            $params = [];
+            if ($month !== null && $year !== null) {
+                $sql .= " WHERE YEAR(payment_date) = :year AND MONTH(payment_date) = :month";
+                $params[':year'] = $year;
+                $params[':month'] = $month;
+            }
+            $sql .= " GROUP BY status";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $summary = [
+                'Aprobado' => ['count' => 0, 'total' => 0.0],
+                'Pendiente' => ['count' => 0, 'total' => 0.0],
+                'Rechazado' => ['count' => 0, 'total' => 0.0]
+            ];
+            foreach ($results as $r) {
+                if (isset($summary[$r['status']])) {
+                    $summary[$r['status']] = [
+                        'count' => (int)$r['count'],
+                        'total' => (float)$r['total']
+                    ];
+                }
+            }
+            return $summary;
+        } catch (PDOException $e) {
+            error_log("Error en PaymentModel::getPaymentStatusCounts -> " . $e->getMessage());
+            return ['Aprobado' => ['count' => 0, 'total' => 0.0], 'Pendiente' => ['count' => 0, 'total' => 0.0], 'Rechazado' => ['count' => 0, 'total' => 0.0]];
+        }
+    }
+
+    /**
+     * Obtener antenas cuyos días de pago vencen en los próximos X días
+     */
+    public function getUpcomingExpirations($daysAhead = 7) {
+        try {
+            $today = new DateTime('today');
+            $currentDay = (int)$today->format('j');
+            $daysInMonth = (int)$today->format('t');
+
+            $targetDays = [];
+            for ($d = 0; $d <= $daysAhead; $d++) {
+                $calcDay = $currentDay + $d;
+                if ($calcDay <= $daysInMonth) {
+                    $targetDays[] = $calcDay;
+                }
+            }
+
+            if (empty($targetDays)) {
+                return [];
+            }
+
+            $inPlaceholders = implode(',', array_fill(0, count($targetDays), '?'));
+            $sql = "SELECT a.id_starlink, a.serial, a.nickname, a.pay, a.date,
+                           c.id_client, CONCAT(c.name, ' ', c.surname) AS cliente, c.phone, c.ci,
+                           p.plan AS nombre_plan, p.price AS plan_price
+                    FROM antenas a
+                    INNER JOIN client c ON a.client = c.id_client
+                    INNER JOIN plan p ON a.plan = p.id_plan
+                    WHERE a.pay IN ($inPlaceholders) AND p.plan NOT IN ('Inactive', 'Standby')
+                    ORDER BY a.pay ASC, c.name ASC";
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($targetDays);
+            $antenas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Filtrar las que ya pagaron este mes
+            $upcoming = [];
+            foreach ($antenas as $ant) {
+                $payStmt = $this->db->prepare("SELECT COUNT(*) FROM payments pay
+                                               INNER JOIN payment_antennas pa ON pay.id_payment = pa.payment_id
+                                               WHERE pa.antenna_id = :id AND pay.status = 'Aprobado'
+                                               AND YEAR(pay.payment_date) = :year AND MONTH(pay.payment_date) = :month");
+                $payStmt->execute([
+                    ':id' => $ant['id_starlink'],
+                    ':year' => (int)$today->format('Y'),
+                    ':month' => (int)$today->format('n')
+                ]);
+                $alreadyPaid = (int)$payStmt->fetchColumn() > 0;
+
+                $dueDay = (int)$ant['pay'];
+                $daysRemaining = $dueDay - $currentDay;
+
+                $ant['already_paid'] = $alreadyPaid;
+                $ant['days_remaining'] = $daysRemaining;
+                $upcoming[] = $ant;
+            }
+
+            return $upcoming;
+        } catch (Throwable $e) {
+            error_log("Error en PaymentModel::getUpcomingExpirations -> " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Resumen financiero de un cliente para su portal de autogestión
+     */
+    public function getClientSummary($ci) {
+        try {
+            if (empty($ci)) return null;
+
+            // Total antenas del cliente
+            $stmtAnt = $this->db->prepare("SELECT a.id_starlink, a.serial, a.nickname, a.pay, p.plan AS nombre_plan, p.price AS plan_price
+                                           FROM antenas a
+                                           INNER JOIN client c ON a.client = c.id_client
+                                           INNER JOIN plan p ON a.plan = p.id_plan
+                                           WHERE c.ci = :ci");
+            $stmtAnt->execute([':ci' => $ci]);
+            $antennas = $stmtAnt->fetchAll(PDO::FETCH_ASSOC);
+
+            $monthlyTotal = 0.0;
+            foreach ($antennas as $a) {
+                if (!in_array($a['nombre_plan'], ['Inactive', 'Standby'], true)) {
+                    $monthlyTotal += (float)$a['plan_price'];
+                }
+            }
+
+            // Pagos recientes del cliente
+            $stmtPay = $this->db->prepare("SELECT pay.*, GROUP_CONCAT(a.serial SEPARATOR ', ') AS antenas
+                                           FROM payments pay
+                                           INNER JOIN payment_antennas pa ON pay.id_payment = pa.payment_id
+                                           INNER JOIN antenas a ON pa.antenna_id = a.id_starlink
+                                           INNER JOIN client c ON a.client = c.id_client
+                                           WHERE c.ci = :ci
+                                           GROUP BY pay.id_payment
+                                           ORDER BY pay.payment_date DESC LIMIT 10");
+            $stmtPay->execute([':ci' => $ci]);
+            $recentPayments = $stmtPay->fetchAll(PDO::FETCH_ASSOC);
+
+            return [
+                'antennas' => $antennas,
+                'total_antennas' => count($antennas),
+                'monthly_total' => $monthlyTotal,
+                'recent_payments' => $recentPayments
+            ];
+        } catch (Throwable $e) {
+            error_log("Error en PaymentModel::getClientSummary -> " . $e->getMessage());
+            return null;
+        }
+    }
 }

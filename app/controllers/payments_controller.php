@@ -435,4 +435,50 @@ class PaymentsController extends Controller {
 
         return 'uploads/payment_receipts/' . $filename;
     }
+
+    /**
+     * Generación y visualización de recibo oficial con código QR
+     */
+    public function receipt($id = null) {
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: index.php?url=login');
+            exit();
+        }
+
+        $id = $id !== null ? intval($id) : (isset($_GET['id']) ? intval($_GET['id']) : 0);
+        if ($id <= 0) {
+            header('Location: index.php?url=payments');
+            exit();
+        }
+
+        $userRole = $this->getUserRole();
+        $ci = $this->getUserCi();
+
+        if ($this->isExpectador()) {
+            if (!$this->paymentModel->paymentBelongsToUser($id, $ci)) {
+                header('Location: index.php?url=payments&status=access_denied');
+                exit();
+            }
+        }
+
+        $payment = $this->paymentModel->getById($id, $userRole, $this->isExpectador() ? $ci : null);
+        if (!$payment) {
+            header('Location: index.php?url=payments&status=payment_not_found');
+            exit();
+        }
+
+        // Construir datos del código QR
+        $qrText = "PCtronic Starlink | Recibo #" . str_pad($id, 6, '0', STR_PAD_LEFT) . " | Cliente: " . ($payment['cliente'] ?? '') . " | CI: " . ($payment['client_ci'] ?? '') . " | Monto: $" . number_format($payment['amount'], 2) . " USD | Fecha: " . $payment['payment_date'] . " | Estado: " . $payment['status'];
+        $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=' . rawurlencode($qrText);
+
+        $data = [
+            'page_title' => 'Recibo de Pago #REC-' . str_pad($id, 6, '0', STR_PAD_LEFT) . ' - PCtronic',
+            'hideLayout' => true,
+            'payment' => $payment,
+            'receipt_number' => 'REC-' . str_pad($id, 6, '0', STR_PAD_LEFT),
+            'qr_url' => $qrUrl
+        ];
+
+        $this->render('modules/receipt', $data);
+    }
 }

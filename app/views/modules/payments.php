@@ -246,6 +246,9 @@ $canDelete = $canReview;
                                                     title="Ver / Descargar Recibo Digital">
                                                 <i class="bi bi-file-earmark-text me-1"></i><span class="action-btn-text">Recibo</span>
                                             </button>
+                                            <a href="index.php?url=payments/receipt&id=<?php echo (int) $payment['id_payment']; ?>" target="_blank" class="btn btn-sm btn-outline-light" title="Imprimir Recibo Oficial con Código QR">
+                                                <i class="bi bi-printer"></i>
+                                            </a>
                                             <?php if (!empty($payment['client_phone'])): ?>
                                                 <?php
                                                     $waReceiptUrl = build_whatsapp_receipt_url(
