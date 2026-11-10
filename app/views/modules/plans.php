@@ -74,6 +74,7 @@ $isAdmin = $userRole === 'Administrador';
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="index.php?url=plans" method="POST">
+                <?php echo Controller::getCsrfInput(); ?>
                 <input type="hidden" id="id_plan" name="id_plan" value="0">
                 <div class="modal-body">
                     <div class="mb-3">
@@ -82,7 +83,7 @@ $isAdmin = $userRole === 'Administrador';
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Precio (numérico) <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" id="plan_price" name="price" min="0" required>
+                        <input type="number" class="form-control" id="plan_price" name="price" min="0" step="0.01" required>
                     </div>
                 </div>
                 <div class="modal-footer border-secondary">

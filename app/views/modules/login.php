@@ -3,6 +3,7 @@
         <div class="card card-custom p-4">
             <h3 class="mb-3">Iniciar Sesión</h3>
             <form action="index.php?url=login" method="POST">
+                <?php echo Controller::getCsrfInput(); ?>
                 <div class="mb-3">
                     <label class="form-label">Cédula de Identidad</label>
                     <input type="text" name="ci" class="form-control" placeholder="Ej: 12345678" inputmode="numeric" pattern="[0-9]+" oninput="this.value = this.value.replace(/[^0-9]/g, '')" title="Solo se permiten números" required>

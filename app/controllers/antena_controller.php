@@ -2,21 +2,36 @@
 
 class AntenaController extends Controller {
     private $antenaModel;
+    private $accountModel;
 
     public function __construct() {
         $this->antenaModel = new AntenaModel();
+        $this->accountModel = new AccountModel();
     }
 
     public function index() {
-        $db = Database::connect();
-
         // 1. Procesar inserción o acciones si vienen por POST
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->validateCsrfToken();
+
             if (!$this->isAdmin()) {
                 header('Location: index.php?url=antenas&status=access_denied');
                 exit();
             }
 
+            $action = $_POST['action'] ?? null;
+            if ($action === 'delete') {
+                $id = isset($_POST['id']) ? intval($_POST['id']) : (isset($_POST['id_starlink']) ? intval($_POST['id_starlink']) : 0);
+                if ($id > 0) {
+                    $deleted = $this->antenaModel->delete($id);
+                    $status = $deleted ? 'deleted' : 'error';
+                    if ($deleted) {
+                        LogModel::log('ELIMINAR', 'Antenas', "Eliminó la antena ID $id");
+                    }
+                    header("Location: index.php?url=antenas&status=" . $status);
+                    exit();
+                }
+            }
 
             // Determinar si es creación o actualización mediante un id_starlink en el POST
             $id_starlink = isset($_POST['id_starlink']) ? intval($_POST['id_starlink']) : 0;
@@ -28,13 +43,7 @@ class AntenaController extends Controller {
             $date       = isset($_POST['date']) ? $_POST['date'] : date('Y-m-d');
             $pay        = isset($_POST['pay']) && $_POST['pay'] !== '' ? intval($_POST['pay']) : null;
             $plan_id    = isset($_POST['plan']) ? intval($_POST['plan']) : 0;
-            $country_id = 0;
-            if ($account_id !== null && $account_id > 0) {
-                $countryStmt = $db->prepare('SELECT countries FROM accounts WHERE id_accounts = :id');
-                $countryStmt->execute([':id' => $account_id]);
-                $account = $countryStmt->fetch(PDO::FETCH_ASSOC);
-                $country_id = $account ? intval($account['countries']) : 0;
-            }
+            $country_id = $account_id ? $this->accountModel->getCountryId($account_id) : 0;
 
             if ($account_id === null || $account_id <= 0 || $country_id <= 0) {
                 header('Location: index.php?url=antenas&status=account_country_required');
@@ -48,15 +57,7 @@ class AntenaController extends Controller {
                     exit();
                 }
 
-                $stmt = $db->prepare("SELECT id_starlink FROM antenas WHERE serial = :serial" . ($id_starlink > 0 ? " AND id_starlink != :id" : ""));
-                $stmt->bindParam(':serial', $serial, PDO::PARAM_STR);
-                if ($id_starlink > 0) {
-                    $stmt->bindParam(':id', $id_starlink, PDO::PARAM_INT);
-                }
-                $stmt->execute();
-                $duplicate = $stmt->fetch(PDO::FETCH_ASSOC);
-
-                if ($duplicate) {
+                if ($this->antenaModel->checkSerialExists($serial, $id_starlink)) {
                     header("Location: index.php?url=antenas&status=antenna_exists");
                     exit();
                 }
@@ -83,29 +84,11 @@ class AntenaController extends Controller {
             }
         }
 
-        // 1b. Acción de eliminación via GET
-        if (isset($_GET['action']) && $_GET['action'] === 'delete') {
-            if (!$this->isAdmin()) {
-                header('Location: index.php?url=antenas&status=access_denied');
-                exit();
-            }
-
-            $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-            if ($id > 0) {
-                $deleted = $this->antenaModel->delete($id);
-                $status = $deleted ? 'deleted' : 'error';
-                if ($deleted) {
-                    LogModel::log('ELIMINAR', 'Antenas', "Eliminó la antena ID $id");
-                }
-                header("Location: index.php?url=antenas&status=" . $status);
-                exit();
-            }
-        }
-
-        // 2. Cargar listas auxiliares dinámicas para los SELECT del formulario modal
-        $clientes = $db->query("SELECT id_client, CONCAT(name, ' ', surname) AS nombre FROM client ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
-        $planes   = $db->query("SELECT id_plan, plan FROM plan ORDER BY id_plan ASC")->fetchAll(PDO::FETCH_ASSOC);
-        $cuentas  = $db->query("SELECT a.id_accounts, CONCAT(a.owner, ' • ', a.acc) AS info_cuenta, a.countries AS country_id, c.country AS country_name FROM accounts a LEFT JOIN country c ON c.id_country = a.countries ORDER BY a.owner ASC")->fetchAll(PDO::FETCH_ASSOC);
+        // 2. Cargar listas auxiliares dinámicas para los SELECT del formulario modal (solo administradores y moderadores)
+        $isExp    = $this->isExpectador();
+        $clientes = !$isExp ? (new ClientModel())->getSelectOptions() : [];
+        $planes   = (new PlanModel())->getSelectOptions();
+        $cuentas  = !$isExp ? $this->accountModel->getSelectOptions() : [];
 
         // 3. Obtener el listado principal de antenas
         $antenasList = $this->antenaModel->getAll($this->getUserRole(), $this->getUserCi());

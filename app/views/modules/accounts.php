@@ -96,6 +96,7 @@ $isAdmin = $userRole === 'Administrador';
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="index.php?url=accounts" method="POST">
+                <?php echo Controller::getCsrfInput(); ?>
                 <input type="hidden" id="id_accounts" name="id_accounts" value="0">
                 <div class="modal-body">
                     
@@ -178,6 +179,22 @@ document.getElementById('modalAccount')?.addEventListener('show.bs.modal', funct
 });
 
 function prepareAccountDelete(link) {
+    const urlObj = new URL(link.href, window.location.href);
+    const accountId = urlObj.searchParams.get('id');
+
+    function executeAccountDelete(preserve) {
+        const postData = new FormData();
+        postData.append('action', 'delete');
+        postData.append('id', accountId);
+        postData.append('preserve_antennas', preserve ? '1' : '0');
+        postData.append('csrf_token', window.csrfToken || '');
+
+        loadContentWithoutReload('index.php?url=accounts', {
+            method: 'POST',
+            body: postData
+        }).catch(err => window.showSweetAlert('danger', err.message, true));
+    }
+
     Swal.fire({
         title: '¿Eliminar cuenta administrativa?',
         text: '¿Deseas conservar las antenas Starlink asociadas (desvinculándolas) o eliminarlas también del sistema?',
@@ -193,8 +210,7 @@ function prepareAccountDelete(link) {
         customClass: { popup: 'swal-custom-dark' }
     }).then((result) => {
         if (result.isConfirmed) {
-            const targetUrl = link.href + '&preserve_antennas=1';
-            loadContentWithoutReload(targetUrl).catch(err => window.showSweetAlert('danger', err.message, true));
+            executeAccountDelete(true);
         } else if (result.isDenied) {
             Swal.fire({
                 title: '¿Confirmar eliminación total?',
@@ -208,8 +224,7 @@ function prepareAccountDelete(link) {
                 customClass: { popup: 'swal-custom-dark' }
             }).then((confirmRes) => {
                 if (confirmRes.isConfirmed) {
-                    const targetUrl = link.href + '&preserve_antennas=0';
-                    loadContentWithoutReload(targetUrl).catch(err => window.showSweetAlert('danger', err.message, true));
+                    executeAccountDelete(false);
                 }
             });
         }

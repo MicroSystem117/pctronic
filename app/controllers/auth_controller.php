@@ -16,6 +16,7 @@ class AuthController extends Controller {
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->validateCsrfToken();
             if (isset($_POST['security_check']) && $_POST['security_check'] === '1') {
                 $pendingUserId = isset($_SESSION['pending_second_session_user']) ? intval($_SESSION['pending_second_session_user']) : 0;
                 $pendingAt = isset($_SESSION['pending_second_session_at']) ? intval($_SESSION['pending_second_session_at']) : 0;
@@ -47,9 +48,9 @@ class AuthController extends Controller {
 
                 $securityData = $this->secQuestionModel->getByUserId($pendingUserId);
                 $validAnswers = $securityData &&
-                    strcasecmp($answers[0], $securityData['answer1']) === 0 &&
-                    strcasecmp($answers[1], $securityData['answer2']) === 0 &&
-                    strcasecmp($answers[2], $securityData['answer3']) === 0;
+                    $this->secQuestionModel->verifyAnswer($answers[0], $securityData['answer1']) &&
+                    $this->secQuestionModel->verifyAnswer($answers[1], $securityData['answer2']) &&
+                    $this->secQuestionModel->verifyAnswer($answers[2], $securityData['answer3']);
 
                 if (!$validAnswers) {
                     header('Location: index.php?url=login&status=session_questions_wrong');
@@ -121,6 +122,7 @@ class AuthController extends Controller {
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->validateCsrfToken();
             $name = isset($_POST['name']) ? trim($_POST['name']) : '';
             $surname = isset($_POST['surname']) ? trim($_POST['surname']) : '';
             $ci = isset($_POST['ci']) ? trim($_POST['ci']) : '';
@@ -177,6 +179,7 @@ class AuthController extends Controller {
 
     public function forgot_password() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->validateCsrfToken();
             $ci = isset($_POST['ci']) ? trim($_POST['ci']) : '';
 
             if ($ci === '') {
@@ -227,6 +230,7 @@ class AuthController extends Controller {
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->validateCsrfToken();
             $a1 = isset($_POST['answer1']) ? trim($_POST['answer1']) : '';
             $a2 = isset($_POST['answer2']) ? trim($_POST['answer2']) : '';
             $a3 = isset($_POST['answer3']) ? trim($_POST['answer3']) : '';
@@ -236,9 +240,9 @@ class AuthController extends Controller {
                 exit();
             }
 
-            $match = (strcasecmp($a1, $secData['answer1']) === 0) &&
-                     (strcasecmp($a2, $secData['answer2']) === 0) &&
-                     (strcasecmp($a3, $secData['answer3']) === 0);
+            $match = $this->secQuestionModel->verifyAnswer($a1, $secData['answer1']) &&
+                     $this->secQuestionModel->verifyAnswer($a2, $secData['answer2']) &&
+                     $this->secQuestionModel->verifyAnswer($a3, $secData['answer3']);
 
             if (!$match) {
                 header('Location: index.php?url=auth/verify_questions&status=wrong_answers');
@@ -272,6 +276,7 @@ class AuthController extends Controller {
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->validateCsrfToken();
             $password = isset($_POST['password']) ? $_POST['password'] : '';
             $confirm = isset($_POST['confirm_password']) ? $_POST['confirm_password'] : '';
 
@@ -318,6 +323,7 @@ class AuthController extends Controller {
         $secData = $this->secQuestionModel->getByUserId($userId);
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->validateCsrfToken();
             $q1 = isset($_POST['question1']) ? trim($_POST['question1']) : '';
             $a1 = isset($_POST['answer1']) ? trim($_POST['answer1']) : '';
             $q2 = isset($_POST['question2']) ? trim($_POST['question2']) : '';

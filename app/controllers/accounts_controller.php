@@ -10,12 +10,33 @@ class AccountsController extends Controller {
     }
 
     public function index() {
-        $db = Database::connect();
-        // Procesar inserción o actualización si el formulario fue enviado
+        if ($this->isExpectador()) {
+            header('Location: index.php?url=dashboard&status=access_denied');
+            exit();
+        }
+
+        // Procesar inserción, actualización o eliminación si el formulario fue enviado
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->validateCsrfToken();
+
             if (!$this->isAdmin()) {
                 header('Location: index.php?url=accounts&status=access_denied');
                 exit();
+            }
+
+            $action = $_POST['action'] ?? null;
+            if ($action === 'delete') {
+                $id = isset($_POST['id']) ? intval($_POST['id']) : (isset($_POST['id_accounts']) ? intval($_POST['id_accounts']) : 0);
+                if ($id > 0) {
+                    $preserveAntennas = !isset($_POST['preserve_antennas']) || $_POST['preserve_antennas'] === '1';
+                    $deleted = $this->accountModel->delete($id, $preserveAntennas);
+                    $status = $deleted ? 'deleted' : 'error';
+                    if ($deleted) {
+                        LogModel::log('ELIMINAR', 'Cuentas', "Eliminó la cuenta ID $id");
+                    }
+                    header("Location: index.php?url=accounts&status=" . $status);
+                    exit();
+                }
             }
 
             $id = isset($_POST['id_accounts']) ? intval($_POST['id_accounts']) : 0;
@@ -31,36 +52,7 @@ class AccountsController extends Controller {
                     exit();
                 }
 
-                $currentAccount = null;
-                if ($id > 0) {
-                    $stmt = $db->prepare("SELECT acc, email FROM accounts WHERE id_accounts = :id");
-                    $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-                    $stmt->execute();
-                    $currentAccount = $stmt->fetch(PDO::FETCH_ASSOC);
-                }
-
-                $accChanged = !$currentAccount || trim($currentAccount['acc']) !== trim($acc);
-                $emailChanged = !$currentAccount || trim($currentAccount['email']) !== trim($email);
-                $duplicate = null;
-
-                if ($accChanged || $emailChanged) {
-                    $conditions = [];
-                    $params = [];
-                    if ($accChanged) {
-                        $conditions[] = 'TRIM(acc) = TRIM(:acc)';
-                        $params[':acc'] = $acc;
-                    }
-                    if ($emailChanged) {
-                        $conditions[] = 'TRIM(email) = TRIM(:email)';
-                        $params[':email'] = $email;
-                    }
-
-                    $sql = "SELECT id_accounts, acc, email FROM accounts WHERE (" . implode(' OR ', $conditions) . ") AND id_accounts <> :id";
-                    $params[':id'] = $id;
-                    $stmt = $db->prepare($sql);
-                    $stmt->execute($params);
-                    $duplicate = $stmt->fetch(PDO::FETCH_ASSOC);
-                }
+                $duplicate = $this->accountModel->findDuplicate($acc, $email, $id);
 
                 if ($duplicate) {
                     if (trim($duplicate['acc']) === trim($acc)) {
@@ -95,32 +87,8 @@ class AccountsController extends Controller {
             }
         }
 
-        // Acción de eliminación via GET
-        if (isset($_GET['action']) && $_GET['action'] === 'delete') {
-            if (!$this->isAdmin()) {
-                header('Location: index.php?url=accounts&status=access_denied');
-                exit();
-            }
-
-            $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-            if ($id > 0) {
-                $preserveAntennas = !isset($_GET['preserve_antennas']) || $_GET['preserve_antennas'] === '1';
-                $deleted = $this->accountModel->delete($id, $preserveAntennas);
-                $status = $deleted ? 'deleted' : 'error';
-                if ($deleted) {
-                    LogModel::log('ELIMINAR', 'Cuentas', "Eliminó la cuenta ID $id");
-                }
-                header("Location: index.php?url=accounts&status=" . $status);
-                exit();
-            }
-        }
-
-        if ($this->isExpectador()) {
-            header('Location: index.php?url=dashboard&status=access_denied');
-            exit();
-        }
-
-        $countries = $db->query("SELECT id_country, country FROM country ORDER BY country ASC")->fetchAll(PDO::FETCH_ASSOC);
+        $countryModel = new CountryModel();
+        $countries = $countryModel->getAll();
 
         // Cargar el listado para la tabla visual
         $accountsList = $this->accountModel->getAll();

@@ -262,6 +262,7 @@ $isAdmin = $userRole === 'Administrador';
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <form action="index.php?url=logs" method="POST">
+                <?php echo Controller::getCsrfInput(); ?>
                 <input type="hidden" name="action" value="clear_old">
                 <div class="modal-body">
                     <p class="text-white-50">
@@ -290,6 +291,7 @@ $isAdmin = $userRole === 'Administrador';
 </div>
 
 <form id="formClearAllLogs" action="index.php?url=logs" method="POST" style="display: none;">
+    <?php echo Controller::getCsrfInput(); ?>
     <input type="hidden" name="action" value="clear_all">
 </form>
 

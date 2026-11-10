@@ -188,6 +188,7 @@ $isExpectador = $userRole === 'Expectador';
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="index.php?url=antenas" method="POST">
+                <?php echo Controller::getCsrfInput(); ?>
                 <input type="hidden" id="id_starlink" name="id_starlink" value="0">
                 <div class="modal-body">
                     <div class="row">

@@ -1,6 +1,41 @@
 <?php
 
 class Controller {
+    public static function getCsrfToken() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+        return $_SESSION['csrf_token'];
+    }
+
+    public static function getCsrfInput() {
+        return '<input type="hidden" name="csrf_token" value="' . htmlspecialchars(self::getCsrfToken(), ENT_QUOTES, 'UTF-8') . '">';
+    }
+
+    protected function validateCsrfToken() {
+        $token = $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null;
+        $sessionToken = $_SESSION['csrf_token'] ?? '';
+
+        if (empty($token) || empty($sessionToken) || !hash_equals($sessionToken, (string)$token)) {
+            $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+            if ($isAjax) {
+                header('Content-Type: application/json; charset=utf-8');
+                http_response_code(403);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Token de seguridad inválido o expirado. Por favor recarga la página.'
+                ]);
+                exit();
+            }
+            http_response_code(403);
+            die('Error 403: Solicitud rechazada por validación de seguridad (CSRF inválido o expirado). Por favor recarga la página.');
+        }
+        return true;
+    }
+
     public function render($view, $data = []) {
         if (!empty($data)) {
             extract($data);

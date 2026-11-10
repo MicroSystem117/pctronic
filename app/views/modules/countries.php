@@ -65,6 +65,7 @@ $isAdmin = $userRole === 'Administrador';
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="index.php?url=countries" method="POST">
+                <?php echo Controller::getCsrfInput(); ?>
                 <input type="hidden" id="id_country" name="id_country" value="0">
                 <div class="modal-body">
                     <div class="mb-3">

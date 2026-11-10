@@ -8,11 +8,32 @@ class CountryController extends Controller {
     }
 
     public function index() {
-        // Crear / actualizar
+        if ($this->isExpectador()) {
+            header('Location: index.php?url=dashboard&status=access_denied');
+            exit();
+        }
+
+        // Crear / actualizar / eliminar
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->validateCsrfToken();
+
             if (!$this->isAdmin()) {
                 header('Location: index.php?url=countries&status=access_denied');
                 exit();
+            }
+
+            $action = $_POST['action'] ?? null;
+            if ($action === 'delete') {
+                $id = isset($_POST['id']) ? intval($_POST['id']) : (isset($_POST['id_country']) ? intval($_POST['id_country']) : 0);
+                if ($id > 0) {
+                    $deleted = $this->countryModel->delete($id);
+                    $status = $deleted ? 'deleted' : 'error';
+                    if ($deleted) {
+                        LogModel::log('ELIMINAR', 'Países', "Eliminó el país ID $id");
+                    }
+                    header("Location: index.php?url=countries&status=" . $status);
+                    exit();
+                }
             }
 
             $id = isset($_POST['id_country']) ? intval($_POST['id_country']) : 0;
@@ -39,30 +60,6 @@ class CountryController extends Controller {
                 header("Location: index.php?url=countries&status=empty");
                 exit();
             }
-        }
-
-        // Eliminar
-        if (isset($_GET['action']) && $_GET['action'] === 'delete') {
-            if (!$this->isAdmin()) {
-                header('Location: index.php?url=countries&status=access_denied');
-                exit();
-            }
-
-            $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-            if ($id > 0) {
-                $deleted = $this->countryModel->delete($id);
-                $status = $deleted ? 'deleted' : 'error';
-                if ($deleted) {
-                    LogModel::log('ELIMINAR', 'Países', "Eliminó el país ID $id");
-                }
-                header("Location: index.php?url=countries&status=" . $status);
-                exit();
-            }
-        }
-
-        if ($this->isExpectador()) {
-            header('Location: index.php?url=dashboard&status=access_denied');
-            exit();
         }
 
         $countries = $this->countryModel->getAll();

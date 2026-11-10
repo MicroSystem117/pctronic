@@ -3,6 +3,7 @@
         <div class="card card-custom p-4">
             <h3 class="mb-3">Registro de Usuario</h3>
             <form action="index.php?url=register" method="POST">
+                <?php echo Controller::getCsrfInput(); ?>
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Nombre</label>

@@ -99,6 +99,7 @@ $isAdmin = $userRole === 'Administrador';
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="index.php?url=clients" method="POST">
+                <?php echo Controller::getCsrfInput(); ?>
                 <input type="hidden" id="id_client" name="id_client" value="0">
                 <div class="modal-body">
                     <div class="mb-3">

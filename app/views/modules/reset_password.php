@@ -16,6 +16,7 @@ $alerts = [
             </div>
 
             <form action="index.php?url=auth/reset_password" method="POST">
+                <?php echo Controller::getCsrfInput(); ?>
                 <div class="mb-3">
                     <label class="form-label text-white">Nueva contraseña</label>
                     <input type="password" name="password" class="form-control bg-dark text-white border-secondary" placeholder="Ingresa tu nueva contraseña" required>

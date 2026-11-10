@@ -1,4 +1,9 @@
 <?php
+// Cabeceras de seguridad HTTP
+header('X-Frame-Options: SAMEORIGIN');
+header('X-Content-Type-Options: nosniff');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+
 if (session_status() === PHP_SESSION_NONE) {
     ini_set('session.use_strict_mode', '1');
     session_set_cookie_params([
@@ -7,6 +12,10 @@ if (session_status() === PHP_SESSION_NONE) {
         'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'
     ]);
     session_start();
+}
+
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
 require_once "../config/database.php";

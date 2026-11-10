@@ -360,6 +360,7 @@ $canDelete = $canReview;
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <form id="payment_form" action="index.php?url=payments" method="POST" enctype="multipart/form-data">
+                <?php echo Controller::getCsrfInput(); ?>
                 <div class="modal-body">
                     <div class="mb-3">
                         <div class="d-flex justify-content-between align-items-center">
@@ -461,6 +462,7 @@ $canDelete = $canReview;
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="formExonerateDebt" action="index.php?url=payments" method="POST">
+                <?php echo Controller::getCsrfInput(); ?>
                 <input type="hidden" name="action" value="save_debt_exemption">
                 <input type="hidden" name="id_starlink" id="exonerate_id_starlink" value="0">
                 <input type="hidden" name="remove_exemption" id="exonerate_remove_input" value="0">
@@ -892,15 +894,30 @@ document.addEventListener('app:content-ready', function() {
 
     function processPaymentAction(action, row, onSuccess) {
         action.classList.add('disabled');
-        fetch(action.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        const urlObj = new URL(action.href, window.location.href);
+        const postData = new FormData();
+        urlObj.searchParams.forEach((val, key) => {
+            if (key !== 'url') postData.append(key, val);
+        });
+        postData.append('csrf_token', window.csrfToken || '');
+        const targetUrl = urlObj.pathname + (urlObj.searchParams.has('url') ? '?url=' + urlObj.searchParams.get('url') : '');
+
+        fetch(targetUrl, {
+            method: 'POST',
+            body: postData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': window.csrfToken || ''
+            }
+        })
             .then(response => response.json())
             .then(result => {
-                if (!result.success) throw new Error();
+                if (!result.success) throw new Error(result.message || 'Error al procesar.');
                 onSuccess(result);
             })
-            .catch(() => {
+            .catch((err) => {
                 action.classList.remove('disabled');
-                showPaymentMessage('No se pudo actualizar el pago.', 'danger');
+                showPaymentMessage(err.message || 'No se pudo actualizar el pago.', 'danger');
             });
     }
 
@@ -909,10 +926,18 @@ document.addEventListener('app:content-ready', function() {
             event.preventDefault();
             const submitButton = this.querySelector('button[type="submit"]');
             submitButton.disabled = true;
+            const formData = new FormData(this);
+            if (!formData.has('csrf_token')) {
+                formData.append('csrf_token', window.csrfToken || '');
+            }
             fetch(this.action, {
                 method: 'POST',
-                body: new FormData(this),
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': window.csrfToken || ''
+                }
+            })
             })
                 .then(async response => {
                     const contentType = response.headers.get('content-type') || '';

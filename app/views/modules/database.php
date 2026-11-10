@@ -13,12 +13,14 @@
             <p class="text-white-50">Genera un archivo SQL con la estructura y datos actuales de la base de datos.</p>
             <div class="d-flex gap-2 mb-3 flex-wrap">
                 <form action="index.php?url=database" method="POST">
+                    <?php echo Controller::getCsrfInput(); ?>
                     <input type="hidden" name="action" value="backup">
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-cloud-download-fill"></i> Generar Respaldo
                     </button>
                 </form>
                 <form action="index.php?url=database" method="POST">
+                    <?php echo Controller::getCsrfInput(); ?>
                     <input type="hidden" name="action" value="export_csv">
                     <button type="submit" class="btn btn-success">
                         <i class="bi bi-file-earmark-spreadsheet-fill"></i> Exportar a CSV
@@ -51,6 +53,7 @@ $sqlBackups = array_filter($backups, function($b) {
 
             <?php if (!empty($sqlBackups)): ?>
                 <form action="index.php?url=database" method="POST" class="mb-3" data-confirm-text="¿Restablecer la base de datos con el respaldo seleccionado? Los datos actuales serán reemplazados.">
+                    <?php echo Controller::getCsrfInput(); ?>
                     <input type="hidden" name="action" value="restore_existing">
                     <label class="form-label text-white-50 small mb-1">Seleccionar respaldo del servidor:</label>
                     <div class="input-group mb-3">
@@ -74,6 +77,7 @@ $sqlBackups = array_filter($backups, function($b) {
                     <i class="bi bi-upload me-1"></i> O subir un archivo .sql desde tu equipo
                 </summary>
                 <form action="index.php?url=database" method="POST" enctype="multipart/form-data" class="mt-2">
+                    <?php echo Controller::getCsrfInput(); ?>
                     <input type="hidden" name="action" value="restore">
                     <div class="input-group input-group-sm">
                         <input type="file" name="sql_file" accept=".sql" class="form-control form-control-sm" required>

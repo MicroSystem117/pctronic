@@ -14,6 +14,7 @@ class DatabaseController extends Controller {
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->validateCsrfToken();
             $action = isset($_POST['action']) ? $_POST['action'] : null;
 
             if ($action === 'backup') {
@@ -39,7 +40,7 @@ class DatabaseController extends Controller {
             }
 
             if ($action === 'restore_existing') {
-                $fileName = isset($_POST['file_name']) ? basename($_POST['file_name']) : '';
+                $fileName = isset($_POST['file_name']) ? basename($_POST['file_name']) : (isset($_POST['file']) ? basename($_POST['file']) : '');
                 if ($fileName && $this->databaseModel->isValidBackupFile($fileName) && strtolower(pathinfo($fileName, PATHINFO_EXTENSION)) === 'sql') {
                     $targetPath = $this->databaseModel->getBackupFolder() . DIRECTORY_SEPARATOR . $fileName;
                     $restored = $this->databaseModel->restoreBackup($targetPath);
@@ -51,6 +52,17 @@ class DatabaseController extends Controller {
                     $status = 'restore_invalid_file';
                 }
 
+                header('Location: index.php?url=database&status=' . $status);
+                exit();
+            }
+
+            if ($action === 'delete') {
+                $fileName = isset($_POST['file']) ? basename($_POST['file']) : (isset($_POST['file_name']) ? basename($_POST['file_name']) : '');
+                $deleted = $this->databaseModel->deleteBackup($fileName);
+                $status = $deleted ? 'delete_success' : 'delete_error';
+                if ($deleted) {
+                    LogModel::log('ELIMINAR', 'Base de Datos', "Eliminó el archivo de respaldo: $fileName");
+                }
                 header('Location: index.php?url=database&status=' . $status);
                 exit();
             }
@@ -80,34 +92,9 @@ class DatabaseController extends Controller {
             }
         }
 
-        if (isset($_GET['action']) && $_GET['action'] === 'restore_existing' && isset($_GET['file'])) {
-            $fileName = basename($_GET['file']);
-            if ($fileName && $this->databaseModel->isValidBackupFile($fileName) && strtolower(pathinfo($fileName, PATHINFO_EXTENSION)) === 'sql') {
-                $targetPath = $this->databaseModel->getBackupFolder() . DIRECTORY_SEPARATOR . $fileName;
-                $restored = $this->databaseModel->restoreBackup($targetPath);
-                $status = $restored ? 'restore_success' : 'restore_error';
-            } else {
-                $status = 'restore_invalid_file';
-            }
-
-            header('Location: index.php?url=database&status=' . $status);
-            exit();
-        }
-
         if (isset($_GET['action']) && $_GET['action'] === 'download' && isset($_GET['file'])) {
             $this->download($_GET['file']);
             return;
-        }
-
-        if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['file'])) {
-            $fileName = basename($_GET['file']);
-            $deleted = $this->databaseModel->deleteBackup($fileName);
-            $status = $deleted ? 'delete_success' : 'delete_error';
-            if ($deleted) {
-                LogModel::log('ELIMINAR', 'Base de Datos', "Eliminó el archivo de respaldo: $fileName");
-            }
-            header('Location: index.php?url=database&status=' . $status);
-            exit();
         }
 
         $backups = $this->databaseModel->listBackups();

@@ -120,4 +120,90 @@ class AccountModel {
             return false;
         }
     }
+
+    /**
+     * Obtener el país asociado a una cuenta administrativa
+     */
+    public function getCountryId($accountId) {
+        try {
+            $stmt = $this->db->prepare('SELECT countries FROM accounts WHERE id_accounts = :id');
+            $stmt->execute([':id' => intval($accountId)]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $row ? intval($row['countries']) : 0;
+        } catch (PDOException $e) {
+            error_log("Error en AccountModel::getCountryId -> " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Buscar duplicado por número de cuenta o email excluyendo un ID
+     */
+    public function findDuplicate($acc, $email, $excludeId = 0) {
+        try {
+            $currentAccount = null;
+            if ($excludeId > 0) {
+                $stmt = $this->db->prepare("SELECT acc, email FROM accounts WHERE id_accounts = :id");
+                $stmt->bindValue(':id', $excludeId, PDO::PARAM_INT);
+                $stmt->execute();
+                $currentAccount = $stmt->fetch(PDO::FETCH_ASSOC);
+            }
+
+            $accChanged = !$currentAccount || trim($currentAccount['acc']) !== trim($acc);
+            $emailChanged = !$currentAccount || trim($currentAccount['email']) !== trim($email);
+
+            if (!$accChanged && !$emailChanged) {
+                return null;
+            }
+
+            $conditions = [];
+            $params = [':id' => intval($excludeId)];
+            if ($accChanged) {
+                $conditions[] = 'TRIM(acc) = TRIM(:acc)';
+                $params[':acc'] = trim($acc);
+            }
+            if ($emailChanged) {
+                $conditions[] = 'TRIM(email) = TRIM(:email)';
+                $params[':email'] = trim($email);
+            }
+
+            $sql = "SELECT id_accounts, acc, email FROM accounts WHERE (" . implode(' OR ', $conditions) . ") AND id_accounts <> :id LIMIT 1";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        } catch (PDOException $e) {
+            error_log("Error en AccountModel::findDuplicate -> " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Obtener lista de cuentas formateada para select
+     */
+    public function getSelectOptions() {
+        try {
+            $sql = "SELECT a.id_accounts, CONCAT(a.owner, ' • ', a.acc) AS info_cuenta, a.countries AS country_id, c.country AS country_name 
+                    FROM accounts a 
+                    LEFT JOIN country c ON c.id_country = a.countries 
+                    ORDER BY a.owner ASC";
+            $stmt = $this->db->query($sql);
+            return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+        } catch (PDOException $e) {
+            error_log("Error en AccountModel::getSelectOptions -> " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Contar total de cuentas
+     */
+    public function count() {
+        try {
+            $stmt = $this->db->query("SELECT COUNT(*) AS total FROM accounts");
+            return $stmt ? (int)$stmt->fetchColumn() : 0;
+        } catch (PDOException $e) {
+            error_log("Error en AccountModel::count -> " . $e->getMessage());
+            return 0;
+        }
+    }
 }

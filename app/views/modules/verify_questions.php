@@ -17,6 +17,7 @@ $questions = isset($questions) && is_array($questions) ? $questions : [];
             </div>
 
             <form action="index.php?url=auth/verify_questions" method="POST">
+                <?php echo Controller::getCsrfInput(); ?>
                 <?php foreach ($questions as $q): ?>
                     <div class="mb-3">
                         <label class="form-label text-white"><?php echo htmlspecialchars($q['label'], ENT_QUOTES, 'UTF-8'); ?></label>

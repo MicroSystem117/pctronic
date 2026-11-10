@@ -89,6 +89,7 @@ $canEdit = $canManage || $userRole === 'Moderador';
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <form action="index.php?url=users" method="POST">
+                <?php echo Controller::getCsrfInput(); ?>
                 <input type="hidden" id="id_user" name="id_user" value="0">
                 <div class="modal-body">
                     <div class="row g-3">

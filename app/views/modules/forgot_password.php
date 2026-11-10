@@ -17,6 +17,7 @@ $alerts = [
             </div>
 
             <form action="index.php?url=auth/forgot_password" method="POST">
+                <?php echo Controller::getCsrfInput(); ?>
                 <div class="mb-3">
                     <label class="form-label text-white">Cédula de Identidad</label>
                     <input type="text" name="ci" class="form-control bg-dark text-white border-secondary" placeholder="Ej: 12345678" inputmode="numeric" pattern="[0-9]+" oninput="this.value = this.value.replace(/[^0-9]/g, '')" title="Solo se permiten números" required autofocus>

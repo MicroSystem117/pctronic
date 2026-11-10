@@ -6,9 +6,10 @@ storage/backups/*
 !storage/migrations/
 !storage/migrations/*.sql
 
-# Ignorar archivos subidos pero mantener las carpetas
+# Ignorar archivos subidos pero mantener las carpetas y reglas de seguridad
 public/uploads/*
 !public/uploads/.gitkeep
+!public/uploads/.htaccess
 !public/uploads/payment_receipts/
 public/uploads/payment_receipts/*
 !public/uploads/payment_receipts/.gitkeep

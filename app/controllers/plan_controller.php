@@ -8,16 +8,32 @@ class PlanController extends Controller {
     }
 
     public function index() {
-        // Crear / actualizar
+        // Crear / actualizar / eliminar
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->validateCsrfToken();
+
             if (!$this->isAdmin()) {
                 header('Location: index.php?url=plans&status=access_denied');
                 exit();
             }
 
+            $action = $_POST['action'] ?? null;
+            if ($action === 'delete') {
+                $id = isset($_POST['id']) ? intval($_POST['id']) : (isset($_POST['id_plan']) ? intval($_POST['id_plan']) : 0);
+                if ($id > 0) {
+                    $deleted = $this->planModel->delete($id);
+                    $status = $deleted ? 'deleted' : 'error';
+                    if ($deleted) {
+                        LogModel::log('ELIMINAR', 'Planes', "Eliminó el plan ID $id");
+                    }
+                    header("Location: index.php?url=plans&status=" . $status);
+                    exit();
+                }
+            }
+
             $id = isset($_POST['id_plan']) ? intval($_POST['id_plan']) : 0;
             $planName = isset($_POST['plan']) ? trim($_POST['plan']) : '';
-            $price = isset($_POST['price']) ? intval($_POST['price']) : 0;
+            $price = isset($_POST['price']) ? floatval($_POST['price']) : 0.0;
 
             if (!empty($planName) && $price >= 0) {
                 if ($id > 0) {
@@ -38,25 +54,6 @@ class PlanController extends Controller {
                 exit();
             } else {
                 header("Location: index.php?url=plans&status=empty");
-                exit();
-            }
-        }
-
-        // Eliminar
-        if (isset($_GET['action']) && $_GET['action'] === 'delete') {
-            if (!$this->isAdmin()) {
-                header('Location: index.php?url=plans&status=access_denied');
-                exit();
-            }
-
-            $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-            if ($id > 0) {
-                $deleted = $this->planModel->delete($id);
-                $status = $deleted ? 'deleted' : 'error';
-                if ($deleted) {
-                    LogModel::log('ELIMINAR', 'Planes', "Eliminó el plan ID $id");
-                }
-                header("Location: index.php?url=plans&status=" . $status);
                 exit();
             }
         }

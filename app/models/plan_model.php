@@ -23,7 +23,7 @@ class PlanModel {
         try {
             $stmt = $this->db->prepare("INSERT INTO plan (plan, price) VALUES (:plan, :price)");
             $stmt->bindParam(':plan', $planName, PDO::PARAM_STR);
-            $stmt->bindParam(':price', $price, PDO::PARAM_INT);
+            $stmt->bindValue(':price', floatval($price));
             return $stmt->execute();
         } catch (PDOException $e) {
             error_log("Error en PlanModel::register -> " . $e->getMessage());
@@ -36,11 +36,21 @@ class PlanModel {
             $stmt = $this->db->prepare("UPDATE plan SET plan = :plan, price = :price WHERE id_plan = :id");
             $stmt->bindParam(':id', $id, PDO::PARAM_INT);
             $stmt->bindParam(':plan', $planName, PDO::PARAM_STR);
-            $stmt->bindParam(':price', $price, PDO::PARAM_INT);
+            $stmt->bindValue(':price', floatval($price));
             return $stmt->execute();
         } catch (PDOException $e) {
             error_log("Error en PlanModel::update -> " . $e->getMessage());
             return false;
+        }
+    }
+
+    public function getSelectOptions() {
+        try {
+            $stmt = $this->db->query("SELECT id_plan, plan FROM plan ORDER BY id_plan ASC");
+            return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+        } catch (PDOException $e) {
+            error_log("Error en PlanModel::getSelectOptions -> " . $e->getMessage());
+            return [];
         }
     }
 

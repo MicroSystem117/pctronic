@@ -13,29 +13,32 @@ class UsersController extends Controller {
             exit();
         }
 
-        if (isset($_GET['action']) && $_GET['action'] === 'delete') {
-            if (!$this->isAdmin()) {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->validateCsrfToken();
+
+            if (!$this->isAdmin() && !$this->isModerator()) {
                 header('Location: index.php?url=users&status=access_denied');
                 exit();
             }
 
-            $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-            if ($id > 0 && $id !== intval($_SESSION['user_id'])) {
-                $deleted = $this->userModel->deleteUser($id);
-                $status = $deleted ? 'user_deleted' : 'error';
-                if ($deleted) {
-                    LogModel::log('ELIMINAR', 'Usuarios', "Eliminó al usuario ID $id");
+            $action = $_POST['action'] ?? null;
+            if ($action === 'delete') {
+                if (!$this->isAdmin()) {
+                    header('Location: index.php?url=users&status=access_denied');
+                    exit();
                 }
-            } else {
-                $status = 'user_delete_denied';
-            }
-            header('Location: index.php?url=users&status=' . $status);
-            exit();
-        }
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!$this->isAdmin() && !$this->isModerator()) {
-                header('Location: index.php?url=users&status=access_denied');
+                $id = isset($_POST['id']) ? intval($_POST['id']) : (isset($_POST['id_user']) ? intval($_POST['id_user']) : 0);
+                if ($id > 0 && $id !== intval($_SESSION['user_id'])) {
+                    $deleted = $this->userModel->deleteUser($id);
+                    $status = $deleted ? 'user_deleted' : 'error';
+                    if ($deleted) {
+                        LogModel::log('ELIMINAR', 'Usuarios', "Eliminó al usuario ID $id");
+                    }
+                } else {
+                    $status = 'user_delete_denied';
+                }
+                header('Location: index.php?url=users&status=' . $status);
                 exit();
             }
 

@@ -22,6 +22,7 @@ $sec = isset($sec) && is_array($sec) ? $sec : [];
                 <?php endif; ?>
 
                 <form action="index.php?url=auth/manage_security" method="POST">
+                    <?php echo Controller::getCsrfInput(); ?>
                     <div class="mb-3">
                         <label class="form-label text-white">Pregunta 1</label>
                         <input type="text" name="question1" class="form-control bg-dark text-white border-secondary" placeholder="Ej: ¿Cuál es el nombre de tu primera mascota?" value="<?php echo htmlspecialchars($sec['question1'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" required>

@@ -10,6 +10,8 @@ class PaymentsController extends Controller {
     public function index() {
         $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->validateCsrfToken();
+
             if (!isset($_SESSION['user_id'])) {
                 if ($isAjax) {
                     header('Content-Type: application/json; charset=utf-8');
@@ -20,8 +22,77 @@ class PaymentsController extends Controller {
                 exit();
             }
 
+            $action = $_POST['action'] ?? null;
+
+            // Eliminación segura de pagos via POST
+            if ($action === 'delete') {
+                if (!isset($_SESSION['user_id']) || (!$this->isAdmin() && !$this->isModerator())) {
+                    if ($isAjax) {
+                        header('Content-Type: application/json; charset=utf-8');
+                        echo json_encode(['success' => false, 'message' => 'No tienes permisos para realizar esta acción.']);
+                        exit();
+                    }
+                    header('Location: index.php?url=payments&status=access_denied');
+                    exit();
+                }
+
+                $id = isset($_POST['id']) ? intval($_POST['id']) : (isset($_POST['id_payment']) ? intval($_POST['id_payment']) : 0);
+                if ($id > 0) {
+                    $deleted = $this->paymentModel->delete($id);
+                    $status = $deleted ? 'payment_deleted' : 'error';
+                    if ($deleted) {
+                        LogModel::log('ELIMINAR', 'Pagos', "Eliminó el pago registrado #$id");
+                    }
+                    if ($isAjax) {
+                        header('Content-Type: application/json; charset=utf-8');
+                        echo json_encode([
+                            'success' => (bool) $deleted,
+                            'status' => $status,
+                            'id' => $id,
+                            'message' => $deleted ? 'Pago eliminado correctamente.' : 'No se pudo eliminar el pago.'
+                        ]);
+                        exit();
+                    }
+                    header("Location: index.php?url=payments&status=" . $status);
+                    exit();
+                }
+            }
+
+            // Aprobación y Rechazo seguro de pagos via POST
+            if ($action === 'approve' || $action === 'reject') {
+                if (!isset($_SESSION['user_id']) || (!$this->isAdmin() && !$this->isModerator())) {
+                    if ($isAjax) {
+                        header('Content-Type: application/json; charset=utf-8');
+                        echo json_encode(['success' => false, 'message' => 'No tienes permisos para realizar esta acción.']);
+                        exit();
+                    }
+                    header('Location: index.php?url=payments&status=access_denied');
+                    exit();
+                }
+
+                $id = isset($_POST['id']) ? intval($_POST['id']) : (isset($_POST['id_payment']) ? intval($_POST['id_payment']) : 0);
+                $reviewStatus = $action === 'approve' ? 'Aprobado' : 'Rechazado';
+                $updated = $id > 0 && $this->paymentModel->review($id, $reviewStatus, intval($_SESSION['user_id']));
+                if ($updated) {
+                    $logAct = $reviewStatus === 'Aprobado' ? 'APROBAR' : 'RECHAZAR';
+                    LogModel::log($logAct, 'Pagos', "$reviewStatus el pago registrado #$id");
+                }
+                if ($isAjax) {
+                    header('Content-Type: application/json; charset=utf-8');
+                    echo json_encode([
+                        'success' => (bool) $updated,
+                        'status' => $reviewStatus,
+                        'id' => $id,
+                        'message' => $updated ? 'Estado del pago actualizado correctamente.' : 'No se pudo actualizar el estado del pago.'
+                    ]);
+                    exit();
+                }
+                header('Location: index.php?url=payments&status=' . ($updated ? 'payment_reviewed' : 'error'));
+                exit();
+            }
+
             // Exoneración de deuda pasada
-            if (isset($_POST['action']) && $_POST['action'] === 'save_debt_exemption') {
+            if ($action === 'save_debt_exemption') {
                 if (!$this->isAdmin()) {
                     header('Location: index.php?url=payments&status=access_denied');
                     exit();
@@ -246,71 +317,6 @@ class PaymentsController extends Controller {
                 exit();
             }
             echo json_encode(['success' => true, 'payment' => $payment]);
-            exit();
-        }
-
-        if (isset($_GET['action']) && $_GET['action'] === 'delete') {
-            if (!isset($_SESSION['user_id']) || (!$this->isAdmin() && !$this->isModerator())) {
-                if ($isAjax) {
-                    header('Content-Type: application/json; charset=utf-8');
-                    echo json_encode(['success' => false, 'message' => 'No tienes permisos para realizar esta acción.']);
-                    exit();
-                }
-                header('Location: index.php?url=payments&status=access_denied');
-                exit();
-            }
-
-            $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-            if ($id > 0) {
-                $deleted = $this->paymentModel->delete($id);
-                $status = $deleted ? 'payment_deleted' : 'error';
-                if ($deleted) {
-                    LogModel::log('ELIMINAR', 'Pagos', "Eliminó el pago registrado #$id");
-                }
-                if ($isAjax) {
-                    header('Content-Type: application/json; charset=utf-8');
-                    echo json_encode([
-                        'success' => (bool) $deleted,
-                        'status' => $status,
-                        'id' => $id,
-                        'message' => $deleted ? 'Pago eliminado correctamente.' : 'No se pudo eliminar el pago.'
-                    ]);
-                    exit();
-                }
-                header("Location: index.php?url=payments&status=" . $status);
-                exit();
-            }
-        }
-
-        if (isset($_GET['action']) && in_array($_GET['action'], ['approve', 'reject'], true)) {
-            if (!isset($_SESSION['user_id']) || (!$this->isAdmin() && !$this->isModerator())) {
-                if ($isAjax) {
-                    header('Content-Type: application/json; charset=utf-8');
-                    echo json_encode(['success' => false, 'message' => 'No tienes permisos para realizar esta acción.']);
-                    exit();
-                }
-                header('Location: index.php?url=payments&status=access_denied');
-                exit();
-            }
-
-            $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-            $status = $_GET['action'] === 'approve' ? 'Aprobado' : 'Rechazado';
-            $updated = $id > 0 && $this->paymentModel->review($id, $status, intval($_SESSION['user_id']));
-            if ($updated) {
-                $logAct = $status === 'Aprobado' ? 'APROBAR' : 'RECHAZAR';
-                LogModel::log($logAct, 'Pagos', "$status el pago registrado #$id");
-            }
-            if ($isAjax) {
-                header('Content-Type: application/json; charset=utf-8');
-                echo json_encode([
-                    'success' => (bool) $updated,
-                    'status' => $status,
-                    'id' => $id,
-                    'message' => $updated ? 'Estado del pago actualizado correctamente.' : 'No se pudo actualizar el estado del pago.'
-                ]);
-                exit();
-            }
-            header('Location: index.php?url=payments&status=' . ($updated ? 'payment_reviewed' : 'error'));
             exit();
         }
 

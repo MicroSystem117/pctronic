@@ -432,4 +432,54 @@ class AntenaModel {
             return false;
         }
     }
+
+    /**
+     * Verificar si un serial de antena ya se encuentra registrado
+     */
+    public function checkSerialExists($serial, $excludeId = 0) {
+        try {
+            $sql = "SELECT id_starlink FROM antenas WHERE serial = :serial" . ($excludeId > 0 ? " AND id_starlink != :id" : "") . " LIMIT 1";
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindValue(':serial', trim($serial), PDO::PARAM_STR);
+            if ($excludeId > 0) {
+                $stmt->bindValue(':id', intval($excludeId), PDO::PARAM_INT);
+            }
+            $stmt->execute();
+            return (bool)$stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error en AntenaModel::checkSerialExists -> " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Contar total de antenas mapeadas
+     */
+    public function count() {
+        try {
+            $stmt = $this->db->query("SELECT COUNT(*) AS total FROM antenas");
+            return $stmt ? (int)$stmt->fetchColumn() : 0;
+        } catch (PDOException $e) {
+            error_log("Error en AntenaModel::count -> " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Obtener antenas agrupadas por plan para el dashboard
+     */
+    public function getCountsByPlan() {
+        try {
+            $sql = "SELECT p.plan AS nombre_plan, COUNT(a.id_starlink) AS total_antenas 
+                    FROM plan p 
+                    LEFT JOIN antenas a ON a.plan = p.id_plan 
+                    GROUP BY p.id_plan, p.plan 
+                    ORDER BY total_antenas DESC, p.plan ASC";
+            $stmt = $this->db->query($sql);
+            return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+        } catch (PDOException $e) {
+            error_log("Error en AntenaModel::getCountsByPlan -> " . $e->getMessage());
+            return [];
+        }
+    }
 }

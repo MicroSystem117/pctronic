@@ -56,7 +56,7 @@ class ClientModel {
             if (empty($ci)) {
                 $stmt->bindValue(':ci', null, PDO::PARAM_NULL);
             } else {
-                $stmt->bindParam(':ci', $ci, PDO::PARAM_INT);
+                $stmt->bindValue(':ci', (string)$ci, PDO::PARAM_STR);
             }
             
             $stmt->bindParam(':phone', $phone, PDO::PARAM_STR);
@@ -85,7 +85,7 @@ class ClientModel {
             if (empty($ci)) {
                 $stmt->bindValue(':ci', null, PDO::PARAM_NULL);
             } else {
-                $stmt->bindParam(':ci', $ci, PDO::PARAM_INT);
+                $stmt->bindValue(':ci', (string)$ci, PDO::PARAM_STR);
             }
             
             $stmt->bindParam(':phone', $phone, PDO::PARAM_STR);
@@ -94,6 +94,32 @@ class ClientModel {
         } catch (PDOException $e) {
             error_log("Error en ClientModel::update -> " . $e->getMessage());
             return false;
+        }
+    }
+
+    /**
+     * Obtener clientes simplificados para select
+     */
+    public function getSelectOptions() {
+        try {
+            $stmt = $this->db->query("SELECT id_client, CONCAT(name, ' ', surname) AS nombre FROM client ORDER BY name ASC");
+            return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+        } catch (PDOException $e) {
+            error_log("Error en ClientModel::getSelectOptions -> " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Contar total de clientes
+     */
+    public function count() {
+        try {
+            $stmt = $this->db->query("SELECT COUNT(*) AS total FROM client");
+            return $stmt ? (int)$stmt->fetchColumn() : 0;
+        } catch (PDOException $e) {
+            error_log("Error en ClientModel::count -> " . $e->getMessage());
+            return 0;
         }
     }
 

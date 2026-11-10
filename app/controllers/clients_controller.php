@@ -14,38 +14,35 @@ class ClientsController extends Controller {
             exit();
         }
 
-        // --- 1. ACCIÓN: ELIMINAR CLIENTE ---
-        if (isset($_GET['action']) && $_GET['action'] === 'delete') {
-            if (!$this->isAdmin()) {
-                header('Location: index.php?url=clients&status=access_denied');
-                exit();
-            }
-
-            $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-            if ($id > 0) {
-                $deleted = $this->clientModel->delete($id);
-                $status = $deleted ? 'deleted' : 'error';
-                if ($deleted) {
-                    LogModel::log('ELIMINAR', 'Clientes', "Eliminó el cliente ID $id");
-                }
-                header("Location: index.php?url=clients&status=" . $status);
-                exit();
-            }
-        }
-
-        // --- 2. ACCIÓN: PROCESAR FORMULARIO (POST) ---
+        // --- 1. ACCIONES POST (REGISTRO, EDICIÓN Y ELIMINACIÓN SEGURA) ---
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->validateCsrfToken();
+
             if (!$this->isAdmin()) {
                 header('Location: index.php?url=clients&status=access_denied');
                 exit();
+            }
+
+            $action = $_POST['action'] ?? null;
+            if ($action === 'delete') {
+                $id = isset($_POST['id']) ? intval($_POST['id']) : (isset($_POST['id_client']) ? intval($_POST['id_client']) : 0);
+                if ($id > 0) {
+                    $deleted = $this->clientModel->delete($id);
+                    $status = $deleted ? 'deleted' : 'error';
+                    if ($deleted) {
+                        LogModel::log('ELIMINAR', 'Clientes', "Eliminó el cliente ID $id");
+                    }
+                    header("Location: index.php?url=clients&status=" . $status);
+                    exit();
+                }
             }
 
             $id      = isset($_POST['id_client']) ? intval($_POST['id_client']) : 0;
             $name    = isset($_POST['name']) ? trim($_POST['name']) : '';
             $surname = isset($_POST['surname']) ? trim($_POST['surname']) : '';
             
-            // Validar cédula: si viene vacía mandamos null para que MariaDB no la ponga en 0
-            $ci      = isset($_POST['ci']) && $_POST['ci'] !== '' ? intval($_POST['ci']) : null;
+            // Validar cédula: si viene vacía mandamos null
+            $ci      = isset($_POST['ci']) && trim($_POST['ci']) !== '' ? trim($_POST['ci']) : null;
             $phone   = isset($_POST['phone']) ? trim($_POST['phone']) : '';
 
             if (!empty($name) && !empty($surname) && !empty($phone)) {
@@ -74,8 +71,8 @@ class ClientsController extends Controller {
             }
         }
 
-        // --- 3. CARGAR LISTADO ---
-        $clientsList = $this->clientModel->getAll($this->isExpectador() ? $this->getUserCi() : null);
+        // --- 2. CARGAR LISTADO ---
+        $clientsList = $this->clientModel->getAll();
 
         $data = [
             'page_title' => 'Gestión de Clientes - Starlink Control',

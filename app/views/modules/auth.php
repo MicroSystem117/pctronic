@@ -57,6 +57,7 @@ $alerts = [
             <div class="tab-content">
                 <div class="tab-pane fade <?php echo $activeTab === 'login' ? 'show active' : ''; ?>" id="login" role="tabpanel" aria-labelledby="login-tab">
                     <form action="index.php?url=login" method="POST">
+                        <?php echo Controller::getCsrfInput(); ?>
                         <?php if ($requiresSessionQuestions): ?>
                             <input type="hidden" name="security_check" value="1">
                             <?php for ($questionNumber = 1; $questionNumber <= 3; $questionNumber++): ?>
@@ -87,6 +88,7 @@ $alerts = [
                 </div>
                 <div class="tab-pane fade <?php echo $activeTab === 'register' ? 'show active' : ''; ?>" id="register" role="tabpanel" aria-labelledby="register-tab">
                     <form action="index.php?url=register" method="POST">
+                        <?php echo Controller::getCsrfInput(); ?>
                         <div class="row g-3">
                             <div class="col-6">
                                 <label class="form-label text-white">Nombre</label>

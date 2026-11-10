@@ -15,6 +15,7 @@ class LogsController extends Controller {
 
         // Manejo de acciones administrativas (limpieza de registros)
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->validateCsrfToken();
             $action = $_POST['action'] ?? null;
 
             if ($action === 'clear_old') {
@@ -60,15 +61,9 @@ class LogsController extends Controller {
         $stats = $this->logModel->getStats();
         $filterOptions = $this->logModel->getFilterOptions();
 
-        // Obtener lista de usuarios para filtro
-        $users = [];
-        try {
-            $db = Database::connect();
-            $stmt = $db->query("SELECT id_user, user, name FROM `user` ORDER BY user ASC");
-            $users = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
-        } catch (Throwable $e) {
-            $users = [];
-        }
+        // Obtener lista de usuarios para filtro mediante UserModel
+        $userModel = new UserModel();
+        $users = $userModel->getSelectOptions();
 
         $this->render('modules/logs', [
             'logs'          => $logs,

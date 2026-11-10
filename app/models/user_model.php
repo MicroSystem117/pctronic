@@ -26,6 +26,17 @@ class UserModel {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function getSelectOptions() {
+        $db = Database::connect();
+        try {
+            $stmt = $db->query("SELECT id_user, CONCAT(name, ' ', surname) AS user, name FROM `user` ORDER BY name ASC");
+            return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+        } catch (PDOException $e) {
+            error_log("Error en UserModel::getSelectOptions -> " . $e->getMessage());
+            return [];
+        }
+    }
+
     public function create($name, $surname, $ci, $birth, $password, $idLevel) {
         return $this->register($name, $surname, $ci, $birth, $password, $idLevel);
     }

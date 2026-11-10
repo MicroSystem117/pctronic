@@ -3,8 +3,6 @@
 class DashboardController extends Controller {
     
     public function index() {
-        $db = Database::connect();
-
         $userId = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
         $isExpectador = $this->isExpectador();
         $totalClients = 0;
@@ -18,35 +16,30 @@ class DashboardController extends Controller {
         $year  = isset($_GET['year']) ? intval($_GET['year']) : intval(date('Y'));
 
         try {
+            $antenaModel = new AntenaModel();
+            $clientModel = new ClientModel();
+            $accountModel = new AccountModel();
+
             if (!$isExpectador) {
-            // 1. Contar total de clientes registrados
-            $stmtClients = $db->query("SELECT COUNT(*) AS total FROM client");
-            $totalClients = $stmtClients->fetch(PDO::FETCH_ASSOC)['total'];
+                // 1. Contar total de clientes registrados
+                $totalClients = $clientModel->count();
 
-            // 2. Contar total de antenas Starlink mapeadas
-            $stmtAntenas = $db->query("SELECT COUNT(*) AS total FROM antenas");
-            $totalAntenas = $stmtAntenas->fetch(PDO::FETCH_ASSOC)['total'];
+                // 2. Contar total de antenas Starlink mapeadas
+                $totalAntenas = $antenaModel->count();
 
-            // 3. Obtener antenas agrupadas por plan
-            $stmtAntenasByPlan = $db->query(
-                "SELECT p.plan AS nombre_plan, COUNT(a.id_starlink) AS total_antenas " .
-                "FROM plan p LEFT JOIN antenas a ON a.plan = p.id_plan " .
-                "GROUP BY p.id_plan, p.plan " .
-                "ORDER BY total_antenas DESC, p.plan ASC"
-            );
-            $antenasByPlan = $stmtAntenasByPlan->fetchAll(PDO::FETCH_ASSOC);
+                // 3. Obtener antenas agrupadas por plan
+                $antenasByPlan = $antenaModel->getCountsByPlan();
 
-            $activePlanNames = ['Itinerante 100GB', 'Residencial', 'Itinerante Ilimitado'];
-            $activeAntennas = 0;
-            foreach ($antenasByPlan as $plan) {
-                if (in_array($plan['nombre_plan'], $activePlanNames, true)) {
-                    $activeAntennas += intval($plan['total_antenas']);
+                $activePlanNames = ['Itinerante 100GB', 'Residencial', 'Itinerante Ilimitado'];
+                $activeAntennas = 0;
+                foreach ($antenasByPlan as $plan) {
+                    if (in_array($plan['nombre_plan'], $activePlanNames, true)) {
+                        $activeAntennas += intval($plan['total_antenas']);
+                    }
                 }
-            }
 
-            // 4. Contar total de cuentas administrativas registradas
-            $stmtAccounts = $db->query("SELECT COUNT(*) AS total FROM accounts");
-            $totalAccounts = $stmtAccounts->fetch(PDO::FETCH_ASSOC)['total'];
+                // 4. Contar total de cuentas administrativas registradas
+                $totalAccounts = $accountModel->count();
             }
 
             // 5. Verificar si el usuario tiene preguntas de seguridad
@@ -56,7 +49,7 @@ class DashboardController extends Controller {
                 $hasSecQuestions = $secModel->hasSecurityQuestions($userId);
             }
 
-        } catch (PDOException $e) {
+        } catch (Throwable $e) {
             error_log("Error en DashboardController -> " . $e->getMessage());
             $totalClients = 0;
             $totalAntenas = 0;

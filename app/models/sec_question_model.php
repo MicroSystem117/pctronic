@@ -22,11 +22,23 @@ class SecQuestionModel {
         return $stmt->execute([
             ':id' => $userId,
             ':q1' => $q1,
-            ':a1' => $a1,
+            ':a1' => password_hash(strtolower(trim($a1)), PASSWORD_DEFAULT),
             ':q2' => $q2,
-            ':a2' => $a2,
+            ':a2' => password_hash(strtolower(trim($a2)), PASSWORD_DEFAULT),
             ':q3' => $q3,
-            ':a3' => $a3
+            ':a3' => password_hash(strtolower(trim($a3)), PASSWORD_DEFAULT)
         ]);
+    }
+
+    public function verifyAnswer($inputAnswer, $storedHashOrPlain) {
+        if ($storedHashOrPlain === null || $storedHashOrPlain === '') {
+            return false;
+        }
+        $cleanInput = strtolower(trim((string)$inputAnswer));
+        $info = password_get_info($storedHashOrPlain);
+        if (!empty($info['algo'])) {
+            return password_verify($cleanInput, $storedHashOrPlain);
+        }
+        return strcasecmp($cleanInput, strtolower(trim((string)$storedHashOrPlain))) === 0;
     }
 }
