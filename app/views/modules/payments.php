@@ -117,7 +117,7 @@ $canDelete = $canReview;
                                             <?php endif; ?>
                                             <?php if (!empty($antena['is_exempt']) && !empty($antena['debt_exempt_until'])): ?>
                                                 <div class="mt-1">
-                                                    <span class="badge bg-secondary-subtle text-info border border-info border-opacity-25" style="font-size: 0.70rem;" title="<?php echo htmlspecialchars('Deuda previa exonerada hasta el ' . date('d/m/Y', strtotime($antena['debt_exempt_until']))); ?>">
+                                                    <span class="badge bg-dark text-info border border-info border-opacity-50 fw-semibold" style="font-size: 0.70rem;" title="<?php echo htmlspecialchars('Deuda previa exonerada hasta el ' . date('d/m/Y', strtotime($antena['debt_exempt_until']))); ?>">
                                                         <i class="bi bi-shield-check me-1"></i>Exonerada (<?php echo date('d/m/Y', strtotime($antena['debt_exempt_until'])); ?>)
                                                     </span>
                                                 </div>
@@ -324,7 +324,7 @@ $canDelete = $canReview;
                     <dt class="col-sm-4">Antena</dt>
                     <dd class="col-sm-8">
                         <span id="review_payment_serial"></span>
-                        <span id="review_payment_nickname" class="badge bg-secondary-subtle text-info border border-info border-opacity-25 ms-2 d-none"></span>
+                        <span id="review_payment_nickname" class="badge bg-dark text-info border border-info border-opacity-50 ms-2 d-none"></span>
                     </dd>
                     <dt class="col-sm-4">Cliente</dt><dd class="col-sm-8" id="review_payment_client"></dd>
                     <dt class="col-sm-4">Monto</dt>
@@ -389,7 +389,7 @@ $canDelete = $canReview;
                                     <label class="form-check-label" for="payment_antenna_<?php echo $antena['id_starlink']; ?>">
                                         <code><?php echo htmlspecialchars($antena['serial']); ?></code>
                                         <?php if (!empty($antena['nickname'])): ?>
-                                            <span class="badge bg-secondary-subtle text-info border border-info border-opacity-25 ms-1"><?php echo htmlspecialchars($antena['nickname']); ?></span>
+                                            <span class="badge bg-dark text-info border border-info border-opacity-50 ms-1"><?php echo htmlspecialchars($antena['nickname']); ?></span>
                                         <?php endif; ?>
                                          — <?php echo htmlspecialchars($antena['cliente']); ?>
                                     </label>
@@ -1698,9 +1698,9 @@ document.addEventListener('app:content-ready', function() {
             if (cycle.is_past) {
                 badgeHtml = '<span class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 ms-1" style="font-size: 0.70rem;">Mes vencido (día ' + cycle.due_day + ')</span>';
             } else if (cycle.is_current) {
-                badgeHtml = '<span class="badge bg-warning-subtle text-warning border border-warning border-opacity-25 ms-1" style="font-size: 0.70rem;">Mes en curso (día ' + cycle.due_day + ')</span>';
+                badgeHtml = '<span class="badge bg-warning text-dark fw-bold ms-1" style="font-size: 0.70rem;">Mes en curso (día ' + cycle.due_day + ')</span>';
             } else {
-                badgeHtml = '<span class="badge bg-secondary-subtle text-info border border-info border-opacity-25 ms-1" style="font-size: 0.70rem;">Próximo mes</span>';
+                badgeHtml = '<span class="badge bg-dark text-info border border-info border-opacity-50 ms-1" style="font-size: 0.70rem;">Próximo mes</span>';
             }
 
             item.innerHTML = `
@@ -1713,7 +1713,7 @@ document.addEventListener('app:content-ready', function() {
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <span class="text-white-50 small">$${Number(cycle.amount || planPrice).toFixed(2)}</span>
-                    <span class="badge bg-secondary text-white-50 cycle-action-badge" style="font-size: 0.72rem;">Al cobro</span>
+                    <span class="badge bg-secondary text-white fw-bold cycle-action-badge" style="font-size: 0.72rem;">Al cobro</span>
                 </div>
             `;
 
@@ -1792,7 +1792,7 @@ document.addEventListener('app:content-ready', function() {
                     badge.innerHTML = '<i class="bi bi-shield-check me-1"></i>Exonerar';
                     item.classList.add('border-warning', 'border-opacity-50');
                 } else {
-                    badge.className = 'badge bg-secondary text-white-50 cycle-action-badge';
+                    badge.className = 'badge bg-secondary text-white fw-bold cycle-action-badge';
                     badge.innerHTML = '<i class="bi bi-cash me-1"></i>Al cobro';
                     item.classList.remove('border-warning', 'border-opacity-50');
                 }

@@ -317,12 +317,56 @@ select:focus option {
             color: #ff4d4d !important;
         }
 
-        /* Mantener texto oscuro únicamente dentro de las cabeceras claras de las tablas */
+        /* ==========================================================================
+           REGLA UNIVERSAL DE ALTO CONTRASTE: TEXTO NEGRO EN FONDOS CLAROS Y BADGES
+           ========================================================================== */
         .table-light, 
         .table-light th, 
         .table-light td, 
-        .table-light * {
-            color: #212529 !important;
+        .table-light *,
+        .bg-light,
+        .bg-white,
+        .bg-secondary-subtle,
+        .bg-light-subtle,
+        .bg-warning-subtle,
+        .bg-info-subtle,
+        .bg-success-subtle,
+        .badge.bg-light,
+        .badge.bg-white,
+        .badge.bg-secondary-subtle,
+        .badge.bg-light-subtle,
+        .badge.bg-warning,
+        .badge.bg-warning-subtle,
+        .badge.bg-info,
+        .badge.bg-info-subtle,
+        .badge.bg-success,
+        .badge.bg-success-subtle,
+        .badge-light,
+        .btn-light,
+        .table-warning,
+        .table-warning td,
+        .table-warning th,
+        .table-warning *,
+        .text-dark {
+            color: #111827 !important;
+        }
+
+        .badge.bg-warning,
+        .badge.bg-warning-subtle,
+        .badge.bg-info,
+        .badge.bg-info-subtle,
+        .badge.bg-secondary-subtle,
+        .badge.bg-light,
+        .badge.bg-white {
+            color: #0f172a !important;
+            font-weight: 700 !important;
+        }
+
+        .badge.bg-secondary-subtle *,
+        .badge.bg-light *,
+        .badge.bg-white *,
+        .badge.bg-warning * {
+            color: #0f172a !important;
         }
 
         /* ==========================================================================

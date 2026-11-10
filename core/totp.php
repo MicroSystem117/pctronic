@@ -108,3 +108,4 @@ class TOTP {
         return $binary;
     }
 }
+

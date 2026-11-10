@@ -212,7 +212,7 @@ $isAdmin = $userRole === 'Administrador';
                                 </td>
                                 <td data-label="Rol">
                                     <span class="td-value">
-                                        <span class="badge bg-secondary-subtle border border-secondary text-white-50" style="font-size: 0.75rem;">
+                                        <span class="badge bg-secondary-subtle border border-secondary text-dark fw-bold" style="font-size: 0.75rem;">
                                             <?php echo htmlspecialchars($log['user_role']); ?>
                                         </span>
                                     </span>

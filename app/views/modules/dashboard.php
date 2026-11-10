@@ -439,14 +439,14 @@ $clientSummary = isset($data['client_summary']) ? $data['client_summary'] : null
                                                 $rows = $payDays[$day];
                                                 $count = count($rows);
                                                 $dataRows = htmlspecialchars(json_encode($rows), ENT_QUOTES, 'UTF-8');
-                                                echo "<button type=\"button\" class=\"btn btn-sm btn-light day-summary-badge\" data-day=\"{$day}\" data-rows=\"{$dataRows}\">" . $count . "</button>";
+                                                echo "<button type=\"button\" class=\"btn btn-sm btn-light text-dark fw-bold day-summary-badge\" data-day=\"{$day}\" data-rows=\"{$dataRows}\">" . $count . "</button>";
                                             }
                                             echo "</div><div class=\"mt-2 small calendar-cell-content\">";
                                             if (isset($payDays[$day])) {
                                                 echo "<a href=\"#\" class=\"calendar-day-link text-decoration-none\" data-day=\"{$day}\" data-rows=\"{$dataRows}\">";
                                                 foreach ($payDays[$day] as $a) {
                                                     $label = htmlspecialchars($a['serial'] . ' — ' . ($a['cliente'] ?? '-'));
-                                                    echo "<div class=\"py-1 text-white text-truncate\">{$label}</div>";
+                                                    echo "<div class=\"py-1 text-dark fw-semibold text-truncate\">{$label}</div>";
                                                 }
                                                 echo "</a>";
                                             }

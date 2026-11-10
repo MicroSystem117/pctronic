@@ -123,7 +123,7 @@ $isExpectador = $userRole === 'Expectador';
 
                                     <?php if (!empty($antena['is_exempt']) && !empty($antena['debt_exempt_until'])): ?>
                                         <div class="mt-1">
-                                            <span class="badge bg-secondary-subtle text-info border border-info border-opacity-25" style="font-size: 0.72rem;" title="<?php echo htmlspecialchars('Deuda previa exonerada hasta el ' . date('d/m/Y', strtotime($antena['debt_exempt_until'])) . (!empty($antena['debt_exempt_note']) ? ' — ' . $antena['debt_exempt_note'] : '')); ?>">
+                                            <span class="badge bg-dark text-info border border-info border-opacity-50 fw-semibold" style="font-size: 0.72rem;" title="<?php echo htmlspecialchars('Deuda previa exonerada hasta el ' . date('d/m/Y', strtotime($antena['debt_exempt_until'])) . (!empty($antena['debt_exempt_note']) ? ' — ' . $antena['debt_exempt_note'] : '')); ?>">
                                                 <i class="bi bi-shield-check me-1"></i>Exonerada (<?php echo date('d/m/Y', strtotime($antena['debt_exempt_until'])); ?>)
                                             </span>
                                         </div>

@@ -14,9 +14,9 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <link href="<?php echo htmlspecialchars(app_url('css/style.css?v=20261009-4'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
+    <link href="<?php echo htmlspecialchars(app_url('css/style.css?v=20261110-5'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
 
-    <link href="<?php echo htmlspecialchars(app_url('css/template.css?v=20261110-2'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
+    <link href="<?php echo htmlspecialchars(app_url('css/template.css?v=20261110-3'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
     <style>
         body {
             background: url('<?php echo htmlspecialchars(app_url('assets/background.jpg'), ENT_QUOTES, 'UTF-8'); ?>') center center / cover no-repeat fixed !important;
