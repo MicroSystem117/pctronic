@@ -227,6 +227,25 @@
                 });
             }
 
+            // Gestionar elevación y backdrop cuando se abre o cierra Jeremy
+            const drawerEl = document.getElementById('jeremyDrawer');
+            if (drawerEl) {
+                drawerEl.addEventListener('show.bs.offcanvas', function() {
+                    document.body.classList.add('jeremy-open');
+                    setTimeout(() => {
+                        const backdrops = document.querySelectorAll('.offcanvas-backdrop');
+                        backdrops.forEach(b => {
+                            b.classList.add('jeremy-backdrop');
+                            b.style.setProperty('z-index', '3490', 'important');
+                        });
+                    }, 15);
+                });
+
+                drawerEl.addEventListener('hidden.bs.offcanvas', function() {
+                    document.body.classList.remove('jeremy-open');
+                });
+            }
+
             // Buscador interno de Jeremy
             const searchInput = document.getElementById('jeremySearchInput');
             const clearBtn = document.getElementById('jeremySearchClearBtn');

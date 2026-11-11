@@ -33,7 +33,7 @@
 
     <link href="<?php echo htmlspecialchars(app_url('css/template.css?v=20261111-7'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
     <?php if (empty($hideLayout)): ?>
-        <link href="<?php echo htmlspecialchars(app_url('jeremy/jeremy.css?v=20261111-1'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
+        <link href="<?php echo htmlspecialchars(app_url('jeremy/jeremy.css?v=20261111-2'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
     <?php endif; ?>
 </head>
 <body>
@@ -249,7 +249,7 @@ window.initialAppStatus = window.appConfig.initialStatus;
 </script>
 <script src="<?php echo htmlspecialchars(app_url('js/app.js?v=20261111-6'), ENT_QUOTES, 'UTF-8'); ?>"></script>
 <?php if (empty($hideLayout)): ?>
-<script src="<?php echo htmlspecialchars(app_url('jeremy/jeremy.js?v=20261111-1'), ENT_QUOTES, 'UTF-8'); ?>" data-manifest="<?php echo htmlspecialchars(app_url('jeremy/jeremy-manifest.json?v=20261111-1'), ENT_QUOTES, 'UTF-8'); ?>" defer></script>
+<script src="<?php echo htmlspecialchars(app_url('jeremy/jeremy.js?v=20261111-2'), ENT_QUOTES, 'UTF-8'); ?>" data-manifest="<?php echo htmlspecialchars(app_url('jeremy/jeremy-manifest.json?v=20261111-2'), ENT_QUOTES, 'UTF-8'); ?>" defer></script>
 <?php endif; ?>
 </body>
 </html>

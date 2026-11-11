@@ -68,14 +68,39 @@
 }
 
 /* 2. Panel Deslizable (Drawer) */
-.jeremy-drawer {
+.jeremy-drawer,
+.jeremy-drawer.offcanvas {
     background: #090e17 !important;
     color: #ffffff !important;
     border-left: 1px solid rgba(56, 189, 248, 0.25) !important;
     width: 420px !important;
     max-width: 90vw !important;
-    z-index: 1055 !important;
-    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.85) !important;
+    z-index: 3500 !important; /* Superior a .app-header (2000), .sidebar (3000) y .offcanvas-backdrop (2990) */
+    box-shadow: -10px 0 35px rgba(0, 0, 0, 0.9) !important;
+}
+
+@media (max-width: 575.98px) {
+    .jeremy-drawer,
+    .jeremy-drawer.offcanvas {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-left: none !important;
+    }
+}
+
+.jeremy-drawer .offcanvas-header {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 10 !important;
+    background: #0d1524 !important;
+    border-bottom: 1px solid rgba(56, 189, 248, 0.25) !important;
+    padding-top: max(0.9rem, env(safe-area-inset-top)) !important;
+}
+
+/* El backdrop de Jeremy debe situarse por encima del app-header */
+body.jeremy-open .offcanvas-backdrop,
+.offcanvas-backdrop.jeremy-backdrop {
+    z-index: 3490 !important;
 }
 
 .jeremy-avatar-badge {
