@@ -267,15 +267,162 @@
         },
 
         // Enlazar eventos de interacción
+        // Configurar botón flotante con arrastre libre (touch + mouse) y persistencia
+        setupDraggableButton: function(btn) {
+            const self = this;
+            let isDragging = false;
+            let hasMoved = false;
+            let startPointerX = 0;
+            let startPointerY = 0;
+            let initialLeft = 0;
+            let initialTop = 0;
+            const dragThreshold = 6;
+
+            // 1. Restaurar posición guardada en localStorage si existe
+            const restorePosition = () => {
+                try {
+                    const saved = localStorage.getItem('jeremy_btn_pos');
+                    if (saved) {
+                        const pos = JSON.parse(saved);
+                        const rect = btn.getBoundingClientRect();
+                        const pad = 10;
+                        const maxX = Math.max(pad, window.innerWidth - (rect.width || 120) - pad);
+                        const maxY = Math.max(pad, window.innerHeight - (rect.height || 44) - pad);
+
+                        let left = pos.left;
+                        let top = pos.top;
+
+                        if (typeof pos.xRatio === 'number' && typeof pos.yRatio === 'number') {
+                            left = pos.xRatio * window.innerWidth;
+                            top = pos.yRatio * window.innerHeight;
+                        }
+
+                        left = Math.max(pad, Math.min(left, maxX));
+                        top = Math.max(pad, Math.min(top, maxY));
+
+                        btn.style.left = `${left}px`;
+                        btn.style.top = `${top}px`;
+                        btn.style.right = 'auto';
+                        btn.style.bottom = 'auto';
+                        return;
+                    }
+                } catch (e) {}
+
+                // Posición por defecto segura: arriba de la barra de navegación en móvil
+                if (window.innerWidth < 768) {
+                    btn.style.bottom = 'calc(76px + max(12px, env(safe-area-inset-bottom, 12px)))';
+                    btn.style.right = '16px';
+                    btn.style.left = 'auto';
+                    btn.style.top = 'auto';
+                }
+            };
+
+            restorePosition();
+
+            // Reajustar en resize para evitar que quede fuera de la pantalla
+            window.addEventListener('resize', () => {
+                if (btn.style.left && btn.style.left !== 'auto') {
+                    const rect = btn.getBoundingClientRect();
+                    const pad = 10;
+                    const maxX = Math.max(pad, window.innerWidth - rect.width - pad);
+                    const maxY = Math.max(pad, window.innerHeight - rect.height - pad);
+                    const currentLeft = parseFloat(btn.style.left) || 0;
+                    const currentTop = parseFloat(btn.style.top) || 0;
+                    btn.style.left = `${Math.max(pad, Math.min(currentLeft, maxX))}px`;
+                    btn.style.top = `${Math.max(pad, Math.min(currentTop, maxY))}px`;
+                }
+            });
+
+            // 2. Controladores de arrastre con Pointer Events
+            const onPointerMove = (e) => {
+                const dx = e.clientX - startPointerX;
+                const dy = e.clientY - startPointerY;
+
+                if (!hasMoved && Math.hypot(dx, dy) > dragThreshold) {
+                    hasMoved = true;
+                    isDragging = true;
+                    btn.classList.add('is-dragging');
+                }
+
+                if (isDragging) {
+                    const rect = btn.getBoundingClientRect();
+                    const pad = 10;
+                    const maxX = Math.max(pad, window.innerWidth - rect.width - pad);
+                    const maxY = Math.max(pad, window.innerHeight - rect.height - pad);
+
+                    let newLeft = initialLeft + dx;
+                    let newTop = initialTop + dy;
+
+                    newLeft = Math.max(pad, Math.min(newLeft, maxX));
+                    newTop = Math.max(pad, Math.min(newTop, maxY));
+
+                    btn.style.left = `${newLeft}px`;
+                    btn.style.top = `${newTop}px`;
+                    btn.style.right = 'auto';
+                    btn.style.bottom = 'auto';
+
+                    if (e.cancelable) {
+                        e.preventDefault();
+                    }
+                }
+            };
+
+            const onPointerUp = () => {
+                if (isDragging) {
+                    btn.classList.remove('is-dragging');
+                    isDragging = false;
+
+                    try {
+                        const rect = btn.getBoundingClientRect();
+                        localStorage.setItem('jeremy_btn_pos', JSON.stringify({
+                            left: rect.left,
+                            top: rect.top,
+                            xRatio: rect.left / window.innerWidth,
+                            yRatio: rect.top / window.innerHeight
+                        }));
+                    } catch (err) {}
+                }
+
+                window.removeEventListener('pointermove', onPointerMove);
+                window.removeEventListener('pointerup', onPointerUp);
+                window.removeEventListener('pointercancel', onPointerUp);
+            };
+
+            btn.addEventListener('pointerdown', (e) => {
+                if (e.button !== 0) return; // Solo clic primario
+
+                const rect = btn.getBoundingClientRect();
+                initialLeft = rect.left;
+                initialTop = rect.top;
+                startPointerX = e.clientX;
+                startPointerY = e.clientY;
+                hasMoved = false;
+                isDragging = false;
+
+                window.addEventListener('pointermove', onPointerMove, { passive: false });
+                window.addEventListener('pointerup', onPointerUp);
+                window.addEventListener('pointercancel', onPointerUp);
+            });
+
+            // 3. Abrir drawer solo si no se arrastró el botón
+            btn.addEventListener('click', (e) => {
+                if (hasMoved) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    hasMoved = false;
+                    return;
+                }
+                self.open();
+            });
+        },
+
         bindEvents: function() {
             const self = this;
 
-            // Abrir Drawer al hacer clic en el botón flotante
+            // Configurar botón flotante interactivo y arrastrable
             const btn = document.getElementById('jeremyFloatingBtn');
             if (btn) {
-                btn.addEventListener('click', function() {
-                    self.open();
-                });
+                this.setupDraggableButton(btn);
             }
 
             // Gestionar elevación y backdrop cuando se abre o cierra Jeremy

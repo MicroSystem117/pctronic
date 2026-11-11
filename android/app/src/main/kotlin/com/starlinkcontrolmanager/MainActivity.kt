@@ -31,6 +31,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -119,7 +121,12 @@ class MainActivity : ComponentActivity() {
             modifier = Modifier.fillMaxSize(),
             color = Color(0xFF090E17)
         ) {
-            Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .systemBarsPadding()
+                    .imePadding()
+            ) {
                 // 1. WebView Principal
                 AndroidView(
                     modifier = Modifier.fillMaxSize(),

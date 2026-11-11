@@ -574,7 +574,7 @@ select:focus option {
             background: #080c16 !important;
             border-top: 1px solid rgba(56, 189, 248, 0.2) !important;
             box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.7) !important;
-            padding-bottom: env(safe-area-inset-bottom, 0px);
+            padding-bottom: max(6px, env(safe-area-inset-bottom, 6px)) !important;
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
         }
@@ -583,7 +583,7 @@ select:focus option {
             display: flex;
             justify-content: space-around;
             align-items: center;
-            height: 60px;
+            height: 56px;
             padding: 0 4px;
             max-width: 600px;
             margin: 0 auto;
@@ -639,7 +639,21 @@ select:focus option {
         /* Espaciado para que el contenido no quede oculto tras la barra en móvil */
         @media (max-width: 767.98px) {
             body {
-                padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px)) !important;
+                padding-bottom: calc(76px + max(10px, env(safe-area-inset-bottom, 10px))) !important;
+            }
+
+            /* Protección para el menú lateral en dispositivos con barra de navegación nativa */
+            #mobileSidebar {
+                padding-bottom: max(16px, env(safe-area-inset-bottom, 16px)) !important;
+            }
+
+            #mobileSidebar .sidebar-panel {
+                padding-bottom: max(20px, env(safe-area-inset-bottom, 20px)) !important;
+            }
+
+            #mobileSidebar .sidebar-user-footer {
+                padding-bottom: max(14px, env(safe-area-inset-bottom, 14px)) !important;
+                margin-bottom: max(6px, env(safe-area-inset-bottom, 6px)) !important;
             }
         }
 
