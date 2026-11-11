@@ -24,9 +24,9 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <link href="<?php echo htmlspecialchars(app_url('css/style.css?v=20261111-4'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
+    <link href="<?php echo htmlspecialchars(app_url('css/style.css?v=20261111-5'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
 
-    <link href="<?php echo htmlspecialchars(app_url('css/template.css?v=20261111-4'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
+    <link href="<?php echo htmlspecialchars(app_url('css/template.css?v=20261111-5'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
 </head>
 <body>
 
@@ -140,12 +140,8 @@
     <?php include "layout/bottom_nav.php"; ?>
 <?php endif; ?>
 
-<div class="offcanvas offcanvas-start bg-dark text-white" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
-    <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="mobileSidebarLabel">Menú</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
-    </div>
-    <div class="offcanvas-body p-0">
+<div class="offcanvas offcanvas-start text-white border-0" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel" style="background: #080c16; width: 300px; max-width: 85vw;">
+    <div class="offcanvas-body p-0 h-100">
         <?php include "layout/sidebar.php"; ?>
     </div>
 </div>

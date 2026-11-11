@@ -112,17 +112,15 @@ $menuSections = [
 ];
 ?>
 <div class="d-flex flex-column h-100 p-3 text-white sidebar-panel" id="sidebarPanel">
-    <!-- Header de la Barra Lateral con Logo Oficial -->
-    <div class="d-flex align-items-center justify-content-between mb-2">
-        <a href="index.php?url=dashboard" class="d-flex align-items-center me-md-auto text-white text-decoration-none sidebar-brand">
-            <img src="<?php echo htmlspecialchars(app_url('assets/Logo.png'), ENT_QUOTES, 'UTF-8'); ?>" alt="Starlink Control Manager" class="img-fluid sidebar-logo" style="max-height: 48px; width: auto; object-fit: contain;">
+    <!-- Header Unificado con Logo Oficial Transparente -->
+    <div class="sidebar-header d-flex align-items-center justify-content-between pb-3 mb-2 border-bottom border-secondary border-opacity-25">
+        <a href="index.php?url=dashboard" class="d-flex align-items-center me-auto text-white text-decoration-none sidebar-brand">
+            <img src="<?php echo htmlspecialchars(app_url('assets/Logo.png'), ENT_QUOTES, 'UTF-8'); ?>" alt="Starlink Control Manager" class="sidebar-logo" style="max-height: 42px; width: auto; object-fit: contain;">
         </a>
-        <button class="btn btn-sm btn-outline-secondary text-white-50 sidebar-toggle" type="button" onclick="toggleSidebar()" aria-label="Cerrar menú">
+        <button class="btn btn-sm btn-outline-secondary text-white-50 rounded-circle d-flex align-items-center justify-content-center sidebar-toggle" type="button" data-bs-dismiss="offcanvas" onclick="toggleSidebar()" style="width: 32px; height: 32px; border-color: rgba(255, 255, 255, 0.15);" aria-label="Cerrar menú">
             <i class="bi bi-x-lg"></i>
         </button>
     </div>
-
-    <hr class="border-secondary border-opacity-25 my-2">
 
     <!-- Navegación Estructurada por Secciones -->
     <div class="sidebar-scrollable flex-grow-1 overflow-y-auto pe-1">
