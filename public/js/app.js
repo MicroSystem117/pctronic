@@ -738,4 +738,44 @@ document.addEventListener('click', function (event) {
     loadContentWithoutReload(link.href).catch(error => window.showSweetAlert('danger', error.message, true));
 });
 
+// ==========================================================================
+// PWA: SERVICE WORKER REGISTRATION & OFFLINE MONITOR
+// ==========================================================================
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('sw.js').then(function(reg) {
+            console.log('Service Worker registrado correctamente (PWA lista):', reg.scope);
+        }).catch(function(err) {
+            console.warn('Error al registrar Service Worker:', err);
+        });
+    });
+}
+
+// Monitor de Conexión a Internet (Online / Offline)
+function updateOnlineStatus() {
+    let banner = document.getElementById('offlineNotice');
+    if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'offlineNotice';
+        banner.className = 'offline-banner d-none';
+        document.body.prepend(banner);
+    }
+
+    if (!navigator.onLine) {
+        banner.className = 'offline-banner';
+        banner.innerHTML = '<i class="bi bi-wifi-off me-2"></i>Sin conexión a internet. Verificando señal...';
+    } else {
+        if (!banner.classList.contains('d-none')) {
+            banner.className = 'offline-banner online';
+            banner.innerHTML = '<i class="bi bi-wifi me-2"></i>Conexión restablecida con éxito.';
+            setTimeout(() => {
+                banner.className = 'offline-banner d-none';
+            }, 3000);
+        }
+    }
+}
+
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
 document.dispatchEvent(new Event('app:content-ready'));

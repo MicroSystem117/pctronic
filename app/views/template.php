@@ -2,8 +2,18 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="csrf-token" content="<?php echo htmlspecialchars(Controller::getCsrfToken(), ENT_QUOTES, 'UTF-8'); ?>">
+    
+    <!-- PWA y Metadatos para Móvil / APK -->
+    <meta name="theme-color" content="#0f172a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PCtronic">
+    <link rel="manifest" href="<?php echo htmlspecialchars(app_url('manifest.json'), ENT_QUOTES, 'UTF-8'); ?>">
+    <link rel="apple-touch-icon" href="<?php echo htmlspecialchars(app_url('assets/icon-192.png'), ENT_QUOTES, 'UTF-8'); ?>">
+
     <title><?php echo isset($page_title) ? $page_title : 'Starlink Control'; ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -14,9 +24,9 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <link href="<?php echo htmlspecialchars(app_url('css/style.css?v=20261110-5'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
+    <link href="<?php echo htmlspecialchars(app_url('css/style.css?v=20261111-1'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
 
-    <link href="<?php echo htmlspecialchars(app_url('css/template.css?v=20261110-3'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
+    <link href="<?php echo htmlspecialchars(app_url('css/template.css?v=20261111-1'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
     <style>
         body {
             background: url('<?php echo htmlspecialchars(app_url('assets/background.jpg'), ENT_QUOTES, 'UTF-8'); ?>') center center / cover no-repeat fixed !important;
@@ -24,6 +34,11 @@
     </style>
 </head>
 <body>
+
+<!-- Notificación Flotante Offline / Online -->
+<div id="offlineNotice" class="offline-banner d-none">
+    <i class="bi bi-wifi-off me-2"></i>Sin conexión a internet. Verificando señal...
+</div>
 
 <div class="container-fluid">
     <div class="row g-0">
@@ -124,6 +139,10 @@
     </div>
 </div>
 
+<?php if (empty($hideLayout)): ?>
+    <?php include "layout/bottom_nav.php"; ?>
+<?php endif; ?>
+
 <div class="offcanvas offcanvas-start bg-dark text-white" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel">
     <div class="offcanvas-header">
         <h5 class="offcanvas-title" id="mobileSidebarLabel">Menú</h5>
@@ -203,6 +222,6 @@ window.csrfToken = window.appConfig.csrfToken;
 window.appAlerts = window.appConfig.alerts;
 window.initialAppStatus = window.appConfig.initialStatus;
 </script>
-<script src="<?php echo htmlspecialchars(app_url('js/app.js?v=20261110-1'), ENT_QUOTES, 'UTF-8'); ?>"></script>
+<script src="<?php echo htmlspecialchars(app_url('js/app.js?v=20261111-1'), ENT_QUOTES, 'UTF-8'); ?>"></script>
 </body>
 </html>
