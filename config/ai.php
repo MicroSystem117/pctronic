@@ -24,3 +24,4 @@ if (file_exists($localConfigPath)) {
 }
 
 return $defaultConfig;
+
