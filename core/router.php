@@ -46,6 +46,8 @@ class Router {
             $controllerName = 'logs';
         } elseif ($rawName === 'manual' || $rawName === 'docs' || $rawName === 'ayuda' || $rawName === 'help') {
             $controllerName = 'manual';
+        } elseif ($rawName === 'jeremy' || $rawName === 'copilot') {
+            $controllerName = 'jeremy';
         }
         
         // Formato para la Clase (ej: ClientController o AntenaController)

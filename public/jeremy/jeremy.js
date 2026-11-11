@@ -49,6 +49,7 @@
             this.renderToursList();
             this.renderFaqList();
             this.checkAutoTour();
+            this.checkAutoActions();
 
             this.isInitialized = true;
         },
@@ -124,11 +125,61 @@
                     </div>
 
                     <div class="offcanvas-body p-3 p-sm-4 custom-scrollbar d-flex flex-column gap-3">
-                        <!-- Buscador -->
+                        <!-- Consola de Comandos y Chat Híbrido -->
+                        <div class="jeremy-console-box card p-3 border-secondary border-opacity-50">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="small fw-bold text-info"><i class="bi bi-terminal-fill me-1"></i>Consola & Asistente</span>
+                                <span class="badge bg-success bg-opacity-25 text-success" id="jeremyModeBadge" style="font-size: 0.65rem;">
+                                    <span class="jeremy-radar-dot d-inline-block me-1"></span>Híbrido Activo
+                                </span>
+                            </div>
+
+                            <!-- Chips de Acciones Rápidas con 1 Clic -->
+                            <div class="d-flex gap-1 flex-wrap mb-2.5" id="jeremyQuickChips">
+                                <button type="button" class="btn btn-outline-secondary btn-sm py-0.5 px-2 text-white" style="font-size: 0.72rem;" onclick="Jeremy.executeAction('backup')">
+                                    <i class="bi bi-database-down text-info me-1"></i>Respaldo BD
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm py-0.5 px-2 text-white" style="font-size: 0.72rem;" onclick="Jeremy.executeAction('export_excel')">
+                                    <i class="bi bi-file-earmark-excel text-success me-1"></i>Exportar Excel
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm py-0.5 px-2 text-white" style="font-size: 0.72rem;" onclick="Jeremy.executeAction('filter_overdue')">
+                                    <i class="bi bi-exclamation-triangle text-warning me-1"></i>Morosos
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm py-0.5 px-2 text-white" style="font-size: 0.72rem;" onclick="Jeremy.executeAction('filter_suspended')">
+                                    <i class="bi bi-slash-circle text-danger me-1"></i>Suspendidas
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm py-0.5 px-2 text-white" style="font-size: 0.72rem;" onclick="Jeremy.executeAction('new_payment')">
+                                    <i class="bi bi-cash-stack text-success me-1"></i>Cobro Rápido
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm py-0.5 px-2 text-white" style="font-size: 0.72rem;" onclick="Jeremy.executeAction('new_client')">
+                                    <i class="bi bi-person-plus text-info me-1"></i>Nuevo Cliente
+                                </button>
+                            </div>
+
+                            <!-- Historial de Conversación -->
+                            <div class="jeremy-chat-feed custom-scrollbar mb-2 p-2 rounded bg-black bg-opacity-40" id="jeremyChatFeed" style="max-height: 220px; overflow-y: auto;">
+                                <div class="jeremy-msg jeremy-msg-bot d-flex gap-2 mb-2">
+                                    <div class="jeremy-msg-avatar"><i class="bi bi-robot text-info"></i></div>
+                                    <div class="jeremy-msg-bubble p-2 rounded bg-dark border border-secondary border-opacity-25 small text-white-50">
+                                        ¡Hola! Soy <strong>${this.name}</strong>. Escríbeme una orden (ej. <em>"descargar respaldo"</em>, <em>"ver morosos"</em>) o hazme preguntas del manual.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Barra de Entrada de Chat -->
+                            <form id="jeremyChatForm" class="d-flex gap-1" onsubmit="event.preventDefault(); Jeremy.sendMessage();">
+                                <input type="text" id="jeremyChatInput" class="form-control form-control-sm bg-black text-white border-secondary" placeholder="Escribe una orden o pregunta a ${this.name}..." autocomplete="off">
+                                <button type="submit" class="btn btn-sm btn-primary px-3" id="jeremyChatSubmitBtn">
+                                    <i class="bi bi-send-fill"></i>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Buscador de Tópicos del Manual -->
                         <div class="jeremy-search-box">
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-dark text-info border-secondary"><i class="bi bi-search"></i></span>
-                                <input type="text" id="jeremySearchInput" class="form-control bg-dark text-white border-secondary" placeholder="¿Qué necesitas hacer en la app? (ej. 'corte', 'pago', 'recibo')..." autocomplete="off">
+                                <input type="text" id="jeremySearchInput" class="form-control bg-dark text-white border-secondary" placeholder="Buscar función en el manual (ej. 'corte', 'qr', 'exonerar')..." autocomplete="off">
                                 <button class="btn btn-outline-secondary" type="button" id="jeremySearchClearBtn"><i class="bi bi-x-lg"></i></button>
                             </div>
                         </div>
@@ -683,6 +734,202 @@
                     }
                 }
             });
+        },
+
+        // Enviar mensaje al backend híbrido (o procesar localmente)
+        sendMessage: async function() {
+            const input = document.getElementById('jeremyChatInput');
+            const feed = document.getElementById('jeremyChatFeed');
+            const submitBtn = document.getElementById('jeremyChatSubmitBtn');
+            if (!input || !feed) return;
+
+            const text = input.value.trim();
+            if (!text) return;
+
+            input.value = '';
+            input.disabled = true;
+            if (submitBtn) submitBtn.disabled = true;
+
+            // 1. Mensaje del usuario
+            const userMsgEl = document.createElement('div');
+            userMsgEl.className = 'jeremy-msg jeremy-msg-user d-flex gap-2 mb-2';
+            userMsgEl.innerHTML = `
+                <div class="jeremy-msg-bubble p-2 rounded small">
+                    ${this.escapeHtml(text)}
+                </div>
+            `;
+            feed.appendChild(userMsgEl);
+
+            // 2. Mensaje de pensando
+            const botMsgEl = document.createElement('div');
+            botMsgEl.className = 'jeremy-msg jeremy-msg-bot d-flex gap-2 mb-2';
+            botMsgEl.innerHTML = `
+                <div class="jeremy-msg-avatar"><i class="bi bi-robot text-info"></i></div>
+                <div class="jeremy-msg-bubble p-2 rounded small text-white-50">
+                    <span class="spinner-border spinner-border-sm text-info me-1" role="status"></span>
+                    ${this.name} está procesando...
+                </div>
+            `;
+            feed.appendChild(botMsgEl);
+            feed.scrollTop = feed.scrollHeight;
+
+            const currentRoute = this.getCurrentRoute();
+            const csrfToken = (window.appConfig && window.appConfig.csrfToken) || window.csrfToken || '';
+
+            try {
+                const response = await fetch('index.php?url=jeremy/ask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify({
+                        prompt: text,
+                        current_url: currentRoute,
+                        csrf_token: csrfToken
+                    })
+                });
+
+                const data = await response.json();
+                const bubbleEl = botMsgEl.querySelector('.jeremy-msg-bubble');
+
+                if (data.success && bubbleEl) {
+                    let formattedReply = this.formatMarkdown(data.reply);
+                    let actionHtml = '';
+
+                    if (data.action && data.actionLabel) {
+                        actionHtml = `
+                            <div class="mt-2">
+                                <button type="button" class="btn btn-sm btn-info text-dark fw-bold jeremy-action-pill-btn" onclick="Jeremy.executeAction('${data.action}', ${JSON.stringify(data).replace(/"/g, '&quot;')})">
+                                    <i class="bi bi-lightning-charge-fill me-1"></i>${data.actionLabel}
+                                </button>
+                            </div>
+                        `;
+                    }
+
+                    bubbleEl.innerHTML = formattedReply + actionHtml;
+                } else if (bubbleEl) {
+                    bubbleEl.innerHTML = `<span class="text-warning">${data.message || 'No pude procesar la consulta.'}</span>`;
+                }
+            } catch (err) {
+                console.error('[Jeremy] Error en comunicación:', err);
+                const bubbleEl = botMsgEl.querySelector('.jeremy-msg-bubble');
+                if (bubbleEl) {
+                    bubbleEl.innerHTML = `<span class="text-danger">Error de comunicación. Verifica tu conexión.</span>`;
+                }
+            } finally {
+                input.disabled = false;
+                if (submitBtn) submitBtn.disabled = false;
+                input.focus();
+                feed.scrollTop = feed.scrollHeight;
+            }
+        },
+
+        // Ejecutar acción concreta en la app
+        executeAction: function(actionKey, meta = {}) {
+            const currentRoute = this.getCurrentRoute();
+
+            if (actionKey === 'backup') {
+                window.location.href = 'index.php?url=database&action=export';
+            } else if (actionKey === 'export_excel') {
+                const excelBtn = document.querySelector('.btn-export-excel, a[href*="export_excel"], button[title*="Excel"]');
+                if (excelBtn) {
+                    excelBtn.click();
+                } else {
+                    window.location.href = 'index.php?url=antenas&action=export_excel';
+                }
+            } else if (actionKey === 'filter_overdue') {
+                if (currentRoute === 'antenas') {
+                    const searchInput = document.getElementById('search_antenas') || document.querySelector('.antenas-search-input');
+                    if (searchInput) {
+                        searchInput.value = 'Vencido';
+                        searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        this.close();
+                    }
+                } else {
+                    window.location.href = 'index.php?url=antenas&auto_filter=Vencido';
+                }
+            } else if (actionKey === 'filter_suspended') {
+                if (currentRoute === 'antenas') {
+                    const searchInput = document.getElementById('search_antenas') || document.querySelector('.antenas-search-input');
+                    if (searchInput) {
+                        searchInput.value = 'Suspendido';
+                        searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        this.close();
+                    }
+                } else {
+                    window.location.href = 'index.php?url=antenas&auto_filter=Suspendido';
+                }
+            } else if (actionKey === 'new_payment') {
+                this.close();
+                const payModal = document.getElementById('modalPayment');
+                if (payModal && typeof bootstrap !== 'undefined') {
+                    bootstrap.Modal.getOrCreateInstance(payModal).show();
+                } else {
+                    window.location.href = 'index.php?url=payments&open_modal=new';
+                }
+            } else if (actionKey === 'new_client') {
+                this.close();
+                const clientModal = document.getElementById('modalClient');
+                if (clientModal && typeof bootstrap !== 'undefined') {
+                    bootstrap.Modal.getOrCreateInstance(clientModal).show();
+                } else {
+                    window.location.href = 'index.php?url=clients&open_modal=new';
+                }
+            } else if (actionKey === 'start_tour') {
+                this.close();
+                this.startTour(meta.tourKey || 'payment');
+            } else if (actionKey === 'open_manual') {
+                window.location.href = 'index.php?url=manual';
+            } else if (actionKey === 'nav_antenas') {
+                window.location.href = 'index.php?url=antenas';
+            } else if (actionKey === 'nav_security') {
+                window.location.href = 'index.php?url=auth/manage_security';
+            }
+        },
+
+        // Chequear parámetros automáticos al cargar página
+        checkAutoActions: function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const autoFilter = urlParams.get('auto_filter');
+            const openModal = urlParams.get('open_modal');
+
+            if (autoFilter) {
+                setTimeout(() => {
+                    const searchInput = document.getElementById('search_antenas') ||
+                                        document.getElementById('search_payments') ||
+                                        document.getElementById('search_clients') ||
+                                        document.querySelector('.dataTables_filter input');
+                    if (searchInput) {
+                        searchInput.value = autoFilter;
+                        searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                }, 350);
+            }
+
+            if (openModal === 'new') {
+                setTimeout(() => {
+                    const targetModal = document.getElementById('modalPayment') ||
+                                        document.getElementById('modalClient') ||
+                                        document.getElementById('modalAntena');
+                    if (targetModal && typeof bootstrap !== 'undefined') {
+                        bootstrap.Modal.getOrCreateInstance(targetModal).show();
+                    }
+                }, 350);
+            }
+        },
+
+        escapeHtml: function(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        },
+
+        formatMarkdown: function(text) {
+            if (!text) return '';
+            let out = this.escapeHtml(text);
+            out = out.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            out = out.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            out = out.replace(/\n/g, '<br>');
+            return out;
         }
     };
 
