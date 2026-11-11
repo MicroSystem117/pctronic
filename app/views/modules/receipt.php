@@ -111,7 +111,7 @@ $isApproved = ($payment['status'] ?? '') === 'Aprobado';
         <div class="receipt-header">
             <div class="row align-items-center">
                 <div class="col-8">
-                    <img src="<?php echo htmlspecialchars(app_url('assets/Logo.png'), ENT_QUOTES, 'UTF-8'); ?>" alt="PCtronic" style="max-height: 48px;" class="mb-2">
+                    <img src="<?php echo htmlspecialchars(app_url('assets/Logo.png'), ENT_QUOTES, 'UTF-8'); ?>" alt="Starlink Control Manager" style="max-height: 48px;" class="mb-2">
                     <h5 class="mb-0 fw-bold">Starlink Control • PCtronic</h5>
                     <small class="opacity-75">Servicios de Conectividad Satelital</small>
                 </div>

@@ -9,7 +9,7 @@ $alerts = [
         <div class="card-body px-4 py-5">
             <div class="text-center mb-4">
                 <div class="auth-brand mb-3">
-                    <img src="<?php echo htmlspecialchars(app_url('assets/Logo.png'), ENT_QUOTES, 'UTF-8'); ?>" alt="PCtronic" class="img-fluid" style="max-height: 50px;">
+                    <img src="<?php echo htmlspecialchars(app_url('assets/Logo.png'), ENT_QUOTES, 'UTF-8'); ?>" alt="Starlink Control Manager" class="img-fluid" style="max-height: 50px;">
                 </div>
                 <div class="fs-1 text-primary mb-2">
                     <i class="bi bi-shield-lock-fill"></i>
