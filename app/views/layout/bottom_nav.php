@@ -45,3 +45,4 @@ $currentUrl = isset($_GET['url']) ? rtrim($_GET['url'], '/') : 'dashboard';
         </button>
     </div>
 </nav>
+
