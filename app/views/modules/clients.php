@@ -73,7 +73,10 @@ if (!empty($data['clients'])) {
     </div>
 </div>
 
-<div class="mb-3 d-flex justify-content-end">
+<div class="mb-3 d-flex justify-content-end gap-2 flex-wrap">
+    <button type="button" class="btn btn-sm btn-outline-success btn-export-csv" data-table=".datatable" data-filename="clientes_pctronic.csv" title="Exportar directorio de clientes a Excel (.csv)">
+        <i class="bi bi-file-earmark-excel me-1"></i>Excel (.csv)
+    </button>
     <input id="search_clients" class="form-control form-control-sm w-100 w-md-25" style="max-width: 280px;" placeholder="Buscar cliente por nombre o cédula...">
 </div>
 
@@ -161,7 +164,12 @@ if (!empty($data['clients'])) {
                     </td>
                     <?php if ($isAdmin): ?>
                         <td data-label="Acciones" class="text-nowrap">
-                            <div class="d-inline-flex gap-1 w-100">
+                            <div class="d-inline-flex gap-1 w-100 flex-wrap">
+                            <a href="index.php?url=payments&client=<?php echo urlencode($c['name'] . ' ' . $c['surname']); ?>"
+                               class="btn btn-sm btn-outline-primary"
+                               title="Ver estado de cuenta e historial de pagos">
+                                <i class="bi bi-receipt"></i><span class="action-btn-text ms-1">Pagos</span>
+                            </a>
                             <button class="btn btn-sm btn-success btn-view-client-starlinks"
                                     data-client-id="<?php echo $c['id_client']; ?>"
                                     data-client-name="<?php echo htmlspecialchars($c['name'] . ' ' . $c['surname'], ENT_QUOTES); ?>"

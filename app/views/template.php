@@ -107,6 +107,8 @@
                     'exemption_error' => ['type' => 'danger', 'message' => 'No se pudo aplicar la exoneración de deuda.'],
                     'logs_cleared_old' => ['type' => 'success', 'message' => 'Registros antiguos eliminados correctamente.'],
                     'logs_cleared_all' => ['type' => 'success', 'message' => 'Historial de registros vaciado completamente.'],
+                    'suspended' => ['type' => 'warning', 'message' => 'Servicio de la antena suspendido operativamente (Corte técnico registrado).'],
+                    'reactivated' => ['type' => 'success', 'message' => 'Servicio de la antena reactivado con éxito.'],
                     'error' => ['type' => 'danger', 'message' => 'Ocurrió un error durante la operación.']
                 ];
             ?>
@@ -197,6 +199,29 @@
     </div>
 </div>
 
+<!-- Modal Command Palette (Ctrl + K) -->
+<div class="modal fade" id="commandPaletteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content card-custom text-white border-primary shadow-lg">
+            <div class="modal-body p-3">
+                <div class="input-group input-group-lg border border-primary rounded mb-3 bg-dark">
+                    <span class="input-group-text bg-transparent text-primary border-0"><i class="bi bi-search fs-5"></i></span>
+                    <input type="text" id="commandPaletteInput" class="form-control bg-transparent text-white border-0 shadow-none" placeholder="Buscar módulo, acción o atajo rápido... (ej. 'antenas', 'pago', 'cliente')" autocomplete="off">
+                    <span class="input-group-text bg-transparent text-white-50 border-0"><kbd class="bg-dark text-info border border-secondary px-2 py-1">ESC</kbd></span>
+                </div>
+                <div id="commandPaletteResults" class="list-group list-group-flush" style="max-height: 380px; overflow-y: auto;">
+                    <!-- Elementos inyectados dinámicamente -->
+                </div>
+            </div>
+            <div class="modal-footer border-secondary py-1 px-3 d-flex justify-content-between text-white-50 small">
+                <span><kbd class="bg-secondary text-white px-1">↑</kbd> <kbd class="bg-secondary text-white px-1">↓</kbd> navegar</span>
+                <span><kbd class="bg-secondary text-white px-1">ENTER</kbd> seleccionar</span>
+                <span><kbd class="bg-secondary text-white px-1">Ctrl + K</kbd> acceso universal</span>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.11/js/jquery.dataTables.min.js"></script>
@@ -217,6 +242,6 @@ window.csrfToken = window.appConfig.csrfToken;
 window.appAlerts = window.appConfig.alerts;
 window.initialAppStatus = window.appConfig.initialStatus;
 </script>
-<script src="<?php echo htmlspecialchars(app_url('js/app.js?v=20261111-2'), ENT_QUOTES, 'UTF-8'); ?>"></script>
+<script src="<?php echo htmlspecialchars(app_url('js/app.js?v=20261111-3'), ENT_QUOTES, 'UTF-8'); ?>"></script>
 </body>
 </html>

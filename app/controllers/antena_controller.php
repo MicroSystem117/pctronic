@@ -20,6 +20,23 @@ class AntenaController extends Controller {
             }
 
             $action = $_POST['action'] ?? null;
+            if ($action === 'toggle_suspension') {
+                $id = isset($_POST['id_starlink']) ? intval($_POST['id_starlink']) : 0;
+                $reason = isset($_POST['reason']) ? trim($_POST['reason']) : null;
+                if ($id > 0) {
+                    $res = $this->antenaModel->toggleSuspension($id, $reason);
+                    if ($res['success']) {
+                        $actionName = $res['new_status'] ? 'SUSPENDER' : 'ACTIVAR';
+                        $desc = $res['new_status'] ? "Suspendió operativamente la antena ID $id. Motivo: {$res['reason']}" : "Reactivó el servicio de la antena ID $id";
+                        LogModel::log($actionName, 'Antenas', $desc);
+                        header("Location: index.php?url=antenas&status=" . ($res['new_status'] ? 'suspended' : 'reactivated'));
+                    } else {
+                        header("Location: index.php?url=antenas&status=error");
+                    }
+                    exit();
+                }
+            }
+
             if ($action === 'delete') {
                 $id = isset($_POST['id']) ? intval($_POST['id']) : (isset($_POST['id_starlink']) ? intval($_POST['id_starlink']) : 0);
                 if ($id > 0) {

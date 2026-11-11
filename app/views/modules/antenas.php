@@ -52,6 +52,9 @@ if (!empty($data['antenas'])) {
     </div>
 
     <div class="antenas-filters d-flex justify-content-end gap-2 flex-wrap">
+        <button type="button" class="btn btn-sm btn-outline-success btn-export-csv" data-table=".datatable" data-filename="antenas_starlink.csv" title="Exportar tabla completa a Excel (.csv)">
+            <i class="bi bi-file-earmark-excel me-1"></i>Excel (.csv)
+        </button>
         <div class="input-group input-group-sm w-auto">
             <label class="input-group-text bg-secondary text-white border-secondary" for="search_antenas_type">Buscar por</label>
             <select id="search_antenas_type" class="form-select form-select-sm">
@@ -155,6 +158,7 @@ if (!empty($data['antenas'])) {
                                     $overdueAmount = floatval($antena['overdue_amount'] ?? 0.0);
                                     $isPaid = ($antena['status_label'] ?? '') === 'Pagado';
                                     $isAtrasado = ($antena['status_label'] ?? '') === 'Atrasado';
+                                    $isSuspended = !empty($antena['is_suspended']);
 
                                     $waReminderUrl = null;
                                     if (!$isPaid && !empty($antena['client_phone'])) {
@@ -173,6 +177,13 @@ if (!empty($data['antenas'])) {
                                     }
                                 ?>
                                 <div>
+                                    <?php if ($isSuspended): ?>
+                                        <div class="mb-1">
+                                            <span class="badge bg-secondary border border-warning text-warning fw-bold" title="<?php echo htmlspecialchars($antena['suspended_reason'] ?? 'Servicio suspendido'); ?>">
+                                                <i class="bi bi-slash-circle me-1"></i>SUSPENDIDA
+                                            </span>
+                                        </div>
+                                    <?php endif; ?>
                                     <?php if ($overdueMonths > 0): ?>
                                         <span class="badge bg-danger-subtle border border-danger text-danger fw-bold">
                                             <span class="status-pulse-danger"></span><?php echo $overdueMonths . ($overdueMonths === 1 ? ' mes atrasado' : ' meses atrasados'); ?>
@@ -206,6 +217,25 @@ if (!empty($data['antenas'])) {
                             <?php if ($isAdmin): ?>
                                 <td data-label="Acciones" class="text-nowrap">
                                     <div class="d-inline-flex gap-1 flex-wrap">
+                                        <a href="index.php?url=payments&quick_serial=<?php echo urlencode($antena['serial']); ?>" 
+                                           class="btn btn-sm btn-success" 
+                                           title="Cobro rápido: registrar pago para esta antena">
+                                            <i class="bi bi-cash-stack"></i><span class="action-btn-text ms-1">Cobrar</span>
+                                        </a>
+                                        <form method="POST" action="index.php?url=antenas" class="d-inline" onsubmit="return confirm('<?php echo !empty($antena['is_suspended']) ? '¿Deseas reactivar el servicio de esta antena?' : '¿Deseas suspender operativamente esta antena (corte técnico)?'; ?>');">
+                                            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES); ?>">
+                                            <input type="hidden" name="action" value="toggle_suspension">
+                                            <input type="hidden" name="id_starlink" value="<?php echo (int)$antena['id_starlink']; ?>">
+                                            <?php if (!empty($antena['is_suspended'])): ?>
+                                                <button type="submit" class="btn btn-sm btn-outline-warning" title="Reactivar servicio suspendido">
+                                                    <i class="bi bi-play-circle"></i><span class="action-btn-text ms-1">Activar</span>
+                                                </button>
+                                            <?php else: ?>
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Suspender servicio (Corte)">
+                                                    <i class="bi bi-slash-circle"></i><span class="action-btn-text ms-1">Corte</span>
+                                                </button>
+                                            <?php endif; ?>
+                                        </form>
                                         <?php if ($waReminderUrl): ?>
                                             <a href="<?php echo htmlspecialchars($waReminderUrl, ENT_QUOTES); ?>" target="_blank"
                                                class="btn btn-sm btn-whatsapp text-white"

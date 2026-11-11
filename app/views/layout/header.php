@@ -12,7 +12,13 @@
         </span>
     </div>
 
-    <div class="dropdown ms-auto">
+    <div class="d-flex align-items-center gap-2 ms-auto">
+        <button type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2 text-white-50 px-2 py-1" id="btnOpenCommandPalette" title="Búsqueda rápida y comandos (Ctrl + K)">
+            <i class="bi bi-search text-info"></i>
+            <span class="d-none d-lg-inline small">Buscar...</span>
+            <kbd class="d-none d-md-inline-block bg-dark text-info border border-secondary px-1 small" style="font-size: 0.65rem;">Ctrl K</kbd>
+        </button>
+        <div class="dropdown">
         <button class="btn app-user-button dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
             <span class="app-avatar d-inline-flex align-items-center justify-content-center rounded-circle">
                 <i class="bi bi-person-fill"></i>

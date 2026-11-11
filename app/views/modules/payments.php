@@ -104,6 +104,9 @@ if (!empty($data['payments'])) {
     </div>
 
     <div class="payments-filters d-flex justify-content-end gap-2 flex-wrap">
+        <button type="button" class="btn btn-sm btn-outline-success btn-export-csv" data-table=".payment-history-table" data-filename="historial_pagos.csv" title="Exportar historial de pagos a Excel (.csv)">
+            <i class="bi bi-file-earmark-excel me-1"></i>Excel (.csv)
+        </button>
         <div class="input-group input-group-sm w-auto">
             <label class="input-group-text bg-secondary text-white border-secondary" for="search_payments_type">Buscar por</label>
             <select id="search_payments_type" class="form-select form-select-sm">
@@ -737,6 +740,14 @@ document.addEventListener('app:content-ready', function() {
         searchType.addEventListener('change', filterRows);
     }
 
+    // Auto-filter by client when redirected from clients.php (?client=...)
+    const initialClient = new URLSearchParams(window.location.search).get('client');
+    if (initialClient && searchInput && searchType) {
+        searchType.value = 'cliente';
+        searchInput.value = initialClient;
+        filterRows();
+    }
+
     const paymentAntennas = document.getElementById('payment_antennas');
     const paymentCheckboxes = document.querySelectorAll('.payment-antenna');
     const paymentClientSearch = document.getElementById('payment_client_search');
@@ -1232,6 +1243,22 @@ document.addEventListener('app:content-ready', function() {
                     paymentSelectAll.innerHTML = '<i class="bi bi-check2-square me-1"></i>Seleccionar todas';
                 }
             });
+
+            // Quick payment auto-selection (?quick_serial=...)
+            const urlParams = new URLSearchParams(window.location.search);
+            const quickSerial = urlParams.get('quick_serial');
+            if (quickSerial) {
+                const modalInstance = bootstrap.Modal.getOrCreateInstance(modal);
+                modalInstance.show();
+                setTimeout(() => {
+                    const targetInput = document.querySelector(`.payment-antenna[data-serial="${quickSerial}"]`);
+                    if (targetInput) {
+                        targetInput.checked = true;
+                        targetInput.dispatchEvent(new Event('change', { bubbles: true }));
+                        targetInput.closest('.payment-antenna-option')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 300);
+            }
         }
     }
 

@@ -1667,3 +1667,18 @@ select:focus {
         transform: none !important;
     }
 }
+
+/* Command Palette (Ctrl+K) Styles */
+#commandPaletteResults .list-group-item {
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+    cursor: pointer;
+}
+#commandPaletteResults .list-group-item:hover,
+#commandPaletteResults .list-group-item.active {
+    background: rgba(14, 165, 233, 0.15) !important;
+    border-color: rgba(56, 189, 248, 0.4) !important;
+}
+#commandPaletteResults .list-group-item.active .badge {
+    border-color: var(--st-cyan) !important;
+    color: var(--st-cyan) !important;
+}

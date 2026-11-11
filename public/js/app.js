@@ -838,4 +838,208 @@ document.addEventListener('click', function(e) {
     }
 });
 
+// ==========================================================================
+// EXPORTACIÓN UNIVERSAL A EXCEL (.CSV CON BOM UTF-8)
+// ==========================================================================
+function exportTableToCSV(tableEl, filename) {
+    if (!tableEl) return;
+    filename = filename || 'reporte.csv';
+
+    const rows = [];
+    const headerCells = tableEl.querySelectorAll('thead th');
+    const headers = [];
+    const ignoredColIndices = new Set();
+
+    headerCells.forEach((th, idx) => {
+        const text = th.textContent.trim().replace(/\s+/g, ' ');
+        if (text.toLowerCase().includes('acción') || text.toLowerCase().includes('acciones')) {
+            ignoredColIndices.add(idx);
+        } else {
+            headers.push('"' + text.replace(/"/g, '""') + '"');
+        }
+    });
+    rows.push(headers.join(';'));
+
+    const bodyRows = tableEl.querySelectorAll('tbody tr');
+    bodyRows.forEach(tr => {
+        if (tr.querySelector('td[colspan]')) return;
+        const rowData = [];
+        const cells = tr.querySelectorAll('td');
+        cells.forEach((td, idx) => {
+            if (ignoredColIndices.has(idx)) return;
+            let cellText = td.innerText || td.textContent || '';
+            cellText = cellText.replace(/Copiar|Recordar|Editar|Eliminar|Cobrar|Activar|Corte/g, '').trim();
+            cellText = cellText.replace(/\r?\n|\r/g, ' ').replace(/\s+/g, ' ');
+            rowData.push('"' + cellText.replace(/"/g, '""') + '"');
+        });
+        if (rowData.length > 0) {
+            rows.push(rowData.join(';'));
+        }
+    });
+
+    const csvContent = '\uFEFF' + rows.join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    if (window.showSweetAlert) {
+        window.showSweetAlert('success', 'Archivo <strong>' + filename + '</strong> descargado con éxito.', false);
+    }
+}
+
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.btn-export-csv');
+    if (!btn) return;
+    e.preventDefault();
+    const selector = btn.getAttribute('data-table') || '.datatable';
+    const filename = btn.getAttribute('data-filename') || 'exportacion.csv';
+    const tableEl = document.querySelector(selector);
+    if (tableEl) {
+        exportTableToCSV(tableEl, filename);
+    } else {
+        alert('No se encontró la tabla para exportar.');
+    }
+});
+
+// ==========================================================================
+// COMMAND PALETTE / ACCESO RÁPIDO UNIVERSAL (Ctrl + K)
+// ==========================================================================
+(function initCommandPalette() {
+    const paletteModalEl = document.getElementById('commandPaletteModal');
+    if (!paletteModalEl) return;
+
+    const paletteInput = document.getElementById('commandPaletteInput');
+    const paletteResults = document.getElementById('commandPaletteResults');
+    const btnOpen = document.getElementById('btnOpenCommandPalette');
+
+    const commands = [
+        { label: 'Antenas Starlink', desc: 'Monitoreo de kits, seriales y cortes de servicio', icon: 'bi-broadcast', url: 'index.php?url=antenas', category: 'Navegación' },
+        { label: 'Centro de Pagos y Cobranzas', desc: 'Conciliación de pagos, comprobantes y reportes', icon: 'bi-currency-dollar', url: 'index.php?url=payments', category: 'Navegación' },
+        { label: 'Directorio de Clientes', desc: 'Abonados, números de contacto y terminales vinculadas', icon: 'bi-people', url: 'index.php?url=clients', category: 'Navegación' },
+        { label: 'Dashboard Financiero', desc: 'Telemetría de ingresos, deuda y proyecciones', icon: 'bi-speedometer2', url: 'index.php?url=dashboard', category: 'Navegación' },
+        { label: 'Cuentas Starlink', desc: 'Organización de cuentas maestras y correos', icon: 'bi-buildings', url: 'index.php?url=accounts', category: 'Navegación' },
+        { label: 'Planes de Servicio', desc: 'Precios en USD y tipos de abono (Prioridad, Itinerante)', icon: 'bi-box-seam', url: 'index.php?url=plans', category: 'Navegación' },
+        { label: 'Países y Regiones', desc: 'Monedas locales y delimitación geográfica', icon: 'bi-globe-americas', url: 'index.php?url=countries', category: 'Navegación' },
+        { label: 'Auditoría y Logs del Sistema', desc: 'Historial inmutable de cambios y actividades de usuarios', icon: 'bi-shield-check', url: 'index.php?url=logs', category: 'Seguridad' },
+        { label: 'Seguridad y 2FA (TOTP)', desc: 'Gestión de autenticación de dos factores y sesiones', icon: 'bi-key', url: 'index.php?url=auth/manage_security', category: 'Seguridad' },
+        { label: 'Registrar Nuevo Pago', desc: 'Abrir formulario de cobranza para una o varias antenas', icon: 'bi-cash-coin', action: 'quick_payment', category: 'Acción rápida' }
+    ];
+
+    let selectedIndex = 0;
+    let filteredCommands = [...commands];
+
+    function renderResults(list) {
+        filteredCommands = list;
+        selectedIndex = 0;
+        paletteResults.innerHTML = '';
+
+        if (list.length === 0) {
+            paletteResults.innerHTML = '<div class="text-center py-4 text-white-50"><i class="bi bi-search d-block mb-2 fs-4"></i>No se encontraron resultados</div>';
+            return;
+        }
+
+        list.forEach((item, index) => {
+            const btn = document.createElement('a');
+            btn.href = item.url || '#';
+            btn.className = 'list-group-item list-group-item-action bg-dark text-white border-secondary border-opacity-50 d-flex justify-content-between align-items-center py-2 px-3' + (index === 0 ? ' active bg-primary text-white' : '');
+            btn.setAttribute('data-index', index);
+            btn.innerHTML = `
+                <div class="d-flex align-items-center gap-3">
+                    <span class="fs-5 text-info"><i class="bi ${item.icon}"></i></span>
+                    <div>
+                        <div class="fw-semibold text-white">${item.label}</div>
+                        <small class="text-white-50">${item.desc}</small>
+                    </div>
+                </div>
+                <span class="badge border border-secondary text-white-50">${item.category}</span>
+            `;
+
+            btn.addEventListener('click', function(ev) {
+                if (item.action === 'quick_payment') {
+                    ev.preventDefault();
+                    bootstrap.Modal.getInstance(paletteModalEl).hide();
+                    const payModal = document.getElementById('modalPayment');
+                    if (payModal) {
+                        bootstrap.Modal.getOrCreateInstance(payModal).show();
+                    } else {
+                        window.location.href = 'index.php?url=payments';
+                    }
+                }
+            });
+
+            paletteResults.appendChild(btn);
+        });
+    }
+
+    function openPalette() {
+        const modal = bootstrap.Modal.getOrCreateInstance(paletteModalEl);
+        modal.show();
+        setTimeout(() => {
+            paletteInput.value = '';
+            renderResults(commands);
+            paletteInput.focus();
+        }, 200);
+    }
+
+    if (btnOpen) {
+        btnOpen.addEventListener('click', openPalette);
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+            e.preventDefault();
+            openPalette();
+        }
+
+        if (paletteModalEl.classList.contains('show')) {
+            const items = paletteResults.querySelectorAll('.list-group-item');
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedIndex = (selectedIndex + 1) % items.length;
+                updateSelection(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+                updateSelection(items);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (items[selectedIndex]) {
+                    items[selectedIndex].click();
+                }
+            }
+        }
+    });
+
+    function updateSelection(items) {
+        items.forEach((it, idx) => {
+            if (idx === selectedIndex) {
+                it.classList.add('active', 'bg-primary');
+                it.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                it.classList.remove('active', 'bg-primary');
+            }
+        });
+    }
+
+    paletteInput.addEventListener('input', function() {
+        const q = this.value.trim().toLowerCase();
+        if (!q) {
+            renderResults(commands);
+            return;
+        }
+        const filtered = commands.filter(c => {
+            return c.label.toLowerCase().includes(q) ||
+                   c.desc.toLowerCase().includes(q) ||
+                   c.category.toLowerCase().includes(q);
+        });
+        renderResults(filtered);
+    });
+})();
+
 document.dispatchEvent(new Event('app:content-ready'));

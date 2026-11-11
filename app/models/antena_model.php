@@ -28,6 +28,15 @@ class AntenaModel {
             if (!in_array('debt_exempt_at', $columns, true)) {
                 $this->db->exec("ALTER TABLE antenas ADD COLUMN debt_exempt_at DATETIME NULL DEFAULT NULL");
             }
+            if (!in_array('is_suspended', $columns, true)) {
+                $this->db->exec("ALTER TABLE antenas ADD COLUMN is_suspended TINYINT(1) NOT NULL DEFAULT 0");
+            }
+            if (!in_array('suspended_reason', $columns, true)) {
+                $this->db->exec("ALTER TABLE antenas ADD COLUMN suspended_reason VARCHAR(255) NULL DEFAULT NULL");
+            }
+            if (!in_array('suspended_at', $columns, true)) {
+                $this->db->exec("ALTER TABLE antenas ADD COLUMN suspended_at DATETIME NULL DEFAULT NULL");
+            }
             $payCols = $this->db->query("SHOW COLUMNS FROM payments")->fetchAll(PDO::FETCH_COLUMN);
             if (!in_array('months_paid', $payCols, true)) {
                 $this->db->exec("ALTER TABLE payments ADD COLUMN months_paid INT NOT NULL DEFAULT 1");
@@ -232,6 +241,9 @@ class AntenaModel {
                         a.debt_exempt_until,
                         a.debt_exempt_note,
                         a.debt_exempt_at,
+                        COALESCE(a.is_suspended, 0) AS is_suspended,
+                        a.suspended_reason,
+                        a.suspended_at,
                         a.client AS client_id,
                         a.account_id AS account_id,
                         a.plan AS plan_id,
@@ -532,6 +544,38 @@ class AntenaModel {
         } catch (Throwable $e) {
             error_log("Error en AntenaModel::getDebtOverview -> " . $e->getMessage());
             return ['total_activas' => 0, 'al_dia' => 0, 'con_deuda' => 0, 'total_deuda' => 0.0];
+        }
+    }
+
+    /**
+     * Alterna o establece el estado de suspensión operativa de una antena
+     */
+    public function toggleSuspension($id_starlink, $reason = null) {
+        try {
+            $stmt = $this->db->prepare("SELECT is_suspended FROM antenas WHERE id_starlink = :id");
+            $stmt->execute([':id' => $id_starlink]);
+            $current = (int)$stmt->fetchColumn();
+
+            $newStatus = $current ? 0 : 1;
+            $suspendedAt = $newStatus ? date('Y-m-d H:i:s') : null;
+            $cleanReason = $newStatus ? ($reason ?: 'Suspensión administrativa por mora') : null;
+
+            $update = $this->db->prepare("UPDATE antenas SET is_suspended = :st, suspended_reason = :re, suspended_at = :at WHERE id_starlink = :id");
+            $success = $update->execute([
+                ':st' => $newStatus,
+                ':re' => $cleanReason,
+                ':at' => $suspendedAt,
+                ':id' => $id_starlink
+            ]);
+
+            return [
+                'success' => $success,
+                'new_status' => $newStatus,
+                'reason' => $cleanReason
+            ];
+        } catch (Throwable $e) {
+            error_log("Error en AntenaModel::toggleSuspension -> " . $e->getMessage());
+            return ['success' => false, 'error' => $e->getMessage()];
         }
     }
 }
