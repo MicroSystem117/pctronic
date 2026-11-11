@@ -111,6 +111,15 @@ $menuSections = [
     ],
     'Ayuda y Soporte' => [
         [
+            'url' => '#',
+            'icon' => 'bi bi-compass-fill text-info',
+            'label' => 'Copiloto Starlink',
+            'show' => true,
+            'badge' => 'Guía',
+            'badge_class' => 'bg-info text-dark',
+            'custom_attr' => 'data-bs-toggle="offcanvas" data-bs-target="#copilotDrawer" aria-controls="copilotDrawer"',
+        ],
+        [
             'url' => 'manual',
             'icon' => 'bi bi-book-half',
             'label' => 'Manual de Usuario',
@@ -165,7 +174,7 @@ $menuSections = [
                             $isActive = ($currentRoute === $item['url'] || ($item['url'] === 'dashboard' && ($currentRoute === '' || $currentRoute === 'dashboard')));
                         ?>
                         <li class="nav-item mb-1">
-                            <a href="index.php?url=<?php echo $item['url']; ?>" class="nav-link <?php echo $isActive ? 'active' : ''; ?>">
+                            <a href="<?php echo $item['url'] === '#' ? '#' : 'index.php?url=' . $item['url']; ?>" class="nav-link <?php echo $isActive ? 'active' : ''; ?>" <?php echo $item['custom_attr'] ?? ''; ?>>
                                 <div class="d-flex align-items-center text-truncate">
                                     <i class="<?php echo $item['icon']; ?> me-2 fs-6 flex-shrink-0"></i>
                                     <span class="nav-label text-truncate"><?php echo htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8'); ?></span>

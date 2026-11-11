@@ -210,3 +210,4 @@ La plataforma está diseñada como una **Progressive Web App (PWA)** de grado na
 ---
 
 *Manual elaborado y actualizado por el Equipo de Ingeniería de Starlink Control Manager.*
+

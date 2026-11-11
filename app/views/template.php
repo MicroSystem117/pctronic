@@ -31,7 +31,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link href="<?php echo htmlspecialchars(app_url('css/style.css?v=20261111-6'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
 
-    <link href="<?php echo htmlspecialchars(app_url('css/template.css?v=20261111-6'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
+    <link href="<?php echo htmlspecialchars(app_url('css/template.css?v=20261111-7'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
 </head>
 <body>
 
@@ -143,6 +143,7 @@
 
 <?php if (empty($hideLayout)): ?>
     <?php include "layout/bottom_nav.php"; ?>
+    <?php include "layout/copilot.php"; ?>
 <?php endif; ?>
 
 <div class="offcanvas offcanvas-start text-white border-0" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel" style="background: #080c16; width: 300px; max-width: 85vw;">
@@ -244,5 +245,6 @@ window.appAlerts = window.appConfig.alerts;
 window.initialAppStatus = window.appConfig.initialStatus;
 </script>
 <script src="<?php echo htmlspecialchars(app_url('js/app.js?v=20261111-5'), ENT_QUOTES, 'UTF-8'); ?>"></script>
+<script src="<?php echo htmlspecialchars(app_url('js/copilot.js?v=20261111-1'), ENT_QUOTES, 'UTF-8'); ?>"></script>
 </body>
 </html>

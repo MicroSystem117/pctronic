@@ -16,3 +16,4 @@ class ManualController extends Controller {
         $this->render('modules/manual', $data);
     }
 }
+
