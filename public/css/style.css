@@ -1094,13 +1094,19 @@ select:focus {
     .antenas-page .table tbody {
         display: grid !important;
         grid-template-columns: 1fr !important;
-        gap: 1.15rem !important;
+        gap: 0.85rem !important;
         width: 100% !important;
         max-width: 100% !important;
         box-sizing: border-box !important;
     }
 
-    /* Cada fila (tr) es una tarjeta completa */
+    /* Ocultar celdas vacías innecesarias en móviles */
+    .table-mobile-cards tbody tr td.empty-mobile-cell,
+    .antenas-page table tbody tr td.empty-mobile-cell {
+        display: none !important;
+    }
+
+    /* Cada fila (tr) es una tarjeta completa estilo app móvil */
     .table-mobile-cards tbody tr,
     .antenas-page table tbody tr,
     .antenas-page .table tbody tr {
@@ -1111,16 +1117,29 @@ select:focus {
         min-width: 100% !important;
         box-sizing: border-box !important;
         background: #0d121f !important;
-        border: 1px solid rgba(56, 189, 248, 0.18) !important;
+        border: 1px solid rgba(56, 189, 248, 0.2) !important;
         border-radius: 14px !important;
-        padding: 1.15rem !important;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+        padding: 0.85rem 1rem !important;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
         backdrop-filter: none !important;
         -webkit-backdrop-filter: none !important;
         transition: transform 0.15s ease, border-color 0.15s ease !important;
         position: relative !important;
         overflow: hidden !important;
         margin-bottom: 0 !important;
+    }
+
+    /* Resplandor láser superior en cada tarjeta */
+    .table-mobile-cards tbody tr::before,
+    .antenas-page table tbody tr::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.6), transparent);
+        pointer-events: none;
     }
 
     .table-mobile-cards tbody tr:hover,
@@ -1142,7 +1161,7 @@ select:focus {
         border-right: none !important;
     }
 
-    /* Cada celda (td) es un renglón clave-valor a ancho completo */
+    /* Cada celda (td) es un renglón clave-valor compacto */
     .table-mobile-cards tbody tr td,
     .antenas-page table tbody tr td,
     .antenas-page .table tbody tr td {
@@ -1154,13 +1173,13 @@ select:focus {
         max-width: 100% !important;
         min-width: 100% !important;
         box-sizing: border-box !important;
-        padding: 0.55rem 0 !important;
+        padding: 0.35rem 0 !important;
         border: none !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
         background: transparent !important;
         text-align: right !important;
-        font-size: 0.92rem !important;
-        min-height: 2.4rem !important;
+        font-size: 0.85rem !important;
+        min-height: auto !important;
         white-space: normal !important;
         position: static !important;
     }
@@ -1170,13 +1189,13 @@ select:focus {
     .antenas-page table tbody tr td::before,
     .antenas-page .table tbody tr td::before {
         content: attr(data-label);
-        font-weight: 700 !important;
+        font-weight: 600 !important;
         color: #94a3b8 !important;
-        font-size: 0.78rem !important;
+        font-size: 0.68rem !important;
         text-transform: uppercase !important;
-        letter-spacing: 0.6px !important;
+        letter-spacing: 0.04em !important;
         text-align: left !important;
-        margin-right: 0.75rem !important;
+        margin-right: 0.65rem !important;
         flex-shrink: 0 !important;
     }
 
@@ -1187,68 +1206,76 @@ select:focus {
     .table-mobile-cards tbody tr td > *:not(::before),
     .antenas-page table tbody tr td > *:not(::before),
     .antenas-page .table tbody tr td > *:not(::before) {
-        display: inline-block !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
         text-align: right !important;
-        color: #ffffff !important;
-        font-size: 0.92rem !important;
-        max-width: 65% !important;
+        color: #f1f5f9 !important;
+        font-size: 0.85rem !important;
+        max-width: 75% !important;
         white-space: normal !important;
         word-break: break-word !important;
+        gap: 0.25rem !important;
     }
 
-    /* Cabecera destacada de la tarjeta: Serial No., Titular, Nombre, Asignada a, etc. */
+    /* Cabecera destacada de la tarjeta: Asignada a, Cliente, Titular */
     .table-mobile-cards tbody tr td:first-child,
     .table-mobile-cards tbody tr td[data-label="Asignada a"],
     .antenas-page .table tbody tr td[data-label="Asignada a"],
-    .table-mobile-cards tbody tr td[data-label="Serial"],
-    .antenas-page .table tbody tr td[data-label="Serial"] {
+    .table-mobile-cards tbody tr td[data-label="Cliente"],
+    .table-mobile-cards tbody tr td[data-label="Titular"] {
         padding-top: 0 !important;
-        padding-bottom: 0.75rem !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
-        margin-bottom: 0.25rem !important;
+        padding-bottom: 0.55rem !important;
+        border-bottom: 1px solid rgba(56, 189, 248, 0.25) !important;
+        margin-bottom: 0.35rem !important;
+    }
+
+    .table-mobile-cards tbody tr td[data-label="Asignada a"]::before,
+    .table-mobile-cards tbody tr td[data-label="Cliente"]::before,
+    .table-mobile-cards tbody tr td[data-label="Titular"]::before {
+        font-size: 0.65rem !important;
+        color: #64748b !important;
     }
 
     .table-mobile-cards tbody tr td[data-label="Asignada a"] .td-value,
-    .antenas-page .table tbody tr td[data-label="Asignada a"] .td-value {
-        font-size: 1.05rem !important;
+    .antenas-page .table tbody tr td[data-label="Asignada a"] .td-value,
+    .table-mobile-cards tbody tr td[data-label="Cliente"] .td-value,
+    .table-mobile-cards tbody tr td[data-label="Titular"] .td-value {
+        font-size: 1.02rem !important;
         font-weight: 700 !important;
-        color: #ffffff !important;
-    }
-
-    .table-mobile-cards tbody tr td[data-label="Serial"] code,
-    .antenas-page .table tbody tr td[data-label="Serial"] code {
-        font-size: 1.05rem !important;
         color: #38bdf8 !important;
-        font-weight: 700 !important;
-        background: rgba(56, 189, 248, 0.15) !important;
-        border: 1px solid rgba(56, 189, 248, 0.3) !important;
-        padding: 0.25rem 0.6rem !important;
-        border-radius: 8px !important;
-        letter-spacing: 0.5px !important;
-        max-width: 100% !important;
     }
 
-    .table-mobile-cards tbody tr td[data-label="Titular"],
-    .table-mobile-cards tbody tr td[data-label="Nombre"],
-    .table-mobile-cards tbody tr td[data-label="Archivo"],
-    .table-mobile-cards tbody tr td[data-label="Antena"]:first-child {
-        padding-top: 0 !important;
-        padding-bottom: 0.75rem !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
-        margin-bottom: 0.25rem !important;
-    }
-
+    /* Etiquetas de código compacto (Serial, Kit, Cédula, Teléfono) */
     .table-mobile-cards tbody tr td code,
     .antenas-page .table tbody tr td code {
-        font-size: 1.05rem !important;
+        font-size: 0.80rem !important;
         color: #38bdf8 !important;
-        font-weight: 700 !important;
-        background: rgba(56, 189, 248, 0.15) !important;
-        border: 1px solid rgba(56, 189, 248, 0.3) !important;
-        padding: 0.25rem 0.6rem !important;
-        border-radius: 8px !important;
-        letter-spacing: 0.5px !important;
+        font-weight: 600 !important;
+        background: rgba(15, 23, 42, 0.8) !important;
+        border: 1px solid rgba(56, 189, 248, 0.25) !important;
+        padding: 0.15rem 0.45rem !important;
+        border-radius: 6px !important;
+        letter-spacing: normal !important;
         max-width: 100% !important;
+        white-space: nowrap !important;
+        display: inline-block !important;
+    }
+
+    /* Botón copiar en tarjetas móviles */
+    .table-mobile-cards .btn-copy,
+    .antenas-page .btn-copy {
+        font-size: 0.85rem !important;
+        color: #94a3b8 !important;
+        padding: 0.1rem 0.25rem !important;
+        line-height: 1 !important;
+        border: none !important;
+        background: transparent !important;
+    }
+
+    .table-mobile-cards .btn-copy:hover,
+    .antenas-page .btn-copy:hover {
+        color: #38bdf8 !important;
     }
 
     /* Renglón de Acciones al final de la tarjeta */
@@ -1256,7 +1283,8 @@ select:focus {
     .antenas-page .table tbody tr td[data-label="Acciones"],
     .table-mobile-cards tbody tr td[data-label="Acción"] {
         border-bottom: none !important;
-        padding-top: 0.9rem !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+        padding-top: 0.75rem !important;
         padding-bottom: 0 !important;
         justify-content: stretch !important;
         margin-top: 0.35rem !important;
@@ -1273,24 +1301,24 @@ select:focus {
     .table-mobile-cards tbody tr td[data-label="Acción"] .d-inline-flex {
         width: 100% !important;
         max-width: 100% !important;
-        display: flex !important;
-        flex-wrap: wrap !important;
-        gap: 0.5rem !important;
+        display: grid !important;
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)) !important;
+        gap: 0.45rem !important;
     }
 
     .table-mobile-cards tbody tr td[data-label="Acciones"] .d-inline-flex > *,
     .antenas-page .table tbody tr td[data-label="Acciones"] .d-inline-flex > *,
     .table-mobile-cards tbody tr td[data-label="Acción"] .d-inline-flex > * {
-        flex: 1 1 calc(50% - 0.5rem) !important;
-        min-width: 110px !important;
-        padding: 0.6rem 0.75rem !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 0.42rem 0.5rem !important;
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
-        font-size: 0.88rem !important;
-        font-weight: 500 !important;
-        border-radius: 10px !important;
-        min-height: 2.5rem !important;
+        font-size: 0.80rem !important;
+        font-weight: 600 !important;
+        border-radius: 8px !important;
+        min-height: 2.1rem !important;
     }
 
     .action-btn-text,

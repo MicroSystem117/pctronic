@@ -107,7 +107,7 @@ if (!empty($data['antenas'])) {
                             data-exempt-note="<?php echo htmlspecialchars($antena['debt_exempt_note'] ?? '', ENT_QUOTES); ?>"
                         >
                             <td data-label="Asignada a"><span class="td-value text-white fw-bold"><?php echo htmlspecialchars($antena['cliente']); ?></span></td>
-                            <td data-label="Nickname"><?php echo !empty($antena['nickname']) ? '<span class="td-value">' . htmlspecialchars($antena['nickname']) . '</span>' : '<span class="text-white-50">-</span>'; ?></td>
+                            <td data-label="Nickname" class="<?php echo empty($antena['nickname']) ? 'empty-mobile-cell' : ''; ?>"><?php echo !empty($antena['nickname']) ? '<span class="td-value">' . htmlspecialchars($antena['nickname']) . '</span>' : '<span class="text-white-50">-</span>'; ?></td>
                             <td data-label="Kit">
                                 <span class="d-inline-flex align-items-center gap-1">
                                     <code class="text-info"><?php echo htmlspecialchars($antena['kit']); ?></code>
