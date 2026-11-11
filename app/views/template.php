@@ -10,9 +10,14 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="PCtronic">
+    <meta name="apple-mobile-web-app-title" content="Starlink Control">
     <link rel="manifest" href="<?php echo htmlspecialchars(app_url('manifest.json'), ENT_QUOTES, 'UTF-8'); ?>">
-    <link rel="apple-touch-icon" href="<?php echo htmlspecialchars(app_url('assets/icon-192.png'), ENT_QUOTES, 'UTF-8'); ?>">
+    
+    <!-- Favicon Oficial Starlink Control Manager -->
+    <link rel="icon" type="image/x-icon" href="<?php echo htmlspecialchars(app_url('favicon.ico?v=20261111'), ENT_QUOTES, 'UTF-8'); ?>">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?php echo htmlspecialchars(app_url('assets/favicon.png?v=20261111'), ENT_QUOTES, 'UTF-8'); ?>">
+    <link rel="icon" type="image/png" sizes="192x192" href="<?php echo htmlspecialchars(app_url('assets/icon-192.png?v=20261111'), ENT_QUOTES, 'UTF-8'); ?>">
+    <link rel="apple-touch-icon" href="<?php echo htmlspecialchars(app_url('apple-touch-icon.png?v=20261111'), ENT_QUOTES, 'UTF-8'); ?>">
 
     <title><?php echo isset($page_title) ? $page_title : 'Starlink Control'; ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">

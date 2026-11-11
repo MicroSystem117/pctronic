@@ -1,9 +1,12 @@
-const CACHE_NAME = 'pctronic-v1';
+const CACHE_NAME = 'pctronic-v2';
 const STATIC_ASSETS = [
   'css/style.css',
   'css/template.css',
   'js/app.js',
   'manifest.json',
+  'favicon.ico',
+  'favicon.png',
+  'apple-touch-icon.png',
   'assets/Logo.png',
   'assets/icon-192.png',
   'assets/icon-512.png',
