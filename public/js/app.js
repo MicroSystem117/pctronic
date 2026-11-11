@@ -933,7 +933,7 @@ document.addEventListener('click', function(e) {
         { label: 'Auditoría y Logs del Sistema', desc: 'Historial inmutable de cambios y actividades de usuarios', icon: 'bi-shield-check', url: 'index.php?url=logs', category: 'Seguridad' },
         { label: 'Seguridad y 2FA (TOTP)', desc: 'Gestión de autenticación de dos factores y sesiones', icon: 'bi-key', url: 'index.php?url=auth/manage_security', category: 'Seguridad' },
         { label: 'Manual de Usuario y Operaciones', desc: 'Guía oficial de procedimientos, funciones y soporte', icon: 'bi-book-half', url: 'index.php?url=manual', category: 'Ayuda' },
-        { label: 'Copiloto y Guía Interactiva', desc: 'Asistente operativo, preguntas del manual y tours guiados', icon: 'bi-compass-fill', action: 'open_copilot', category: 'Ayuda' },
+        { label: 'Jeremy • Copiloto y Guía Interactiva', desc: 'Asistente operativo, preguntas del manual y tours guiados', icon: 'bi-robot', action: 'open_copilot', category: 'Ayuda' },
         { label: 'Registrar Nuevo Pago', desc: 'Abrir formulario de cobranza para una o varias antenas', icon: 'bi-cash-coin', action: 'quick_payment', category: 'Acción rápida' }
     ];
 
@@ -979,9 +979,11 @@ document.addEventListener('click', function(e) {
                 } else if (item.action === 'open_copilot') {
                     ev.preventDefault();
                     bootstrap.Modal.getInstance(paletteModalEl).hide();
-                    const copilotEl = document.getElementById('copilotDrawer');
-                    if (copilotEl) {
-                        bootstrap.Offcanvas.getOrCreateInstance(copilotEl).show();
+                    if (window.Jeremy && typeof window.Jeremy.open === 'function') {
+                        window.Jeremy.open();
+                    } else {
+                        const drawerEl = document.getElementById('jeremyDrawer') || document.getElementById('copilotDrawer');
+                        if (drawerEl) bootstrap.Offcanvas.getOrCreateInstance(drawerEl).show();
                     }
                 }
             });

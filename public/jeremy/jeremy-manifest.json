@@ -1,0 +1,238 @@
+{
+  "appName": "Starlink Control Manager",
+  "copilotName": "Jeremy",
+  "copilotRole": "Copiloto Operativo",
+  "version": "2026.11",
+  "manualUrl": "index.php?url=manual",
+  "contexts": {
+    "dashboard": {
+      "title": "Centro de Control Financiero y Calendario",
+      "desc": "Hola, soy <strong>Jeremy</strong>. Desde este panel monitoreas los ingresos mensuales, las metas de recaudación y los vencimientos de la semana en el calendario.",
+      "actions": [
+        { "label": "Tour de Calendario", "icon": "bi-calendar3", "tour": "calendar", "btnClass": "btn-outline-info" },
+        { "label": "Atajos Ctrl+K", "icon": "bi-keyboard", "tour": "command_palette", "btnClass": "btn-outline-light" }
+      ]
+    },
+    "antenas": {
+      "title": "Monitoreo y Operaciones de Antenas",
+      "desc": "Hola, soy <strong>Jeremy</strong>. Aquí controlas terminales Starlink, verificas estados de solvencia o mora, aplicas cortes técnicos y envías recordatorios de WhatsApp.",
+      "actions": [
+        { "label": "Tour Corte y Reactivación", "icon": "bi-slash-circle", "tour": "suspension", "btnClass": "btn-outline-warning" }
+      ]
+    },
+    "payments": {
+      "title": "Cobranzas y Conciliación Bancaria",
+      "desc": "Hola, soy <strong>Jeremy</strong>. En este módulo registras pagos simples o masivos, validas transferencias y emites recibos oficiales con código QR.",
+      "actions": [
+        { "label": "Tour Registro de Pago", "icon": "bi-cash-stack", "tour": "payment", "btnClass": "btn-outline-success" }
+      ]
+    },
+    "clients": {
+      "title": "Directorio y Ficha de Clientes",
+      "desc": "Hola, soy <strong>Jeremy</strong>. Administra los titulares, consulta sus antenas vinculadas y exporta su estado de cuenta consolidado en PDF.",
+      "actions": [
+        { "label": "Tour Estado de Cuenta", "icon": "bi-person-lines-fill", "tour": "client_statement", "btnClass": "btn-outline-info" }
+      ]
+    },
+    "database": {
+      "title": "Mantenimiento y Respaldo SQL",
+      "desc": "Hola, soy <strong>Jeremy</strong>. Desde aquí generas copias de seguridad descargables (.sql) de toda la base de datos para proteger la información.",
+      "actions": [
+        { "label": "Ver Guía de Backups", "icon": "bi-shield-check", "url": "MANUAL_DE_USUARIO.md", "target": "_blank", "btnClass": "btn-outline-info" }
+      ]
+    },
+    "logs": {
+      "title": "Auditoría y Trazabilidad Inmutable",
+      "desc": "Hola, soy <strong>Jeremy</strong>. Aquí queda registrada cada acción crítica del sistema: suspensiones, aprobaciones de pago, ingresos y modificaciones.",
+      "actions": []
+    },
+    "manual": {
+      "title": "Manual de Operaciones Completo",
+      "desc": "Hola, soy <strong>Jeremy</strong>. Estás en la biblioteca oficial con los 10 capítulos del manual técnico y operativo de Starlink Control Manager.",
+      "actions": [
+        { "label": "Imprimir Guía", "icon": "bi-printer", "action": "print", "btnClass": "btn-outline-light" }
+      ]
+    }
+  },
+  "tours": {
+    "command_palette": {
+      "title": "Atajos y Búsqueda Global (Ctrl + K)",
+      "desc": "Aprende a navegar y ejecutar acciones sin usar el ratón.",
+      "badge": "Universal",
+      "icon": "bi-keyboard",
+      "iconBg": "bg-info text-info",
+      "requiredUrl": null,
+      "steps": [
+        {
+          "target": "#btnOpenCommandPalette",
+          "title": "Buscador Global y Acceso Rápido",
+          "text": "Presiona <strong>Ctrl + K</strong> desde cualquier pantalla o haz clic en este buscador para encontrar antenas, clientes o acciones rápidamente.",
+          "position": "bottom"
+        },
+        {
+          "target": "#commandPaletteModal",
+          "actionBefore": "openCommandPalette",
+          "title": "Paleta de Comandos Activa",
+          "text": "Escribe lo que buscas (ej. 'pago', 'antena', 'cliente') y usa las teclas <strong>↑ / ↓</strong> para navegar. Presiona <strong>ENTER</strong> para seleccionar o <strong>ESC</strong> para salir.",
+          "position": "center"
+        }
+      ]
+    },
+    "payment": {
+      "title": "Registrar Cobranza o Pago Rápido",
+      "desc": "Selección de antenas simples o múltiples, cálculo y capture.",
+      "badge": "Cobranzas",
+      "icon": "bi-cash-stack",
+      "iconBg": "bg-success text-success",
+      "requiredUrl": "payments",
+      "steps": [
+        {
+          "target": "#btnOpenPaymentModal, button[data-bs-target=\"#modalPayment\"], a[href*=\"payments\"]",
+          "title": "1. Iniciar Registro de Pago",
+          "text": "Haz clic aquí para abrir el formulario de cobranza. Puedes pagar una sola antena o marcar varias antenas al mismo tiempo para cobro múltiple.",
+          "position": "bottom"
+        },
+        {
+          "target": "#search_payments, #paymentsTable_filter input, .dataTables_filter input",
+          "title": "2. Historial y Conciliación",
+          "text": "Busca pagos por cliente o referencia para comprobar si ya fueron aprobados o están pendientes de verificación bancaria.",
+          "position": "bottom"
+        },
+        {
+          "target": ".btn-outline-light[title*=\"Recibo\"], a[href*=\"payments/receipt\"]",
+          "title": "3. Recibo Oficial con Código QR",
+          "text": "Cada pago conciliado genera un comprobante oficial en tamaño carta con un <strong>código QR verificable</strong> para el cliente.",
+          "position": "left"
+        }
+      ]
+    },
+    "suspension": {
+      "title": "Corte Técnico y Reactivación",
+      "desc": "Suspender servicio operativo y reactivar tras regularizar pago.",
+      "badge": "Operativo",
+      "icon": "bi-slash-circle",
+      "iconBg": "bg-warning text-warning",
+      "requiredUrl": "antenas",
+      "steps": [
+        {
+          "target": "#search_antenas, #antenasTable_filter input",
+          "title": "1. Localizar la Antena",
+          "text": "Filtra por serial, número de kit, cliente o alias para ubicar la antena específica.",
+          "position": "bottom"
+        },
+        {
+          "target": ".badge.bg-success, .badge.bg-danger, .badge.bg-warning, .badge.bg-secondary",
+          "title": "2. Verificar Estado de Solvencia",
+          "text": "Observa el indicador: <strong class=\"text-success\">Solvente</strong>, <strong class=\"text-warning\">Por Vencer</strong>, <strong class=\"text-danger\">Vencido</strong> o <strong class=\"text-secondary\">Suspendido</strong>.",
+          "position": "bottom"
+        },
+        {
+          "target": "button[title*=\"Suspender\"], button[title*=\"Reactivar\"], .btn-outline-secondary, .btn-outline-warning",
+          "title": "3. Interruptor de Corte / Reactivación",
+          "text": "Haz clic en este interruptor para registrar el <strong>corte técnico</strong> (suspensión operativa). Cuando el cliente abone, el mismo botón lo reactiva.",
+          "position": "left"
+        },
+        {
+          "target": ".btn-whatsapp, a[title*=\"WhatsApp\"]",
+          "title": "4. Recordatorio por WhatsApp",
+          "text": "Envía un recordatorio de cobro personalizado a WhatsApp con el monto y los días de mora en un solo clic.",
+          "position": "left"
+        }
+      ]
+    },
+    "client_statement": {
+      "title": "Ficha y Estado de Cuenta de Cliente",
+      "desc": "Ver antenas asignadas y generar balance consolidado en PDF.",
+      "badge": "Clientes",
+      "icon": "bi-person-lines-fill",
+      "iconBg": "bg-primary text-info",
+      "requiredUrl": "clients",
+      "steps": [
+        {
+          "target": "#search_clients, #clientsTable_filter input",
+          "title": "1. Buscar Cliente",
+          "text": "Filtra por nombre, apellido o número de cédula para acceder al expediente del cliente.",
+          "position": "bottom"
+        },
+        {
+          "target": ".btn-client-starlinks, button[data-bs-target=\"#modalClientStarlinks\"]",
+          "title": "2. Antenas Vinculadas",
+          "text": "Despliega el listado de terminales asignadas al cliente junto con sus respectivos planes contratados.",
+          "position": "left"
+        },
+        {
+          "target": "button[title*=\"Estado de cuenta\"], .btn-outline-primary",
+          "title": "3. Generar Estado de Cuenta en PDF",
+          "text": "Exporta un reporte en tamaño carta con el saldo total, mensualidades pagadas y meses pendientes de todas sus terminales.",
+          "position": "left"
+        }
+      ]
+    },
+    "calendar": {
+      "title": "Calendario y Fechas de Vencimiento",
+      "desc": "Días de corte, agenda móvil y métricas de recaudación.",
+      "badge": "Finanzas",
+      "icon": "bi-calendar3",
+      "iconBg": "bg-danger text-danger",
+      "requiredUrl": "dashboard",
+      "steps": [
+        {
+          "target": "#btnCalViewGrid, #btnCalViewList",
+          "title": "1. Selector de Vista (Grilla vs Lista)",
+          "text": "Alterna entre la cuadrícula mensual o la <strong>vista de agenda/lista</strong> especialmente optimizada para celulares.",
+          "position": "bottom"
+        },
+        {
+          "target": "#calendarGridView, .calendar-table",
+          "title": "2. Días con Cortes y Cobros",
+          "text": "Los días con fondos resaltados indican vencimientos de planes. Haz clic en cualquier día para ver la lista detallada de antenas por cobrar.",
+          "position": "top"
+        },
+        {
+          "target": "#chartCollectionTrend, #chartPlansDistribution",
+          "title": "3. Telemetría y Recaudación",
+          "text": "Gráficos interactivos de ingresos mensuales y distribución porcentual por plan contratado.",
+          "position": "top"
+        }
+      ]
+    }
+  },
+  "faqs": [
+    {
+      "id": "faq_estados",
+      "question": "¿Qué significan los estados de solvencia y mora?",
+      "keywords": "estados mora corte suspendido solvente por vencer fecha vencimiento dias",
+      "answer": "<ul class=\"ps-3 mb-1\"><li><strong class=\"text-success\">Solvente:</strong> Fecha de vencimiento futura. No tiene deuda pendiente.</li><li><strong class=\"text-warning\">Por Vencer:</strong> Faltan entre 1 y 5 días para la fecha límite de pago.</li><li><strong class=\"text-danger\">Vencido:</strong> Pasó la fecha límite de pago y tiene saldo pendiente.</li><li><strong class=\"text-secondary\">Suspendido:</strong> Se aplicó un corte técnico operativo.</li></ul><a href=\"index.php?url=antenas\" class=\"btn btn-outline-info btn-sm py-0 px-2 mt-1\">Ir a Antenas</a>"
+    },
+    {
+      "id": "faq_exoneracion",
+      "question": "¿Cómo exonerar una deuda previa de una antena?",
+      "keywords": "exonerar exoneracion perdonar deuda saldo restablecer cuenta",
+      "answer": "Solo los administradores tienen este permiso:<ol class=\"ps-3 mb-1\"><li>Ve al módulo de <strong>Antenas Starlink</strong>.</li><li>Haz clic en el botón <strong>\"Exonerar\"</strong> en la fila de la antena.</li><li>Ingresa el motivo comercial y confirma la operación.</li></ol>La deuda previa quedará en $0.00 y se recalculará desde el mes actual."
+    },
+    {
+      "id": "faq_qr",
+      "question": "¿Cómo funciona el recibo con código QR?",
+      "keywords": "recibo comprobante factura qr codigo verificacion pdf imprimir cliente",
+      "answer": "Cada pago aprobado genera un comprobante oficial en tamaño carta:<ul class=\"ps-3 mb-1\"><li>En <strong>Cobranzas y Pagos</strong>, presiona el botón del documento <i class=\"bi bi-file-earmark-pdf\"></i>.</li><li>El recibo incluye un <strong>código QR dinámico</strong> que al ser escaneado por el cliente o auditor valida la autenticidad del pago en el sistema.</li></ul>"
+    },
+    {
+      "id": "faq_whatsapp",
+      "question": "¿Cómo enviar recordatorios por WhatsApp?",
+      "keywords": "whatsapp mensaje recordatorio cobrar notificacion cobro telefono celular",
+      "answer": "En la tabla de <strong>Antenas</strong> o en la ficha de <strong>Clientes</strong>:<ul class=\"ps-3 mb-1\"><li>Ubica la antena por vencer o vencida.</li><li>Haz clic en el botón verde con el ícono de <strong class=\"text-success\"><i class=\"bi bi-whatsapp\"></i> Recordar</strong>.</li><li>Se abrirá WhatsApp con un mensaje preconfigurado indicando el monto exacto adeudado y el serial de la antena.</li></ul>"
+    },
+    {
+      "id": "faq_2fa",
+      "question": "¿Cómo activar el doble factor de autenticación (2FA)?",
+      "keywords": "2fa totp autenticacion doble factor seguridad google authenticator clave token",
+      "answer": "<ol class=\"ps-3 mb-1\"><li>Presiona <kbd>Ctrl + K</kbd> y escribe <em>Seguridad</em> (o haz clic en tu usuario en la barra superior).</li><li>En el panel de <strong>Seguridad</strong>, activa <strong>2FA (TOTP)</strong>.</li><li>Escanea el código QR con <strong>Google Authenticator</strong> o <strong>Authy</strong> e introduce el código de 6 dígitos para confirmar.</li></ol>"
+    },
+    {
+      "id": "faq_pwa",
+      "question": "¿Cómo instalar la app en el teléfono (PWA)?",
+      "keywords": "instalar pwa apk celular movil android iphone app pantalla de inicio",
+      "answer": "<ul class=\"ps-3 mb-1\"><li><strong>En Android (Chrome):</strong> Abre el menú de 3 puntos (⋮) y presiona <em>\"Instalar aplicación\"</em> o <em>\"Agregar a la pantalla principal\"</em>.</li><li><strong>En iPhone / iOS (Safari):</strong> Toca el botón Compartir <i class=\"bi bi-box-arrow-up\"></i> y selecciona <em>\"Agregar al inicio\"</em>.</li></ul>Funcionará como una app nativa a pantalla completa."
+    }
+  ]
+}

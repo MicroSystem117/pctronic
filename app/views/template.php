@@ -32,6 +32,9 @@
     <link href="<?php echo htmlspecialchars(app_url('css/style.css?v=20261111-6'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
 
     <link href="<?php echo htmlspecialchars(app_url('css/template.css?v=20261111-7'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
+    <?php if (empty($hideLayout)): ?>
+        <link href="<?php echo htmlspecialchars(app_url('jeremy/jeremy.css?v=20261111-1'), ENT_QUOTES, 'UTF-8'); ?>" rel="stylesheet">
+    <?php endif; ?>
 </head>
 <body>
 
@@ -143,7 +146,6 @@
 
 <?php if (empty($hideLayout)): ?>
     <?php include "layout/bottom_nav.php"; ?>
-    <?php include "layout/copilot.php"; ?>
 <?php endif; ?>
 
 <div class="offcanvas offcanvas-start text-white border-0" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel" style="background: #080c16; width: 300px; max-width: 85vw;">
@@ -237,6 +239,7 @@ window.appConfig = {
     logoUrl: <?php echo json_encode(app_url('assets/Logo.png'), JSON_UNESCAPED_SLASHES); ?>,
     currentUser: <?php echo json_encode($_SESSION['user'] ?? 'Usuario', JSON_UNESCAPED_UNICODE); ?>,
     csrfToken: <?php echo json_encode(Controller::getCsrfToken()); ?>,
+    manifestUrl: <?php echo json_encode(app_url('jeremy/jeremy-manifest.json?v=20261111-1'), JSON_UNESCAPED_SLASHES); ?>,
     alerts: <?php echo json_encode($alerts ?? [], JSON_UNESCAPED_UNICODE); ?>,
     initialStatus: <?php echo json_encode($status ?? null); ?>
 };
@@ -244,7 +247,9 @@ window.csrfToken = window.appConfig.csrfToken;
 window.appAlerts = window.appConfig.alerts;
 window.initialAppStatus = window.appConfig.initialStatus;
 </script>
-<script src="<?php echo htmlspecialchars(app_url('js/app.js?v=20261111-5'), ENT_QUOTES, 'UTF-8'); ?>"></script>
-<script src="<?php echo htmlspecialchars(app_url('js/copilot.js?v=20261111-1'), ENT_QUOTES, 'UTF-8'); ?>"></script>
+<script src="<?php echo htmlspecialchars(app_url('js/app.js?v=20261111-6'), ENT_QUOTES, 'UTF-8'); ?>"></script>
+<?php if (empty($hideLayout)): ?>
+<script src="<?php echo htmlspecialchars(app_url('jeremy/jeremy.js?v=20261111-1'), ENT_QUOTES, 'UTF-8'); ?>" data-manifest="<?php echo htmlspecialchars(app_url('jeremy/jeremy-manifest.json?v=20261111-1'), ENT_QUOTES, 'UTF-8'); ?>" defer></script>
+<?php endif; ?>
 </body>
 </html>

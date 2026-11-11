@@ -112,12 +112,12 @@ $menuSections = [
     'Ayuda y Soporte' => [
         [
             'url' => '#',
-            'icon' => 'bi bi-compass-fill text-info',
-            'label' => 'Copiloto Starlink',
+            'icon' => 'bi bi-robot text-info',
+            'label' => 'Jeremy • Copiloto',
             'show' => true,
             'badge' => 'Guía',
             'badge_class' => 'bg-info text-dark',
-            'custom_attr' => 'data-bs-toggle="offcanvas" data-bs-target="#copilotDrawer" aria-controls="copilotDrawer"',
+            'custom_attr' => 'data-bs-toggle="offcanvas" data-bs-target="#jeremyDrawer" aria-controls="jeremyDrawer"',
         ],
         [
             'url' => 'manual',
