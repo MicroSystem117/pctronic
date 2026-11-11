@@ -743,10 +743,14 @@ document.addEventListener('click', function (event) {
 // ==========================================================================
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
+        const isIpHost = /^\d+\.\d+\.\d+\.\d+$/.test(window.location.hostname);
         navigator.serviceWorker.register('sw.js').then(function(reg) {
             console.log('Service Worker registrado correctamente (PWA lista):', reg.scope);
         }).catch(function(err) {
-            console.warn('Error al registrar Service Worker:', err);
+            // Los navegadores restringen Service Workers en IPs directas con certificados autofirmados
+            if (!isIpHost && window.location.hostname !== 'localhost') {
+                console.warn('Error al registrar Service Worker:', err);
+            }
         });
     });
 }
