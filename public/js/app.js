@@ -778,4 +778,64 @@ function updateOnlineStatus() {
 window.addEventListener('online', updateOnlineStatus);
 window.addEventListener('offline', updateOnlineStatus);
 
+// ==========================================================================
+// 1-CLICK CLIPBOARD COPY (KIT, SERIAL, ACC, IPs, CUENTAS)
+// ==========================================================================
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.btn-copy');
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const textToCopy = btn.getAttribute('data-copy') || '';
+    if (!textToCopy) return;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const icon = btn.querySelector('i');
+            const originalClass = icon ? icon.className : '';
+            if (icon) icon.className = 'bi bi-check2 text-success';
+            window.showSweetAlert('success', 'Copiado al portapapeles: <strong>' + textToCopy + '</strong>', false);
+            setTimeout(() => {
+                if (icon) icon.className = originalClass;
+            }, 1800);
+        }).catch(() => {
+            prompt('Copia este valor manualmente:', textToCopy);
+        });
+    } else {
+        prompt('Copia este valor manualmente:', textToCopy);
+    }
+});
+
+// ==========================================================================
+// FILTROS RÁPIDOS POR PÍLDORAS (ANTENAS Y PAGOS)
+// ==========================================================================
+document.addEventListener('click', function(e) {
+    const pill = e.target.closest('.pill-filter-btn');
+    if (!pill) return;
+    e.preventDefault();
+
+    const container = pill.closest('.pill-filters-container');
+    if (container) {
+        container.querySelectorAll('.pill-filter-btn').forEach(b => b.classList.remove('active', 'btn-primary'));
+        pill.classList.add('active', 'btn-primary');
+    }
+
+    const tableId = pill.getAttribute('data-table');
+    const filterValue = pill.getAttribute('data-filter') || '';
+    const columnIndex = pill.getAttribute('data-column');
+
+    const tableEl = tableId ? document.querySelector(tableId) : document.querySelector('.datatable');
+    if (!tableEl || !window.jQuery || !window.jQuery.fn.DataTable) return;
+
+    const dt = window.jQuery(tableEl).DataTable();
+    if (!dt) return;
+
+    if (columnIndex !== null && columnIndex !== undefined && columnIndex !== '') {
+        dt.column(parseInt(columnIndex, 10)).search(filterValue).draw();
+    } else {
+        dt.search(filterValue).draw();
+    }
+});
+
 document.dispatchEvent(new Event('app:content-ready'));

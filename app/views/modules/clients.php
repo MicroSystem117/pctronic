@@ -1,10 +1,23 @@
 <?php
 $userRole = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : '';
 $isAdmin = $userRole === 'Administrador';
+
+$totalClients = !empty($data['clients']) ? count($data['clients']) : 0;
+$withAntennas = 0;
+if (!empty($data['clients'])) {
+    foreach ($data['clients'] as $cl) {
+        if (!empty($cl['starlinks'])) {
+            $withAntennas++;
+        }
+    }
+}
 ?>
 <div class="clients-page">
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h3 class="text-white"><i class="bi bi-people-fill me-2 text-primary"></i>Clientes Registrados</h3>
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h3 class="text-white mb-1"><i class="bi bi-people-fill me-2 text-primary"></i>Directorio de Clientes</h3>
+        <p class="text-white-50 mb-0">Gestión de abonados, datos de contacto y terminales Starlink vinculadas.</p>
+    </div>
     <?php if ($isAdmin): ?>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalClient">
             <i class="bi bi-person-plus-fill me-2"></i>Nuevo Cliente
@@ -12,8 +25,56 @@ $isAdmin = $userRole === 'Administrador';
     <?php endif; ?>
 </div>
 
+<!-- Mini Stats Clientes -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-4">
+        <div class="card card-custom p-3 border-start border-primary border-4 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-white-50 small text-uppercase fw-bold">Total Clientes</div>
+                    <div class="fs-4 fw-bold text-white tech-mono mt-1"><?php echo $totalClients; ?></div>
+                    <div class="small text-white-50">Base de datos de abonados</div>
+                </div>
+                <div class="fs-1 text-primary opacity-75 metric-icon-glow">
+                    <i class="bi bi-person-vcard-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="card card-custom p-3 border-start border-success border-4 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-white-50 small text-uppercase fw-bold">Con Servicio Activo</div>
+                    <div class="fs-4 fw-bold text-success tech-mono mt-1">
+                        <span class="status-pulse-online"></span><?php echo $withAntennas; ?>
+                    </div>
+                    <div class="small text-white-50">Terminales satelitales asociadas</div>
+                </div>
+                <div class="fs-1 text-success opacity-75 metric-icon-success">
+                    <i class="bi bi-broadcast-pin"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="card card-custom p-3 border-start border-secondary border-4 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-white-50 small text-uppercase fw-bold">Sin Terminal</div>
+                    <div class="fs-4 fw-bold text-white-50 tech-mono mt-1"><?php echo ($totalClients - $withAntennas); ?></div>
+                    <div class="small text-white-50">En proceso de contratación</div>
+                </div>
+                <div class="fs-1 text-secondary opacity-75">
+                    <i class="bi bi-person-dash"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="mb-3 d-flex justify-content-end">
-    <input id="search_clients" class="form-control form-control-sm w-100 w-md-25" style="max-width: 280px;" placeholder="Buscar clientes...">
+    <input id="search_clients" class="form-control form-control-sm w-100 w-md-25" style="max-width: 280px;" placeholder="Buscar cliente por nombre o cédula...">
 </div>
 
 <div class="card card-custom p-3 clients-card">
@@ -23,7 +84,8 @@ $isAdmin = $userRole === 'Administrador';
         <tr>
             <th>Cédula</th>
             <th>Cliente</th>
-            <th>Teléfono</th>
+            <th>Contacto</th>
+            <th>Antenas Asoc.</th>
             <?php if ($isAdmin): ?>
                 <th>Acciones</th>
             <?php endif; ?>
@@ -32,18 +94,68 @@ $isAdmin = $userRole === 'Administrador';
     <tbody>
         <?php if(!empty($data['clients'])): ?>
             <?php foreach($data['clients'] as $c): ?>
+                <?php 
+                    $starlinksRaw = trim($c['starlinks'] ?? '');
+                    $starlinksArr = !empty($starlinksRaw) ? array_filter(explode(',', $starlinksRaw)) : [];
+                    $starlinkCount = count($starlinksArr);
+                ?>
                 <tr data-name="<?php echo htmlspecialchars($c['name'] . ' ' . $c['surname'], ENT_QUOTES); ?>"
                     data-ci="<?php echo htmlspecialchars($c['ci'] ?? '', ENT_QUOTES); ?>"
                     data-phone="<?php echo htmlspecialchars($c['phone'], ENT_QUOTES); ?>">
-                    <td data-label="Cédula"><span class="td-value"><?php echo !empty($c['ci']) ? htmlspecialchars($c['ci']) : '<span class="text-white-50">N/A</span>'; ?></span></td>
-                    <td data-label="Cliente"><span class="td-value text-white fw-bold"><?php echo htmlspecialchars($c['name'] . ' ' . $c['surname']); ?></span></td>
-                    <td data-label="Teléfono">
+                    <td data-label="Cédula">
                         <span class="td-value">
-                            <code><?php echo htmlspecialchars($c['phone']); ?></code>
+                            <?php if (!empty($c['ci'])): ?>
+                                <span class="d-inline-flex align-items-center gap-1">
+                                    <code class="text-info"><?php echo htmlspecialchars($c['ci']); ?></code>
+                                    <button type="button" class="btn btn-link btn-sm p-0 text-white-50 btn-copy" data-copy="<?php echo htmlspecialchars($c['ci'], ENT_QUOTES); ?>" title="Copiar Cédula">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </span>
+                            <?php else: ?>
+                                <span class="text-white-50">N/A</span>
+                            <?php endif; ?>
+                        </span>
+                    </td>
+                    <td data-label="Cliente">
+                        <span class="td-value text-white fw-bold">
+                            <?php echo htmlspecialchars($c['name'] . ' ' . $c['surname']); ?>
+                        </span>
+                    </td>
+                    <td data-label="Contacto">
+                        <span class="td-value">
                             <?php if (!empty($c['phone'])): ?>
-                                <a href="https://wa.me/<?php echo format_whatsapp_phone($c['phone']); ?>" target="_blank" class="text-success ms-1 text-decoration-none" title="Chatear por WhatsApp">
-                                    <i class="bi bi-whatsapp"></i>
-                                </a>
+                                <span class="d-inline-flex align-items-center gap-1">
+                                    <code class="text-white"><?php echo htmlspecialchars($c['phone']); ?></code>
+                                    <a href="https://wa.me/<?php echo format_whatsapp_phone($c['phone']); ?>" target="_blank" class="text-success ms-1 text-decoration-none" title="Chatear por WhatsApp">
+                                        <i class="bi bi-whatsapp"></i>
+                                    </a>
+                                    <a href="tel:<?php echo htmlspecialchars($c['phone'], ENT_QUOTES); ?>" class="text-info ms-1 text-decoration-none" title="Llamar directamente">
+                                        <i class="bi bi-telephone-fill"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-link btn-sm p-0 text-white-50 btn-copy ms-1" data-copy="<?php echo htmlspecialchars($c['phone'], ENT_QUOTES); ?>" title="Copiar Teléfono">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </span>
+                            <?php else: ?>
+                                <span class="text-white-50">Sin teléfono</span>
+                            <?php endif; ?>
+                        </span>
+                    </td>
+                    <td data-label="Antenas Asoc.">
+                        <span class="td-value">
+                            <?php if ($starlinkCount > 0): ?>
+                                <button type="button" class="btn btn-sm btn-outline-info btn-view-client-starlinks"
+                                        data-client-id="<?php echo $c['id_client']; ?>"
+                                        data-client-name="<?php echo htmlspecialchars($c['name'] . ' ' . $c['surname'], ENT_QUOTES); ?>"
+                                        data-starlinks="<?php echo htmlspecialchars($c['starlinks'] ?? '', ENT_QUOTES); ?>"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalClientStarlinks"
+                                        title="Ver detalle de antenas">
+                                    <span class="status-pulse-online"></span>
+                                    <span class="fw-bold"><?php echo $starlinkCount; ?></span> <?php echo $starlinkCount === 1 ? 'antena' : 'antenas'; ?>
+                                </button>
+                            <?php else: ?>
+                                <span class="badge bg-secondary-subtle border border-secondary text-white-50">0 antenas</span>
                             <?php endif; ?>
                         </span>
                     </td>
@@ -82,7 +194,7 @@ $isAdmin = $userRole === 'Administrador';
             <?php endforeach; ?>
         <?php else: ?>
             <tr>
-                <td colspan="<?php echo $isAdmin ? 4 : 3; ?>" class="text-center py-3 text-muted">No hay clientes registrados.</td>
+                <td colspan="<?php echo $isAdmin ? 5 : 4; ?>" class="text-center py-3 text-muted">No hay clientes registrados.</td>
             </tr>
         <?php endif; ?>
     </tbody>

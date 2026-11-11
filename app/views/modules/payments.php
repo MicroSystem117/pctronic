@@ -3,12 +3,30 @@ $userRole = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : '';
 $isLoggedIn = isset($_SESSION['user_id']);
 $canReview = $userRole === 'Administrador' || $userRole === 'Moderador';
 $canDelete = $canReview;
+
+$sumApproved = 0.0;
+$countPendingPayments = 0;
+$countApprovedPayments = 0;
+$countRejectedPayments = 0;
+if (!empty($data['payments'])) {
+    foreach ($data['payments'] as $p) {
+        $st = $p['status'] ?? 'Pendiente';
+        if ($st === 'Aprobado') {
+            $sumApproved += floatval($p['amount'] ?? 0);
+            $countApprovedPayments++;
+        } elseif ($st === 'Rechazado') {
+            $countRejectedPayments++;
+        } else {
+            $countPendingPayments++;
+        }
+    }
+}
 ?>
 <div class="payments-page">
-<div class="payments-heading d-flex justify-content-between align-items-center mb-4">
+<div class="payments-heading d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
-        <h3 class="text-white"><i class="bi bi-currency-dollar me-2 text-primary"></i>Pagos Registrados</h3>
-        <p class="text-white-50 mb-0">Registra los pagos de los clientes, selecciona la forma de pago y visualiza el estado de cada antena.</p>
+        <h3 class="text-white mb-1"><i class="bi bi-currency-dollar me-2 text-primary"></i>Centro de Cobranzas y Pagos</h3>
+        <p class="text-white-50 mb-0">Audita transferencias, concilia comprobantes y gestiona el estado financiero de cada antena.</p>
     </div>
     <?php if ($isLoggedIn): ?>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalPayment">
@@ -17,29 +35,98 @@ $canDelete = $canReview;
     <?php endif; ?>
 </div>
 
-<div class="payments-filters mb-3 d-flex justify-content-end gap-2 flex-wrap">
-    <div class="input-group input-group-sm w-auto">
-        <label class="input-group-text bg-secondary text-white border-secondary" for="search_payments_type">Buscar por</label>
-        <select id="search_payments_type" class="form-select form-select-sm">
-            <option value="all">Todos</option>
-            <option value="cliente">Cliente</option>
-            <option value="antena">Antena</option>
-            <option value="nickname">Nickname</option>
-            <option value="plan">Plan</option>
-            <option value="currency">Moneda</option>
-            <option value="status">Estado</option>
-        </select>
+<!-- Mini-Ribbon de Telemetría de Pagos -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-4">
+        <div class="card card-custom p-3 border-start border-success border-4 h-100 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-white-50 small text-uppercase fw-bold">Total Aprobado</div>
+                    <div class="fs-4 fw-bold text-success tech-mono mt-1">$<?php echo number_format($sumApproved, 2); ?></div>
+                    <div class="small text-white-50"><?php echo $countApprovedPayments; ?> pagos validados</div>
+                </div>
+                <div class="fs-1 text-success opacity-75 metric-icon-success">
+                    <i class="bi bi-check2-circle"></i>
+                </div>
+            </div>
+        </div>
     </div>
-    <input id="search_payments" class="form-control form-control-sm payments-search-input" placeholder="Buscar...">
-    <form class="payments-date-filters d-flex align-items-center" method="GET" action="index.php?url=payments">
-        <input type="hidden" name="url" value="payments">
-        <label class="form-label me-2 text-white-50 small">Desde</label>
-        <input type="date" name="from" class="form-control form-control-sm me-2" value="<?php echo isset($_GET['from']) ? htmlspecialchars($_GET['from']) : ''; ?>">
-        <label class="form-label me-2 text-white-50 small">Hasta</label>
-        <input type="date" name="to" class="form-control form-control-sm me-2" value="<?php echo isset($_GET['to']) ? htmlspecialchars($_GET['to']) : ''; ?>">
-        <button class="btn btn-sm btn-outline-light me-2" type="submit">Filtrar</button>
-        <a class="btn btn-sm btn-outline-secondary" href="index.php?url=payments">Limpiar</a>
-    </form>
+    <div class="col-sm-4">
+        <div class="card card-custom p-3 border-start border-warning border-4 h-100 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-white-50 small text-uppercase fw-bold">Por Validar</div>
+                    <div class="fs-4 fw-bold text-warning tech-mono mt-1">
+                        <?php if ($countPendingPayments > 0): ?>
+                            <span class="status-pulse-warning"></span>
+                        <?php endif; ?>
+                        <?php echo $countPendingPayments; ?> <span class="fs-6 fw-normal text-white-50">pendientes</span>
+                    </div>
+                    <div class="small text-white-50">Requieren revisión técnica</div>
+                </div>
+                <div class="fs-1 text-warning opacity-75 metric-icon-warning">
+                    <i class="bi bi-hourglass-split"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="card card-custom p-3 border-start border-info border-4 h-100 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-white-50 small text-uppercase fw-bold">Total Transacciones</div>
+                    <div class="fs-4 fw-bold text-white tech-mono mt-1"><?php echo count($data['payments'] ?? []); ?></div>
+                    <div class="small text-white-50"><?php echo $countRejectedPayments; ?> rechazadas</div>
+                </div>
+                <div class="fs-1 text-info opacity-75 metric-icon-glow">
+                    <i class="bi bi-receipt-cutoff"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <!-- Píldoras de Filtro Rápido para Historial de Pagos -->
+    <div class="pill-filters-container btn-group btn-group-sm flex-wrap" role="group">
+        <button type="button" class="btn btn-outline-info active pill-filter-btn" data-table=".payment-history-table" data-column="5" data-filter="">
+            Todos <span class="badge bg-secondary ms-1"><?php echo count($data['payments'] ?? []); ?></span>
+        </button>
+        <button type="button" class="btn btn-outline-warning pill-filter-btn" data-table=".payment-history-table" data-column="5" data-filter="Pendiente">
+            <span class="status-pulse-warning"></span>Pendientes <span class="badge bg-warning text-dark ms-1"><?php echo $countPendingPayments; ?></span>
+        </button>
+        <button type="button" class="btn btn-outline-success pill-filter-btn" data-table=".payment-history-table" data-column="5" data-filter="Aprobado">
+            <span class="status-pulse-online"></span>Aprobados <span class="badge bg-success ms-1"><?php echo $countApprovedPayments; ?></span>
+        </button>
+        <button type="button" class="btn btn-outline-danger pill-filter-btn" data-table=".payment-history-table" data-column="5" data-filter="Rechazado">
+            <span class="status-pulse-danger"></span>Rechazados <span class="badge bg-danger ms-1"><?php echo $countRejectedPayments; ?></span>
+        </button>
+    </div>
+
+    <div class="payments-filters d-flex justify-content-end gap-2 flex-wrap">
+        <div class="input-group input-group-sm w-auto">
+            <label class="input-group-text bg-secondary text-white border-secondary" for="search_payments_type">Buscar por</label>
+            <select id="search_payments_type" class="form-select form-select-sm">
+                <option value="all">Todos</option>
+                <option value="cliente">Cliente</option>
+                <option value="antena">Antena</option>
+                <option value="nickname">Nickname</option>
+                <option value="plan">Plan</option>
+                <option value="currency">Moneda</option>
+                <option value="status">Estado</option>
+            </select>
+        </div>
+        <input id="search_payments" class="form-control form-control-sm payments-search-input" placeholder="Buscar...">
+        <form class="payments-date-filters d-flex align-items-center" method="GET" action="index.php?url=payments">
+            <input type="hidden" name="url" value="payments">
+            <label class="form-label me-2 text-white-50 small mb-0">Desde</label>
+            <input type="date" name="from" class="form-control form-control-sm me-2" value="<?php echo isset($_GET['from']) ? htmlspecialchars($_GET['from']) : ''; ?>">
+            <label class="form-label me-2 text-white-50 small mb-0">Hasta</label>
+            <input type="date" name="to" class="form-control form-control-sm me-2" value="<?php echo isset($_GET['to']) ? htmlspecialchars($_GET['to']) : ''; ?>">
+            <button class="btn btn-sm btn-outline-light me-1" type="submit">Filtrar</button>
+            <a class="btn btn-sm btn-outline-secondary" href="index.php?url=payments">Limpiar</a>
+        </form>
+    </div>
 </div>
 
 <div class="payments-panels row">

@@ -176,13 +176,13 @@ $isAdmin = $userRole === 'Administrador';
                                 $act = strtoupper($log['action']);
                                 $actionBadgeClass = 'bg-secondary';
                                 if (in_array($act, ['CREAR', 'REGISTRO', 'APROBAR'], true)) {
-                                    $actionBadgeClass = 'bg-success text-dark fw-bold';
+                                    $actionBadgeClass = 'bg-success-subtle border border-success text-success fw-bold';
                                 } elseif (in_array($act, ['EDITAR', 'EXONERAR', 'ACTUALIZAR', 'CAMBIO_ROL'], true)) {
-                                    $actionBadgeClass = 'bg-warning text-dark fw-bold';
+                                    $actionBadgeClass = 'bg-warning-subtle border border-warning text-warning fw-bold';
                                 } elseif (in_array($act, ['ELIMINAR', 'RECHAZAR', 'QUITAR_EXONERACION', 'VACIAR', 'LIMPIAR'], true)) {
-                                    $actionBadgeClass = 'bg-danger text-white fw-bold';
+                                    $actionBadgeClass = 'bg-danger-subtle border border-danger text-danger fw-bold';
                                 } elseif (in_array($act, ['LOGIN', 'LOGOUT', 'RESPALDO', 'RESTAURAR'], true)) {
-                                    $actionBadgeClass = 'bg-info text-dark fw-bold';
+                                    $actionBadgeClass = 'bg-info-subtle border border-info text-info fw-bold';
                                 }
 
                                 // Determinar icono según módulo
@@ -201,8 +201,8 @@ $isAdmin = $userRole === 'Administrador';
                             ?>
                             <tr>
                                 <td data-label="Fecha y Hora" class="text-nowrap">
-                                    <span class="td-value small text-white-50">
-                                        <i class="bi bi-clock me-1"></i><?php echo date('d/m/Y H:i:s', strtotime($log['created_at'])); ?>
+                                    <span class="td-value small text-white-50 tech-mono">
+                                        <i class="bi bi-clock text-info me-1"></i><?php echo date('d/m/Y H:i:s', strtotime($log['created_at'])); ?>
                                     </span>
                                 </td>
                                 <td data-label="Usuario">
@@ -212,7 +212,7 @@ $isAdmin = $userRole === 'Administrador';
                                 </td>
                                 <td data-label="Rol">
                                     <span class="td-value">
-                                        <span class="badge bg-secondary-subtle border border-secondary text-dark fw-bold" style="font-size: 0.75rem;">
+                                        <span class="badge border border-secondary text-white-50 fw-semibold" style="font-size: 0.72rem; background: rgba(255, 255, 255, 0.05);">
                                             <?php echo htmlspecialchars($log['user_role']); ?>
                                         </span>
                                     </span>
@@ -232,13 +232,20 @@ $isAdmin = $userRole === 'Administrador';
                                     </span>
                                 </td>
                                 <td data-label="Detalle / Descripción">
-                                    <span class="td-value text-break" style="max-width: 450px;">
+                                    <span class="td-value text-break text-light" style="max-width: 450px;">
                                         <?php echo htmlspecialchars($log['description']); ?>
                                     </span>
                                 </td>
                                 <td data-label="Dirección IP">
                                     <span class="td-value small">
-                                        <code><?php echo htmlspecialchars($log['ip_address'] ?? '127.0.0.1'); ?></code>
+                                        <span class="d-inline-flex align-items-center gap-1">
+                                            <code class="text-white-50 tech-mono"><?php echo htmlspecialchars($log['ip_address'] ?? '127.0.0.1'); ?></code>
+                                            <?php if (!empty($log['ip_address']) && $log['ip_address'] !== '-'): ?>
+                                                <button type="button" class="btn btn-link btn-sm p-0 text-white-50 btn-copy" data-copy="<?php echo htmlspecialchars($log['ip_address'], ENT_QUOTES); ?>" title="Copiar IP">
+                                                    <i class="bi bi-clipboard"></i>
+                                                </button>
+                                            <?php endif; ?>
+                                        </span>
                                     </span>
                                 </td>
                             </tr>

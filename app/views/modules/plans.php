@@ -19,37 +19,59 @@ $isAdmin = $userRole === 'Administrador';
     <?php if(!empty($data['plans'])): ?>
         <div class="row g-3" id="plansCards">
             <?php foreach($data['plans'] as $p): ?>
+                <?php 
+                    $priceVal = isset($p['price']) ? (float)$p['price'] : 0.0;
+                    $antCount = isset($p['antenna_count']) ? (int)$p['antenna_count'] : 0;
+                ?>
                 <div class="col-md-6 col-xl-4 plan-card"
                      data-plan="<?php echo htmlspecialchars($p['plan'], ENT_QUOTES); ?>"
                      data-price="<?php echo htmlspecialchars((string)($p['price'] ?? 0), ENT_QUOTES); ?>">
-                    <div class="card h-100 card-custom p-4 border-start border-primary border-4">
+                    <div class="card h-100 card-custom p-4 border-start border-info border-4 shadow-sm position-relative">
                         <div class="d-flex justify-content-between align-items-start gap-2">
                             <div>
-                                <div class="text-white-50 small text-uppercase mb-1">Plan</div>
-                                <h4 class="mb-1"><?php echo htmlspecialchars($p['plan']); ?></h4>
+                                <span class="badge border border-info-subtle text-info text-uppercase px-2 py-1 mb-2" style="font-size: 0.70rem; background: rgba(56, 189, 248, 0.1);">
+                                    <i class="bi bi-broadcast me-1"></i>Suscripción Starlink
+                                </span>
+                                <h4 class="mb-0 text-white fw-bold"><?php echo htmlspecialchars($p['plan']); ?></h4>
                             </div>
-                            <span class="badge bg-primary text-white fs-6">
-                                <?php echo isset($p['price']) ? '$'.number_format($p['price'], 0, ',', '.') : '-'; ?>
+                            <div class="fs-2 text-info opacity-75 metric-icon-glow">
+                                <i class="bi bi-hdd-network"></i>
+                            </div>
+                        </div>
+
+                        <!-- Precio Grande y Tecnológico -->
+                        <div class="my-3">
+                            <span class="display-6 fw-bold text-white tech-mono">$<?php echo number_format($priceVal, 2); ?></span>
+                            <span class="text-white-50 fs-6">/ mes</span>
+                        </div>
+
+                        <hr class="border-secondary my-2">
+
+                        <!-- Métricas del Plan -->
+                        <div class="small text-white-50 d-flex justify-content-between align-items-center my-2">
+                            <span><i class="bi bi-router me-1 text-info"></i>Antenas conectadas</span>
+                            <span class="badge bg-info-subtle text-info border border-info-subtle fw-bold tech-mono">
+                                <span class="status-pulse-online"></span><?php echo $antCount; ?> activas
                             </span>
                         </div>
 
-                        <div class="mt-4 small text-white-50 d-flex justify-content-between align-items-center">
-                            <span>Antenas asociadas</span>
-                            <span class="badge bg-secondary"><?php echo isset($p['antenna_count']) ? (int)$p['antenna_count'] : 0; ?></span>
+                        <div class="small text-white-50 d-flex justify-content-between align-items-center mb-3">
+                            <span><i class="bi bi-cash-stack me-1 text-success"></i>Recaudación proyectada</span>
+                            <span class="text-success fw-bold tech-mono">$<?php echo number_format($priceVal * $antCount, 2); ?></span>
                         </div>
 
                         <?php if ($isAdmin): ?>
-                            <div class="mt-3 d-flex gap-2">
-                                <button class="btn btn-sm btn-info btn-edit-plan"
+                            <div class="mt-auto pt-2 d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-info flex-fill btn-edit-plan"
                                         data-id="<?php echo $p['id_plan']; ?>"
                                         data-plan="<?php echo htmlspecialchars($p['plan'], ENT_QUOTES); ?>"
                                         data-price="<?php echo isset($p['price']) ? $p['price'] : 0; ?>"
                                         data-bs-toggle="modal" data-bs-target="#modalPlan"
                                         title="Editar plan">
-                                    <i class="bi bi-pencil"></i>
+                                    <i class="bi bi-pencil me-1"></i>Editar
                                 </button>
                                 <a href="index.php?url=plans&action=delete&id=<?php echo $p['id_plan']; ?>" 
-                                   class="btn btn-sm btn-danger" 
+                                   class="btn btn-sm btn-outline-danger" 
                                    data-confirm-text="¿Deseas eliminar el plan <?php echo htmlspecialchars($p['plan'], ENT_QUOTES); ?>?"
                                    title="Eliminar plan">
                                     <i class="bi bi-trash"></i>

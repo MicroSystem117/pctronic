@@ -217,6 +217,6 @@ window.csrfToken = window.appConfig.csrfToken;
 window.appAlerts = window.appConfig.alerts;
 window.initialAppStatus = window.appConfig.initialStatus;
 </script>
-<script src="<?php echo htmlspecialchars(app_url('js/app.js?v=20261111-1'), ENT_QUOTES, 'UTF-8'); ?>"></script>
+<script src="<?php echo htmlspecialchars(app_url('js/app.js?v=20261111-2'), ENT_QUOTES, 'UTF-8'); ?>"></script>
 </body>
 </html>

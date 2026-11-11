@@ -1,19 +1,80 @@
 <?php
 $userRole = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : '';
 $isAdmin = $userRole === 'Administrador';
+
+$totalAccounts = !empty($data['accounts']) ? count($data['accounts']) : 0;
+$totalAntennasInAccounts = 0;
+if (!empty($data['accounts'])) {
+    foreach ($data['accounts'] as $acc) {
+        $totalAntennasInAccounts += intval($acc['starlink_count'] ?? 0);
+    }
+}
 ?>
 <div class="accounts-page">
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-person-badge"></i> Cuentas Administrativas Starlink</h2>
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="mb-1"><i class="bi bi-person-badge text-info me-2"></i>Cuentas Matrices Starlink (ACC)</h2>
+        <p class="text-white-50 mb-0">Gestión de cuentas corporativas Starlink, distribución de líneas y pooling de antenas.</p>
+    </div>
     <?php if ($isAdmin): ?>
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAccount">
-            <i class="bi bi-plus-circle"></i> Agregar Cuenta
+            <i class="bi bi-plus-circle me-1"></i> Agregar Cuenta
         </button>
     <?php endif; ?>
 </div>
 
+<!-- Mini Stats Cuentas -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-4">
+        <div class="card card-custom p-3 border-start border-info border-4 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-white-50 small text-uppercase fw-bold">Cuentas Matrices</div>
+                    <div class="fs-4 fw-bold text-white tech-mono mt-1"><?php echo $totalAccounts; ?></div>
+                    <div class="small text-white-50">Cuentas ACC registradas</div>
+                </div>
+                <div class="fs-1 text-info opacity-75 metric-icon-glow">
+                    <i class="bi bi-shield-shaded"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="card card-custom p-3 border-start border-primary border-4 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-white-50 small text-uppercase fw-bold">Antenas en Cuentas</div>
+                    <div class="fs-4 fw-bold text-primary tech-mono mt-1">
+                        <span class="status-pulse-online"></span><?php echo $totalAntennasInAccounts; ?>
+                    </div>
+                    <div class="small text-white-50">Terminales administradas</div>
+                </div>
+                <div class="fs-1 text-primary opacity-75 metric-icon-glow">
+                    <i class="bi bi-broadcast"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="card card-custom p-3 border-start border-success border-4 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-white-50 small text-uppercase fw-bold">Promedio / Cuenta</div>
+                    <div class="fs-4 fw-bold text-success tech-mono mt-1">
+                        <?php echo $totalAccounts > 0 ? round($totalAntennasInAccounts / $totalAccounts, 1) : 0; ?>
+                    </div>
+                    <div class="small text-white-50">Antenas por cuenta matriz</div>
+                </div>
+                <div class="fs-1 text-success opacity-75 metric-icon-success">
+                    <i class="bi bi-diagram-3"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="mb-3 d-flex justify-content-end">
-    <input id="search_accounts" class="form-control form-control-sm w-100 w-md-25" style="max-width: 280px;" placeholder="Buscar cuentas...">
+    <input id="search_accounts" class="form-control form-control-sm w-100 w-md-25" style="max-width: 280px;" placeholder="Buscar cuentas por titular, ACC o email...">
 </div>
 
 <div class="card card-custom p-3 accounts-card">
@@ -23,10 +84,10 @@ $isAdmin = $userRole === 'Administrador';
                 <tr>
                     <th>Titular / Propietario</th>
                     <th>Número de Cuenta (ACC)</th>
-                    <th>Email</th>
+                    <th>Email de Gestión</th>
                     <th>País</th>
-                    <th>Antenas</th>
-                    <th>Fecha de Registro</th>
+                    <th>Antenas Asignadas</th>
+                    <th>Fecha Registro</th>
                     <?php if ($isAdmin): ?>
                         <th>Acciones</th>
                     <?php endif; ?>
@@ -35,17 +96,54 @@ $isAdmin = $userRole === 'Administrador';
             <tbody>
                 <?php if(!empty($data['accounts'])): ?>
                     <?php foreach($data['accounts'] as $account): ?>
+                        <?php $antCount = intval($account['starlink_count'] ?? 0); ?>
                         <tr data-owner="<?php echo htmlspecialchars($account['owner'], ENT_QUOTES); ?>"
                             data-acc="<?php echo htmlspecialchars($account['acc'], ENT_QUOTES); ?>"
                             data-email="<?php echo htmlspecialchars($account['email'], ENT_QUOTES); ?>"
                             data-country="<?php echo htmlspecialchars($account['country_id'] ?? '', ENT_QUOTES); ?>"
                             data-date="<?php echo htmlspecialchars($account['create_date'], ENT_QUOTES); ?>">
-                            <td data-label="Titular"><span class="td-value text-white fw-bold"><?php echo htmlspecialchars($account['owner']); ?></span></td>
-                            <td data-label="Cuenta ACC"><span class="td-value"><code><?php echo htmlspecialchars($account['acc']); ?></code></span></td>
-                            <td data-label="Email"><span class="td-value"><?php echo htmlspecialchars($account['email']); ?></span></td>
+                            <td data-label="Titular">
+                                <span class="td-value text-white fw-bold">
+                                    <i class="bi bi-person-circle text-info me-1"></i><?php echo htmlspecialchars($account['owner']); ?>
+                                </span>
+                            </td>
+                            <td data-label="Cuenta ACC">
+                                <span class="td-value">
+                                    <span class="d-inline-flex align-items-center gap-1">
+                                        <code class="text-white"><?php echo htmlspecialchars($account['acc']); ?></code>
+                                        <button type="button" class="btn btn-link btn-sm p-0 text-white-50 btn-copy" data-copy="<?php echo htmlspecialchars($account['acc'], ENT_QUOTES); ?>" title="Copiar ACC">
+                                            <i class="bi bi-clipboard"></i>
+                                        </button>
+                                    </span>
+                                </span>
+                            </td>
+                            <td data-label="Email de Gestión">
+                                <span class="td-value">
+                                    <a href="mailto:<?php echo htmlspecialchars($account['email'], ENT_QUOTES); ?>" class="text-info text-decoration-none">
+                                        <?php echo htmlspecialchars($account['email']); ?>
+                                    </a>
+                                </span>
+                            </td>
                             <td data-label="País"><span class="td-value"><?php echo htmlspecialchars($account['pais'] ?? 'Sin país'); ?></span></td>
-                            <td data-label="Antenas"><span class="td-value"><span class="badge bg-info text-dark"><?php echo intval($account['starlink_count'] ?? 0); ?></span></span></td>
-                            <td data-label="Fecha"><span class="td-value"><?php echo date('d/m/Y', strtotime($account['create_date'])); ?></span></td>
+                            <td data-label="Antenas Asignadas">
+                                <span class="td-value">
+                                    <?php if ($antCount > 0): ?>
+                                        <button type="button" class="btn btn-sm btn-outline-info btn-view-account-starlinks"
+                                                data-account-id="<?php echo $account['id_accounts']; ?>"
+                                                data-account-name="<?php echo htmlspecialchars($account['owner'], ENT_QUOTES); ?>"
+                                                data-starlinks="<?php echo htmlspecialchars($account['starlinks'] ?? '', ENT_QUOTES); ?>"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modalAccountStarlinks"
+                                                title="Ver antenas vinculadas">
+                                            <span class="status-pulse-online"></span>
+                                            <span class="fw-bold"><?php echo $antCount; ?></span> <?php echo $antCount === 1 ? 'antena' : 'antenas'; ?>
+                                        </button>
+                                    <?php else: ?>
+                                        <span class="badge bg-secondary-subtle border border-secondary text-white-50">0 antenas</span>
+                                    <?php endif; ?>
+                                </span>
+                            </td>
+                            <td data-label="Fecha Registro"><span class="td-value tech-mono"><?php echo date('d/m/Y', strtotime($account['create_date'])); ?></span></td>
                     <?php if ($isAdmin): ?>
                         <td data-label="Acciones" class="text-nowrap">
                             <div class="d-inline-flex gap-1 w-100">

@@ -2,30 +2,69 @@
 $userRole = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : '';
 $isAdmin = $userRole === 'Administrador';
 $isExpectador = $userRole === 'Expectador';
+
+$totalAntenas = !empty($data['antenas']) ? count($data['antenas']) : 0;
+$countAlDia = 0;
+$countPendiente = 0;
+$countMora = 0;
+if (!empty($data['antenas'])) {
+    foreach ($data['antenas'] as $a) {
+        $st = $a['status_label'] ?? '';
+        $ov = intval($a['overdue_months'] ?? 0);
+        if ($ov > 0) {
+            $countMora++;
+        } elseif ($st === 'Pagado') {
+            $countAlDia++;
+        } else {
+            $countPendiente++;
+        }
+    }
+}
 ?>
 <div class="antenas-page">
-<div class="antenas-heading d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-broadcast"></i> Antenas Starlink Registradas</h2>
+<div class="antenas-heading d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="mb-1"><i class="bi bi-broadcast text-info me-2"></i>Antenas Starlink Registradas</h2>
+        <p class="text-white-50 mb-0">Consola de monitoreo de kits satelitales, estado operativo y recaudación en tiempo real.</p>
+    </div>
     <?php if ($isAdmin): ?>
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAntena">
-            <i class="bi bi-plus-circle"></i> Registrar Antena
+            <i class="bi bi-plus-circle me-1"></i> Registrar Antena
         </button>
     <?php endif; ?>
 </div>
 
-<div class="antenas-filters mb-3 d-flex justify-content-end gap-2 flex-wrap">
-    <div class="input-group input-group-sm w-auto">
-        <label class="input-group-text bg-secondary text-white border-secondary" for="search_antenas_type">Buscar por</label>
-        <select id="search_antenas_type" class="form-select form-select-sm">
-            <option value="all">Todos</option>
-            <option value="cliente">Cliente</option>
-            <option value="cuenta">Cuenta</option>
-            <option value="serial">Serial</option>
-            <option value="kit">Kit</option>
-            <option value="nickname">Nickname</option>
-        </select>
+<!-- Barra de Filtros Rápidos y Píldoras de Telemetría -->
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div class="pill-filters-container btn-group btn-group-sm flex-wrap" role="group" aria-label="Filtro rápido de estado">
+        <button type="button" class="btn btn-outline-info active pill-filter-btn" data-table=".datatable" data-column="8" data-filter="">
+            Todas <span class="badge bg-secondary ms-1"><?php echo $totalAntenas; ?></span>
+        </button>
+        <button type="button" class="btn btn-outline-success pill-filter-btn" data-table=".datatable" data-column="8" data-filter="Al día">
+            <span class="status-pulse-online"></span>Al día <span class="badge bg-success ms-1"><?php echo $countAlDia; ?></span>
+        </button>
+        <button type="button" class="btn btn-outline-warning pill-filter-btn" data-table=".datatable" data-column="8" data-filter="Pendiente">
+            <span class="status-pulse-warning"></span>Pendientes <span class="badge bg-warning text-dark ms-1"><?php echo $countPendiente; ?></span>
+        </button>
+        <button type="button" class="btn btn-outline-danger pill-filter-btn" data-table=".datatable" data-column="8" data-filter="atrasado">
+            <span class="status-pulse-danger"></span>En Mora <span class="badge bg-danger ms-1"><?php echo $countMora; ?></span>
+        </button>
     </div>
-    <input id="search_antenas" class="form-control form-control-sm antenas-search-input" placeholder="Buscar...">
+
+    <div class="antenas-filters d-flex justify-content-end gap-2 flex-wrap">
+        <div class="input-group input-group-sm w-auto">
+            <label class="input-group-text bg-secondary text-white border-secondary" for="search_antenas_type">Buscar por</label>
+            <select id="search_antenas_type" class="form-select form-select-sm">
+                <option value="all">Todos</option>
+                <option value="cliente">Cliente</option>
+                <option value="cuenta">Cuenta</option>
+                <option value="serial">Serial</option>
+                <option value="kit">Kit</option>
+                <option value="nickname">Nickname</option>
+            </select>
+        </div>
+        <input id="search_antenas" class="form-control form-control-sm antenas-search-input" placeholder="Buscar en tabla...">
+    </div>
 </div>
 
 <div class="card card-custom antenas-card p-3">
@@ -69,14 +108,47 @@ $isExpectador = $userRole === 'Expectador';
                         >
                             <td data-label="Asignada a"><span class="td-value text-white fw-bold"><?php echo htmlspecialchars($antena['cliente']); ?></span></td>
                             <td data-label="Nickname"><?php echo !empty($antena['nickname']) ? '<span class="td-value">' . htmlspecialchars($antena['nickname']) . '</span>' : '<span class="text-white-50">-</span>'; ?></td>
-                            <td data-label="Kit"><code><?php echo htmlspecialchars($antena['kit']); ?></code></td>
-                            <td data-label="Serial"><code><?php echo htmlspecialchars($antena['serial']); ?></code></td>
-                            <td data-label="Plan"><span class="badge bg-info text-dark"><?php echo htmlspecialchars($antena['nombre_plan']); ?></span></td>
+                            <td data-label="Kit">
+                                <span class="d-inline-flex align-items-center gap-1">
+                                    <code class="text-info"><?php echo htmlspecialchars($antena['kit']); ?></code>
+                                    <button type="button" class="btn btn-link btn-sm p-0 text-white-50 btn-copy" data-copy="<?php echo htmlspecialchars($antena['kit'], ENT_QUOTES); ?>" title="Copiar Kit">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </span>
+                            </td>
+                            <td data-label="Serial">
+                                <span class="d-inline-flex align-items-center gap-1">
+                                    <code class="text-white"><?php echo htmlspecialchars($antena['serial']); ?></code>
+                                    <button type="button" class="btn btn-link btn-sm p-0 text-white-50 btn-copy" data-copy="<?php echo htmlspecialchars($antena['serial'], ENT_QUOTES); ?>" title="Copiar Serial">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </span>
+                            </td>
+                            <td data-label="Plan"><span class="badge border border-info-subtle text-info fw-semibold" style="background: rgba(56, 189, 248, 0.1);"><?php echo htmlspecialchars($antena['nombre_plan']); ?></span></td>
                             <td data-label="País"><span class="td-value"><?php echo htmlspecialchars($antena['pais']); ?></span></td>
                             <td data-label="Cuenta Starlink">
                                 <?php echo !empty($antena['cuenta_starlink']) ? '<span class="td-value">' . htmlspecialchars($antena['cuenta_starlink']) . '</span>' : '<span class="text-white-50">Sin Cuenta Vinc.</span>'; ?>
                             </td>
-                            <td data-label="Día de pago"><?php echo isset($antena['pay']) && $antena['pay'] !== null && $antena['pay'] !== '' ? '<span class="td-value">Día ' . htmlspecialchars(intval($antena['pay'])) . '</span>' : '<span class="text-white-50">-</span>'; ?></td>
+                            <td data-label="Día de pago">
+                                <?php 
+                                    $payDay = isset($antena['pay']) && $antena['pay'] !== null && $antena['pay'] !== '' ? intval($antena['pay']) : null;
+                                    if ($payDay !== null && $payDay > 0) {
+                                        $curDay = intval(date('j'));
+                                        $diffDays = $payDay - $curDay;
+                                        $cycleTag = '';
+                                        if ($diffDays === 0) {
+                                            $cycleTag = '<span class="badge bg-warning text-dark ms-1" style="font-size:0.68rem;"><i class="bi bi-bell-fill me-1"></i>Hoy</span>';
+                                        } elseif ($diffDays > 0) {
+                                            $cycleTag = '<span class="badge border border-info-subtle text-info ms-1" style="font-size:0.68rem;">en ' . $diffDays . 'd</span>';
+                                        } else {
+                                            $cycleTag = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-1" style="font-size:0.68rem;">hace ' . abs($diffDays) . 'd</span>';
+                                        }
+                                        echo '<span class="td-value tech-mono fw-semibold">Día ' . $payDay . '</span>' . $cycleTag;
+                                    } else {
+                                        echo '<span class="text-white-50">-</span>';
+                                    }
+                                ?>
+                            </td>
                             <td data-label="Estado de pago">
                                 <?php
                                     $overdueMonths = intval($antena['overdue_months'] ?? 0);
