@@ -16,4 +16,15 @@ public/uploads/payment_receipts/*
 
 # Configuraciones locales y variables de entorno
 config/database.local.php
+config/ai.local.php
 .env
+
+# Android Build Outputs and Caches
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+android/*.iml
+android/app/*.iml
+android/.cxx/

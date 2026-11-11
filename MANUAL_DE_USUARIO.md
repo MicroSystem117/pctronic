@@ -193,15 +193,20 @@ Cualquier serial, kit, cédula o teléfono tiene a su lado un ícono de portapap
 
 ## 10. Instalación como App Móvil (PWA / APK)
 
-La plataforma está diseñada como una **Progressive Web App (PWA)** de grado nativo, con soporte fuera de línea y navegación táctil inferior.
+La plataforma cuenta tanto con su **APK nativa oficial de Android** como con soporte para **Progressive Web App (PWA)** de grado nativo, con soporte fuera de línea y navegación táctil inferior.
 
-### Instalación en Android (Google Chrome)
+### Descarga e Instalación del APK Nativo para Android
+1. Descarga el paquete instalable directamente desde el sistema: [Descargar StarlinkControlManager.apk](public/downloads/StarlinkControlManager.apk).
+2. Abre el archivo descargado en tu teléfono Android y autoriza la instalación desde tu navegador o administrador de archivos.
+3. La aplicación se instalará con el nombre **Starlink Control Manager** (`com.starlinkcontrolmanager`), integrando soporte nativo para la cámara (subida de comprobantes), descargas en segundo plano y atajos para WhatsApp.
+
+### Instalación como PWA en Android (Google Chrome)
 1. Abre Google Chrome en tu teléfono e ingresa a la URL del sistema.
 2. Toca el menú de tres puntos (`⋮`) en la esquina superior derecha.
 3. Selecciona **"Instalar aplicación"** o **"Agregar a la pantalla principal"**.
 4. La app aparecerá en tu menú de aplicaciones con el ícono oficial y abrirá a pantalla completa sin barra de navegación del navegador.
 
-### Instalación en iPhone / iPad (Safari)
+### Instalación como PWA en iPhone / iPad (Safari)
 1. Abre Safari y navega al sistema.
 2. Toca el botón **Compartir** (ícono de cuadrado con flecha hacia arriba).
 3. Desplázate hacia abajo y selecciona **"Agregar al inicio"**.

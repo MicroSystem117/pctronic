@@ -287,7 +287,24 @@ $isModerator = $data['isModerator'] ?? false;
                     </h2>
                     <div id="collapse9" class="accordion-collapse collapse">
                         <div class="accordion-body p-4 text-white-50">
-                            <p class="text-white">Puedes utilizar Starlink Control Manager como una app nativa en tu teléfono sin pasar por Play Store o App Store:</p>
+                            <p class="text-white">Puedes instalar Starlink Control Manager directamente en tu teléfono:</p>
+                            
+                            <!-- Banner de Descarga Directa del APK Oficial -->
+                            <div class="p-3 mb-3 border border-success border-opacity-50 rounded bg-dark d-flex align-items-center justify-content-between flex-wrap gap-2" style="background: rgba(16, 185, 129, 0.08) !important;">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="p-2 rounded bg-success bg-opacity-25 text-success fs-3">
+                                        <i class="bi bi-android2"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-white fw-bold">Descargar APK Oficial para Android</div>
+                                        <div class="text-white-50 small">Versión 1.0 • Paquete: <code>com.starlinkcontrolmanager</code> (12 MB)</div>
+                                    </div>
+                                </div>
+                                <a href="downloads/StarlinkControlManager.apk" class="btn btn-success btn-sm px-3 py-2 fw-bold" download="StarlinkControlManager.apk">
+                                    <i class="bi bi-download me-1"></i>Descargar APK Instalable
+                                </a>
+                            </div>
+
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <div class="p-3 border border-secondary border-opacity-50 rounded bg-dark h-100">
