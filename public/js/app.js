@@ -932,6 +932,7 @@ document.addEventListener('click', function(e) {
         { label: 'Países y Regiones', desc: 'Monedas locales y delimitación geográfica', icon: 'bi-globe-americas', url: 'index.php?url=countries', category: 'Navegación' },
         { label: 'Auditoría y Logs del Sistema', desc: 'Historial inmutable de cambios y actividades de usuarios', icon: 'bi-shield-check', url: 'index.php?url=logs', category: 'Seguridad' },
         { label: 'Seguridad y 2FA (TOTP)', desc: 'Gestión de autenticación de dos factores y sesiones', icon: 'bi-key', url: 'index.php?url=auth/manage_security', category: 'Seguridad' },
+        { label: 'Manual de Usuario y Operaciones', desc: 'Guía oficial de procedimientos, funciones y soporte', icon: 'bi-book-half', url: 'index.php?url=manual', category: 'Ayuda' },
         { label: 'Registrar Nuevo Pago', desc: 'Abrir formulario de cobranza para una o varias antenas', icon: 'bi-cash-coin', action: 'quick_payment', category: 'Acción rápida' }
     ];
 

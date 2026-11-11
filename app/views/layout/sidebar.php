@@ -109,6 +109,14 @@ $menuSections = [
             'show' => $userRole === 'Administrador',
         ],
     ],
+    'Ayuda y Soporte' => [
+        [
+            'url' => 'manual',
+            'icon' => 'bi bi-book-half',
+            'label' => 'Manual de Usuario',
+            'show' => true,
+        ],
+    ],
 ];
 ?>
 <div class="d-flex flex-column h-100 p-3 text-white sidebar-panel" id="sidebarPanel">
