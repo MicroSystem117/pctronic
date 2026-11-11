@@ -49,20 +49,23 @@ small {
 }
 
 .sidebar-panel {
-    background: linear-gradient(180deg, rgba(15, 18, 26, 0.96), rgba(8, 10, 16, 0.94)) !important;
-    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
-    box-shadow: 10px 0 25px rgba(0, 0, 0, 0.18) !important;
+    background: #080c16 !important;
+    border-right: 1px solid rgba(56, 189, 248, 0.12) !important;
+    box-shadow: 12px 0 30px rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
 }
 
 .app-header {
     position: relative;
     z-index: 2000;
     overflow: visible !important;
-    background: rgba(12, 15, 22, 0.78);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 18px;
-    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
-    backdrop-filter: blur(8px);
+    background: #0b101d !important;
+    border: 1px solid rgba(56, 189, 248, 0.18) !important;
+    border-radius: 14px !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
 }
 
 .app-header .dropdown {
@@ -462,26 +465,30 @@ small {
     border-color: rgba(13, 110, 253, 0.55) !important;
 }
 
-/* Enlaces inactivos en blanco */
+/* Enlaces inactivos */
 .nav-pills .nav-link {
-    color: #ffffff !important;
-    border-radius: 12px !important;
-    padding: 0.82rem 0.95rem !important;
+    color: #94a3b8 !important;
+    border-radius: 10px !important;
+    padding: 0.7rem 0.95rem !important;
     margin-bottom: 0.35rem !important;
-    transition: all 0.22s ease !important;
+    transition: all 0.2s ease !important;
+    border-left: 3px solid transparent !important;
 }
 
-/* Enlace activo (Azul con letras blancas) */
+/* Enlace activo (Cian tecnológico con indicador lateral) */
 .nav-pills .nav-link.active {
-    color: #ffffff !important;
-    background: linear-gradient(180deg, #0d6efd, #0a57d5) !important;
-    box-shadow: 0 10px 24px rgba(13, 110, 253, 0.30) !important;
+    color: #38bdf8 !important;
+    background: rgba(56, 189, 248, 0.12) !important;
+    border-left: 3px solid #38bdf8 !important;
+    box-shadow: inset 0 0 14px rgba(56, 189, 248, 0.1) !important;
+    font-weight: 600 !important;
 }
 
 /* Efecto Hover sutil sobre las opciones */
 .nav-pills .nav-link:not(.active):hover {
-    background: rgba(255, 255, 255, 0.07) !important;
+    background: rgba(56, 189, 248, 0.06) !important;
     color: #ffffff !important;
+    border-left-color: rgba(56, 189, 248, 0.4) !important;
     transform: translateX(3px);
 }
 
@@ -811,21 +818,28 @@ small {
 .card-custom,
 .card,
 .modal-content,
-.main-content,
-.auth-card,
-.sidebar-panel {
-    background: rgba(16, 20, 28, 0.82) !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    border-radius: 18px !important;
-    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.28) !important;
+.auth-card {
+    background: #0d121f !important;
+    border: 1px solid rgba(56, 189, 248, 0.16) !important;
+    border-radius: 14px !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
 }
 
-.card-custom,
-.card,
-.modal-content,
-.sidebar-panel,
-.auth-card {
-    backdrop-filter: blur(8px);
+.main-content {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+}
+
+.sidebar-panel {
+    background: #080c16 !important;
+    border-right: 1px solid rgba(56, 189, 248, 0.12) !important;
+    box-shadow: 12px 0 30px rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
 }
 
 .card-header,
@@ -847,9 +861,21 @@ small {
 textarea,
 input,
 select {
-    background: rgba(8, 12, 18, 0.92) !important;
+    background: #080d18 !important;
+    color: #f8fafc !important;
+    border: 1px solid rgba(56, 189, 248, 0.2) !important;
+    border-radius: 10px !important;
+}
+
+.form-control:focus,
+.form-select:focus,
+textarea:focus,
+input:focus,
+select:focus {
+    border-color: #38bdf8 !important;
+    background: #0a1120 !important;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25), 0 0 12px rgba(56, 189, 248, 0.15) !important;
     color: #ffffff !important;
-    border: 1px solid rgba(255, 255, 255, 0.16) !important;
 }
 
 #payment_antennas .payment-antenna-option {
@@ -945,18 +971,6 @@ select:focus {
 
 .badge {
     border-radius: 999px !important;
-}
-
-.nav-pills .nav-link {
-    border-radius: 12px !important;
-}
-
-.nav-pills .nav-link.active {
-    background: linear-gradient(180deg, #0d6efd, #0a57d5) !important;
-}
-
-.nav-pills .nav-link:hover {
-    background: rgba(255, 255, 255, 0.07) !important;
 }
 
 /* ========================================================
@@ -1096,13 +1110,13 @@ select:focus {
         max-width: 100% !important;
         min-width: 100% !important;
         box-sizing: border-box !important;
-        background: rgba(30, 41, 59, 0.85) !important;
-        backdrop-filter: blur(14px) !important;
-        -webkit-backdrop-filter: blur(14px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
-        border-radius: 16px !important;
+        background: #0d121f !important;
+        border: 1px solid rgba(56, 189, 248, 0.18) !important;
+        border-radius: 14px !important;
         padding: 1.15rem !important;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6) !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
         transition: transform 0.15s ease, border-color 0.15s ease !important;
         position: relative !important;
         overflow: hidden !important;

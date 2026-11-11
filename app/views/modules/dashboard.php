@@ -55,10 +55,10 @@ $clientSummary = isset($data['client_summary']) ? $data['client_summary'] : null
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <div class="text-white-50 small text-uppercase fw-bold">Facturación Mensual (MRR)</div>
-                        <h3 class="fw-bold mb-0 text-white mt-1">$<?php echo number_format($mrr, 2); ?></h3>
+                        <h3 class="fw-bold mb-0 text-white mt-1 tech-mono">$<?php echo number_format($mrr, 2); ?></h3>
                         <div class="text-white-50 small mt-1">Ingreso mensual proyectado</div>
                     </div>
-                    <div class="fs-1 text-primary opacity-75">
+                    <div class="fs-1 text-primary opacity-75 metric-icon-glow">
                         <i class="bi bi-graph-up-arrow"></i>
                     </div>
                 </div>
@@ -71,13 +71,13 @@ $clientSummary = isset($data['client_summary']) ? $data['client_summary'] : null
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <div class="text-white-50 small text-uppercase fw-bold">Cobrado este Mes</div>
-                        <h3 class="fw-bold mb-0 text-success mt-1">$<?php echo number_format($collectedThisMonth, 2); ?></h3>
+                        <h3 class="fw-bold mb-0 text-success mt-1 tech-mono">$<?php echo number_format($collectedThisMonth, 2); ?></h3>
                         <div class="text-white-50 small mt-1">
                             <?php $pct = $mrr > 0 ? round(($collectedThisMonth / $mrr) * 100) : 0; ?>
-                            <span class="badge bg-success bg-opacity-25 text-success"><?php echo $pct; ?>% recaudado</span>
+                            <span class="badge bg-success bg-opacity-25 text-success border border-success-subtle"><?php echo $pct; ?>% recaudado</span>
                         </div>
                     </div>
-                    <div class="fs-1 text-success opacity-75">
+                    <div class="fs-1 text-success opacity-75 metric-icon-success">
                         <i class="bi bi-wallet2"></i>
                     </div>
                 </div>
@@ -90,13 +90,13 @@ $clientSummary = isset($data['client_summary']) ? $data['client_summary'] : null
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <div class="text-white-50 small text-uppercase fw-bold">Salud de Cartera</div>
-                        <h3 class="fw-bold mb-0 text-white mt-1"><?php echo $data['active_antennas']; ?> <span class="fs-6 fw-normal text-white-50">activas</span></h3>
+                        <h3 class="fw-bold mb-0 text-white mt-1 tech-mono"><?php echo $data['active_antennas']; ?> <span class="fs-6 fw-normal text-white-50">activas</span></h3>
                         <div class="small mt-1">
-                            <span class="badge bg-success me-1"><?php echo $debtOverview['al_dia']; ?> al día</span>
+                            <span class="badge bg-success me-1"><span class="status-pulse-online"></span><?php echo $debtOverview['al_dia']; ?> al día</span>
                             <span class="badge bg-danger"><?php echo $debtOverview['con_deuda']; ?> en mora</span>
                         </div>
                     </div>
-                    <div class="fs-1 text-warning opacity-75">
+                    <div class="fs-1 text-warning opacity-75 metric-icon-warning">
                         <i class="bi bi-exclamation-diamond-fill"></i>
                     </div>
                 </div>
@@ -109,12 +109,12 @@ $clientSummary = isset($data['client_summary']) ? $data['client_summary'] : null
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <div class="text-white-50 small text-uppercase fw-bold">Clientes & Cuentas ACC</div>
-                        <h3 class="fw-bold mb-0 text-white mt-1"><?php echo $data['total_clients']; ?> <span class="fs-6 fw-normal text-white-50">clientes</span></h3>
+                        <h3 class="fw-bold mb-0 text-white mt-1 tech-mono"><?php echo $data['total_clients']; ?> <span class="fs-6 fw-normal text-white-50">clientes</span></h3>
                         <div class="text-white-50 small mt-1">
                             <i class="bi bi-person-badge me-1"></i><?php echo $data['total_accounts']; ?> cuentas Starlink activas
                         </div>
                     </div>
-                    <div class="fs-1 text-info opacity-75">
+                    <div class="fs-1 text-info opacity-75 metric-icon-glow">
                         <i class="bi bi-people-fill"></i>
                     </div>
                 </div>

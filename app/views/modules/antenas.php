@@ -102,19 +102,19 @@ $isExpectador = $userRole === 'Expectador';
                                 ?>
                                 <div>
                                     <?php if ($overdueMonths > 0): ?>
-                                        <span class="badge bg-danger text-white">
-                                            <i class="bi bi-exclamation-triangle-fill me-1"></i><?php echo $overdueMonths . ($overdueMonths === 1 ? ' mes atrasado' : ' meses atrasados'); ?>
+                                        <span class="badge bg-danger-subtle border border-danger text-danger fw-bold">
+                                            <span class="status-pulse-danger"></span><?php echo $overdueMonths . ($overdueMonths === 1 ? ' mes atrasado' : ' meses atrasados'); ?>
                                         </span>
-                                        <div class="small text-danger fw-semibold mt-1">
+                                        <div class="small text-danger fw-semibold mt-1 tech-mono">
                                             Deuda: $<?php echo number_format($overdueAmount, 2); ?>
                                         </div>
                                     <?php elseif ($isPaid): ?>
-                                        <span class="badge bg-success text-dark">
-                                            <i class="bi bi-check-circle-fill me-1"></i>Al día
+                                        <span class="badge bg-success-subtle border border-success text-success fw-bold">
+                                            <span class="status-pulse-online"></span>Al día
                                         </span>
                                     <?php else: ?>
-                                        <span class="badge bg-warning text-dark">
-                                            <i class="bi bi-clock-history me-1"></i>Pendiente
+                                        <span class="badge bg-warning-subtle border border-warning text-warning fw-bold">
+                                            <span class="status-pulse-warning"></span>Pendiente
                                         </span>
                                         <div class="small text-white-50 mt-1">
                                             Vence día <?php echo htmlspecialchars($antena['due_day'] ?? $antena['pay'] ?? ''); ?>

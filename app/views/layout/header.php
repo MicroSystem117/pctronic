@@ -7,6 +7,9 @@
             <i class="bi bi-list"></i>
         </button>
         <h2 class="app-header-title h4 text-white mb-0">Sistema de Gestión</h2>
+        <span class="badge border border-info-subtle text-info d-none d-sm-inline-flex align-items-center ms-2" style="font-size: 0.72rem; background: rgba(56, 189, 248, 0.1);">
+            <span class="status-pulse-online"></span>Starlink Control
+        </span>
     </div>
 
     <div class="dropdown ms-auto">

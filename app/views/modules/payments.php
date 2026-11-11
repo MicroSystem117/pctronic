@@ -69,11 +69,11 @@ $canDelete = $canReview;
                                     $isAtrasado = ($antena['status_label'] ?? '') === 'Atrasado';
 
                                     if ($overdueMonths > 0) {
-                                        $statusLabel = '<span class="badge bg-danger text-white"><i class="bi bi-exclamation-triangle-fill me-1"></i>' . $overdueMonths . ($overdueMonths === 1 ? ' mes atrasado' : ' meses atrasados') . '</span>';
+                                        $statusLabel = '<span class="badge bg-danger-subtle border border-danger text-danger fw-bold"><span class="status-pulse-danger"></span>' . $overdueMonths . ($overdueMonths === 1 ? ' mes atrasado' : ' meses atrasados') . '</span>';
                                     } elseif ($isPaid) {
-                                        $statusLabel = '<span class="badge bg-success text-dark"><i class="bi bi-check-circle-fill me-1"></i>Al día</span>';
+                                        $statusLabel = '<span class="badge bg-success-subtle border border-success text-success fw-bold"><span class="status-pulse-online"></span>Al día</span>';
                                     } else {
-                                        $statusLabel = '<span class="badge bg-warning text-dark"><i class="bi bi-clock-history me-1"></i>Pendiente</span>';
+                                        $statusLabel = '<span class="badge bg-warning-subtle border border-warning text-warning fw-bold"><span class="status-pulse-warning"></span>Pendiente</span>';
                                     }
 
                                     $waReminderUrl = null;
@@ -217,9 +217,18 @@ $canDelete = $canReview;
                                     <td data-label="Estado">
                                         <?php
                                             $paymentStatus = $payment['status'] ?? 'Pendiente';
-                                            $statusClass = $paymentStatus === 'Aprobado' ? 'bg-success text-dark' : ($paymentStatus === 'Rechazado' ? 'bg-danger text-white' : 'bg-warning text-dark');
+                                            $statusClass = $paymentStatus === 'Aprobado' ? 'bg-success-subtle border border-success text-success fw-bold' : ($paymentStatus === 'Rechazado' ? 'bg-danger-subtle border border-danger text-danger fw-bold' : 'bg-warning-subtle border border-warning text-warning fw-bold');
                                         ?>
-                                        <span class="badge <?php echo $statusClass; ?>"><?php echo htmlspecialchars($paymentStatus); ?></span>
+                                        <span class="badge <?php echo $statusClass; ?>">
+                                            <?php if ($paymentStatus === 'Aprobado'): ?>
+                                                <span class="status-pulse-online"></span>
+                                            <?php elseif ($paymentStatus === 'Rechazado'): ?>
+                                                <span class="status-pulse-danger"></span>
+                                            <?php else: ?>
+                                                <span class="status-pulse-warning"></span>
+                                            <?php endif; ?>
+                                            <?php echo htmlspecialchars($paymentStatus); ?>
+                                        </span>
                                     </td>
                                     <td data-label="Acciones" class="text-nowrap">
                                         <div class="d-inline-flex align-items-center gap-1">
