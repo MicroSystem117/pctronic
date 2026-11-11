@@ -319,42 +319,52 @@ small {
         width: 100% !important;
         min-width: 0 !important;
         table-layout: fixed;
-        font-size: 0.68rem;
+        font-size: 0.72rem;
     }
 
     .calendar-modal-host .calendar-table th,
     .calendar-modal-host .calendar-table td {
         width: 14.2857%;
-        padding: 0.3rem 0.15rem;
+        padding: 0.35rem 0.2rem;
         overflow: hidden;
     }
 
     .calendar-modal-host .calendar-table td {
-        height: 92px;
-        max-height: 92px;
+        height: 60px;
+        max-height: 60px;
+        min-height: 60px;
     }
 
     .calendar-modal-host .calendar-day-header {
-        padding-right: 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        padding: 0;
+    }
+
+    .calendar-modal-host .calendar-day-num {
+        font-family: var(--st-font-mono, monospace);
+        font-weight: 700;
+        font-size: 0.85rem;
+        white-space: nowrap;
+        line-height: 1;
     }
 
     .calendar-modal-host .day-summary-badge {
-        top: 1px;
-        right: 1px;
-        padding: 0.15rem 0.25rem;
-        font-size: 0.62rem;
+        position: static;
+        padding: 0.15rem 0.35rem;
+        font-size: 0.65rem;
+        font-weight: 700;
+        line-height: 1;
+        border-radius: 9999px;
+        background: rgba(14, 165, 233, 0.25) !important;
+        border: 1px solid #38bdf8 !important;
+        color: #38bdf8 !important;
     }
 
     .calendar-modal-host .calendar-cell-content {
-        max-height: 60px;
-        overflow: hidden;
-        padding-right: 0;
-    }
-
-    .calendar-modal-host .calendar-day-link > div {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        display: none !important;
     }
 
     .app-header.d-flex.justify-content-between {
@@ -829,17 +839,97 @@ small {
 
 .list-group-item .badge { font-size: 0.85rem; }
 
-.day-summary-badge { position: absolute; top: 6px; right: 6px; padding: 0.25rem 0.45rem; font-size:0.75rem; line-height:1; }
-.calendar-day-header { position: relative; padding-right: 40px; }
-.calendar-table td.position-relative { position: relative; }
-
-/* Forzar color azul en celdas que tienen pagos */
-.calendar-table td.table-warning {
-    background-color: #0d6efd !important; /* Bootstrap primary */
-    color: #ffffff !important;
+.calendar-table {
+    border-color: rgba(56, 189, 248, 0.15) !important;
 }
-.calendar-table td.table-warning .text-white { color: #ffffff !important; }
-.calendar-table td.table-warning .day-summary-badge { background: rgba(255,255,255,0.95); color: #000; }
+
+.calendar-table-head th {
+    background: #080c16 !important;
+    color: var(--st-cyan, #38bdf8) !important;
+    font-family: var(--st-font-mono, monospace);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-align: center;
+    border-bottom: 2px solid rgba(56, 189, 248, 0.25) !important;
+    padding: 0.5rem 0.2rem;
+}
+
+.calendar-table td {
+    vertical-align: top;
+    height: 110px;
+    max-height: 110px;
+    overflow: hidden;
+    background: #0b1120;
+    border-color: rgba(255, 255, 255, 0.07) !important;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.calendar-table td.calendar-empty-cell {
+    background: rgba(3, 7, 18, 0.6) !important;
+}
+
+.calendar-table td.calendar-has-payments {
+    background: rgba(14, 165, 233, 0.08) !important;
+    border-color: rgba(56, 189, 248, 0.25) !important;
+    cursor: pointer;
+}
+
+.calendar-table td.calendar-has-payments:hover {
+    background: rgba(14, 165, 233, 0.18) !important;
+    border-color: rgba(56, 189, 248, 0.55) !important;
+}
+
+.calendar-table td.calendar-day-today {
+    box-shadow: inset 0 0 0 2px #38bdf8, 0 0 12px rgba(56, 189, 248, 0.25) !important;
+}
+
+.calendar-table td.calendar-day-today .calendar-day-num {
+    color: #38bdf8 !important;
+    font-weight: 800;
+}
+
+.calendar-day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 3px;
+}
+
+.calendar-day-num {
+    font-family: var(--st-font-mono, monospace);
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.day-summary-badge {
+    padding: 0.15rem 0.45rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1;
+    border-radius: 9999px;
+    background: rgba(14, 165, 233, 0.2) !important;
+    color: #38bdf8 !important;
+    border: 1px solid rgba(56, 189, 248, 0.5) !important;
+}
+
+.calendar-event-pill {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    padding: 1px 4px;
+    margin-bottom: 2px;
+    font-size: 0.7rem;
+    transition: background 0.15s ease;
+}
+
+.calendar-event-pill:hover {
+    background: rgba(56, 189, 248, 0.15);
+    border-color: rgba(56, 189, 248, 0.3);
+}
 
 /* ==========================================================================
    5. UNIFICACIÓN VISUAL GLOBAL - AZUL, NEGRO Y GRIS

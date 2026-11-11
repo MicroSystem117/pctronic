@@ -391,77 +391,146 @@ $clientSummary = isset($data['client_summary']) ? $data['client_summary'] : null
                 if ($nextMonth > 12) { $nextMonth = 1; $nextYear = $year + 1; }
             ?>
 
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div>
-                    <a class="btn btn-sm btn-outline-light" href="index.php?url=dashboard&month=<?php echo $prevMonth; ?>&year=<?php echo $prevYear; ?>">&laquo; Mes Anterior</a>
-                    <span class="mx-3 fw-bold text-white text-capitalize"><?php echo htmlspecialchars($monthLabel, ENT_QUOTES, 'UTF-8'); ?></span>
-                    <a class="btn btn-sm btn-outline-light" href="index.php?url=dashboard&month=<?php echo $nextMonth; ?>&year=<?php echo $nextYear; ?>">Mes Siguiente &raquo;</a>
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div class="d-flex align-items-center flex-wrap gap-2">
+                    <a class="btn btn-sm btn-outline-light" href="index.php?url=dashboard&month=<?php echo $prevMonth; ?>&year=<?php echo $prevYear; ?>">&laquo; Anterior</a>
+                    <span class="fw-bold text-white text-capitalize mx-2 tech-mono fs-6"><?php echo htmlspecialchars($monthLabel, ENT_QUOTES, 'UTF-8'); ?></span>
+                    <a class="btn btn-sm btn-outline-light" href="index.php?url=dashboard&month=<?php echo $nextMonth; ?>&year=<?php echo $nextYear; ?>">Siguiente &raquo;</a>
+                </div>
+                <div class="btn-group btn-group-sm" role="group" aria-label="Vista de calendario">
+                    <button type="button" class="btn btn-outline-info active" id="btnCalViewGrid" onclick="toggleCalView('grid')">
+                        <i class="bi bi-grid-3x3 me-1"></i>Cuadrícula
+                    </button>
+                    <button type="button" class="btn btn-outline-info" id="btnCalViewList" onclick="toggleCalView('list')">
+                        <i class="bi bi-view-list me-1"></i>Agenda
+                    </button>
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-12">
-                    <div class="mobile-table-hint d-md-none mb-2">
-                        <i class="bi bi-arrow-left-right text-info"></i> Desliza para ver el calendario completo
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-dark table-bordered mb-0 calendar-table pdf-exportable" data-pdf-title="Calendario de pagos">
-                            <thead class="table-light text-dark">
-                                <tr>
-                                    <th>Dom</th>
-                                    <th>Lun</th>
-                                    <th>Mar</th>
-                                    <th>Mié</th>
-                                    <th>Jue</th>
-                                    <th>Vie</th>
-                                    <th>Sáb</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php
-                                $day = 1;
-                                $started = false;
-                                for ($row = 0; $row < 6; $row++):
-                                    echo "<tr>";
-                                    for ($col = 0; $col < 7; $col++):
-                                        if (!$started && $col === $startWeekday) { $started = true; }
-                                        if (!$started) {
-                                            echo "<td class=\"bg-dark\">&nbsp;</td>";
-                                            continue;
-                                        }
-                                        if ($day > $daysInMonth) {
-                                            echo "<td class=\"bg-dark\">&nbsp;</td>";
-                                        } else {
-                                            $cellClass = isset($payDays[$day]) ? 'table-warning text-dark' : '';
-                                            echo "<td class=\"position-relative {$cellClass}\">";
-                                            echo "<div class=\"calendar-day-header\"><strong>" . $day . "</strong>";
-                                            if (isset($payDays[$day])) {
-                                                $rows = $payDays[$day];
-                                                $count = count($rows);
-                                                $dataRows = htmlspecialchars(json_encode($rows), ENT_QUOTES, 'UTF-8');
-                                                echo "<button type=\"button\" class=\"btn btn-sm btn-light text-dark fw-bold day-summary-badge\" data-day=\"{$day}\" data-rows=\"{$dataRows}\">" . $count . "</button>";
+            <div id="calendarGridView">
+                <div class="table-responsive">
+                    <table class="table table-dark table-bordered mb-0 calendar-table pdf-exportable" data-pdf-title="Calendario de pagos">
+                        <thead>
+                            <tr class="calendar-table-head">
+                                <th>DOM</th>
+                                <th>LUN</th>
+                                <th>MAR</th>
+                                <th>MIÉ</th>
+                                <th>JUE</th>
+                                <th>VIE</th>
+                                <th>SÁB</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            $day = 1;
+                            $started = false;
+                            $curYear = intval(date('Y'));
+                            $curMonth = intval(date('n'));
+                            $curDay = intval(date('j'));
+
+                            for ($row = 0; $row < 6; $row++):
+                                echo "<tr>";
+                                for ($col = 0; $col < 7; $col++):
+                                    if (!$started && $col === $startWeekday) { $started = true; }
+                                    if (!$started || $day > $daysInMonth) {
+                                        echo "<td class=\"calendar-empty-cell\">&nbsp;</td>";
+                                        continue;
+                                    }
+
+                                    $hasPay = isset($payDays[$day]);
+                                    $isToday = ($year === $curYear && $month === $curMonth && $day === $curDay);
+
+                                    $cellClasses = ['position-relative', 'calendar-day-cell'];
+                                    if ($hasPay) $cellClasses[] = 'calendar-has-payments';
+                                    if ($isToday) $cellClasses[] = 'calendar-day-today';
+                                    $classStr = implode(' ', $cellClasses);
+
+                                    $dataRows = $hasPay ? htmlspecialchars(json_encode($payDays[$day]), ENT_QUOTES, 'UTF-8') : '[]';
+                                    $count = $hasPay ? count($payDays[$day]) : 0;
+
+                                    echo "<td class=\"{$classStr}\" data-day=\"{$day}\" data-rows=\"{$dataRows}\">";
+                                    echo "<div class=\"calendar-day-header\">";
+                                    echo "<span class=\"calendar-day-num\">" . $day . "</span>";
+                                    if ($hasPay) {
+                                        echo "<span class=\"badge day-summary-badge\" title=\"{$count} cobro(s)\">" . $count . "</span>";
+                                    }
+                                    echo "</div>";
+
+                                    if ($hasPay) {
+                                        echo "<div class=\"calendar-cell-content d-none d-md-block mt-1\">";
+                                        foreach (array_slice($payDays[$day], 0, 2) as $a) {
+                                            $label = htmlspecialchars(($a['cliente'] ?? '') . ' • ' . $a['serial']);
+                                            echo "<div class=\"calendar-event-pill text-truncate\" title=\"{$label}\">";
+                                            echo "<span class=\"text-info tech-mono fw-bold\">" . htmlspecialchars($a['serial']) . "</span>";
+                                            if (!empty($a['cliente'])) {
+                                                echo "<span class=\"text-white-50 ms-1\">" . htmlspecialchars($a['cliente']) . "</span>";
                                             }
-                                            echo "</div><div class=\"mt-2 small calendar-cell-content\">";
-                                            if (isset($payDays[$day])) {
-                                                echo "<a href=\"#\" class=\"calendar-day-link text-decoration-none\" data-day=\"{$day}\" data-rows=\"{$dataRows}\">";
-                                                foreach ($payDays[$day] as $a) {
-                                                    $label = htmlspecialchars($a['serial'] . ' — ' . ($a['cliente'] ?? '-'));
-                                                    echo "<div class=\"py-1 text-dark fw-semibold text-truncate\">{$label}</div>";
-                                                }
-                                                echo "</a>";
-                                            }
-                                            echo "</div></td>";
+                                            echo "</div>";
                                         }
-                                        $day++;
-                                    endfor;
-                                    echo "</tr>";
-                                    if ($day > $daysInMonth) break;
+                                        if ($count > 2) {
+                                            echo "<div class=\"text-info fw-bold\" style=\"font-size: 0.68rem;\">+" . ($count - 2) . " más...</div>";
+                                        }
+                                        echo "</div>";
+                                    }
+                                    echo "</td>";
+                                    $day++;
                                 endfor;
-                                ?>
-                            </tbody>
-                        </table>
-                    </div>
+                                echo "</tr>";
+                                if ($day > $daysInMonth) break;
+                            endfor;
+                            ?>
+                        </tbody>
+                    </table>
                 </div>
+            </div>
+
+            <!-- Vista Agenda / Lista Cronológica para Móviles -->
+            <div id="calendarListView" class="d-none mt-2">
+                <?php if (empty($payDays)): ?>
+                    <div class="text-center py-4 text-white-50">
+                        <i class="bi bi-calendar-x d-block mb-2 fs-3 text-secondary"></i>
+                        No hay cobros programados para este mes.
+                    </div>
+                <?php else: ?>
+                    <div class="row g-3">
+                        <?php ksort($payDays); foreach ($payDays as $pDay => $antenasInDay): ?>
+                            <div class="col-12 col-md-6 col-xl-4">
+                                <div class="card card-custom p-3 border-start border-info border-3 h-100 shadow-sm">
+                                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-secondary border-opacity-25">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="fs-5 fw-bold text-info tech-mono">Día <?php echo $pDay; ?></span>
+                                            <span class="text-white-50 small"><?php echo htmlspecialchars($monthLabel, ENT_QUOTES, 'UTF-8'); ?></span>
+                                        </div>
+                                        <span class="badge bg-primary-subtle border border-info border-opacity-50 text-info fw-bold">
+                                            <?php echo count($antenasInDay); ?> <?php echo count($antenasInDay) === 1 ? 'antena' : 'antenas'; ?>
+                                        </span>
+                                    </div>
+                                    <div class="list-group list-group-flush">
+                                        <?php foreach ($antenasInDay as $ant): ?>
+                                            <div class="list-group-item bg-transparent text-white px-0 py-2 border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+                                                <div class="text-truncate me-2">
+                                                    <div class="fw-semibold text-truncate text-white"><?php echo htmlspecialchars($ant['cliente'] ?? 'Sin cliente'); ?></div>
+                                                    <div class="text-white-50 tech-mono small d-flex align-items-center gap-1">
+                                                        <span><?php echo htmlspecialchars($ant['serial']); ?></span>
+                                                        <?php if (!empty($ant['nombre_plan'])): ?>
+                                                            <span class="badge border border-secondary text-white-50 ms-1" style="font-size: 0.65rem;"><?php echo htmlspecialchars($ant['nombre_plan']); ?></span>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+                                                <div class="text-end flex-shrink-0">
+                                                    <a href="index.php?url=payments&quick_serial=<?php echo urlencode($ant['serial']); ?>" class="btn btn-sm btn-outline-success py-1 px-2" style="font-size: 0.75rem;" title="Cobrar antena">
+                                                        <i class="bi bi-cash-stack me-1"></i>Cobrar
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             </div>
 
             <!-- Modales del Calendario -->
@@ -478,6 +547,26 @@ $clientSummary = isset($data['client_summary']) ? $data['client_summary'] : null
             </div>
 
             <script>
+                window.toggleCalView = function(view) {
+                    const gridView = document.getElementById('calendarGridView');
+                    const listView = document.getElementById('calendarListView');
+                    const btnGrid = document.getElementById('btnCalViewGrid');
+                    const btnList = document.getElementById('btnCalViewList');
+                    if (!gridView || !listView) return;
+
+                    if (view === 'list') {
+                        gridView.classList.add('d-none');
+                        listView.classList.remove('d-none');
+                        btnList?.classList.add('active');
+                        btnGrid?.classList.remove('active');
+                    } else {
+                        listView.classList.add('d-none');
+                        gridView.classList.remove('d-none');
+                        btnGrid?.classList.add('active');
+                        btnList?.classList.remove('active');
+                    }
+                };
+
                 (function(){
                     var planColors = <?php echo json_encode($planColors); ?>;
                     function buildList(rows){
@@ -486,21 +575,24 @@ $clientSummary = isset($data['client_summary']) ? $data['client_summary'] : null
                         rows.forEach(function(r){
                             var plan = r.nombre_plan || '';
                             var badgeClass = planColors[plan] || 'badge bg-secondary';
-                            html += '<div class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between align-items-start">';
-                            html += '<div><div class="fw-bold">' + (r.serial || '-') + '</div><div class="small text-white-50">' + (r.cliente || '') + '</div></div>';
+                            html += '<div class="list-group-item bg-dark text-white border-secondary border-opacity-50 d-flex justify-content-between align-items-center py-2 px-3 mb-1 rounded">';
+                            html += '<div class="me-2"><div class="fw-bold text-white fs-6">' + (r.cliente || 'Sin cliente asignado') + '</div>';
+                            html += '<div class="small text-white-50 tech-mono"><span class="text-info">' + (r.serial || '-') + '</span>';
+                            if (r.kit) html += ' • Kit: ' + r.kit;
+                            html += '</div></div>';
                             var status = r.payment_status || '';
                             var statusClass = '';
-                            if (status === 'Pagado') statusClass = 'badge bg-success text-dark';
-                            else if (status === 'Pendiente') statusClass = 'badge bg-warning text-dark';
-                            else if (status === 'Atrasado') statusClass = 'badge bg-danger text-white';
-                            html += '<div class="text-end">';
+                            if (status === 'Pagado') statusClass = 'badge bg-success-subtle text-success border border-success';
+                            else if (status === 'Pendiente') statusClass = 'badge bg-warning-subtle text-warning border border-warning';
+                            else if (status === 'Atrasado') statusClass = 'badge bg-danger-subtle text-danger border border-danger';
+                            html += '<div class="text-end d-flex flex-column align-items-end gap-1 flex-shrink-0">';
+                            html += '<div class="d-flex align-items-center gap-1">';
                             html += '<span class="' + badgeClass + '">' + plan + '</span>';
                             if (status) {
-                                html += '<div class="small mt-1"><span class="' + statusClass + '">' + status + '</span></div>';
+                                html += '<span class="' + statusClass + '">' + status + '</span>';
                             }
-                            <?php if (!$isExpectador): ?>
-                                html += '<div class="small text-white-50 mt-1">' + (r.cuenta_starlink || '') + '</div>';
-                            <?php endif; ?>
+                            html += '</div>';
+                            html += '<a href="index.php?url=payments&quick_serial=' + encodeURIComponent(r.serial || '') + '" class="btn btn-sm btn-outline-success py-0 px-2 mt-1" style="font-size: 0.72rem;"><i class="bi bi-cash me-1"></i>Cobrar</a>';
                             html += '</div>';
                             html += '</div>';
                         });
@@ -508,15 +600,19 @@ $clientSummary = isset($data['client_summary']) ? $data['client_summary'] : null
                         return html;
                     }
 
-                    document.querySelectorAll('.day-summary-badge, .calendar-day-link').forEach(function(el){
+                    document.querySelectorAll('.calendar-has-payments, .day-summary-badge, .calendar-day-link').forEach(function(el){
                         el.addEventListener('click', function(e){
+                            // Si se hizo click en un enlace interno especifico, no interceptar
+                            if (e.target.closest('a') && !e.target.closest('.calendar-day-link')) return;
                             e.preventDefault();
+                            var target = el.classList.contains('calendar-has-payments') ? el : (el.closest('.calendar-has-payments') || el);
                             var rows = [];
-                            try { rows = JSON.parse(this.getAttribute('data-rows') || '[]'); } catch(err){ rows = []; }
-                            var day = this.getAttribute('data-day') || '';
+                            try { rows = JSON.parse(target.getAttribute('data-rows') || '[]'); } catch(err){ rows = []; }
+                            var day = target.getAttribute('data-day') || '';
+                            if (!rows || rows.length === 0) return;
                             var body = document.getElementById('dayModalBody');
                             var title = document.getElementById('dayModalTitle');
-                            title.textContent = 'Día ' + day + ' — ' + (rows.length) + ' pago(s)';
+                            title.textContent = 'Día ' + day + ' de cobro — ' + (rows.length) + ' antena(s)';
                             body.innerHTML = buildList(rows);
                             var modalEl = document.getElementById('dayModal');
                             var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
